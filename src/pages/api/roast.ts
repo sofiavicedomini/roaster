@@ -35,10 +35,17 @@ const locales: string[] = ["en", "it", "fr", "es", "pt", "de", "nl", "ru", "et"]
           }),
         });
 
-        const turnstileData = await turnstileResponse.json() as { success: boolean };
+        const turnstileData = await turnstileResponse.json() as { success: boolean; "error-codes"?: string[] };
         if (!turnstileData.success) {
+          const errorCodes = turnstileData["error-codes"] || [];
           console.warn("[Roast API] Turnstile verification failed:", turnstileData);
-          return new Response(JSON.stringify({ error: "CAPTCHA verification failed" }), {
+
+          let errorMsg = "CAPTCHA verification failed";
+          if (errorCodes.includes("timeout-or-duplicate") || errorCodes.includes("invalid-input-response")) {
+            errorMsg = "Il captcha è scaduto. Riprova.";
+          }
+
+          return new Response(JSON.stringify({ error: errorMsg }), {
             status: 403,
             headers: { "Content-Type": "application/json" },
           });

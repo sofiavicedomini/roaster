@@ -81,6 +81,7 @@ export function Chatbot({ locale = "en" }: ChatbotProps) {
   const [result, setResult] = useState<RoastResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+  const [isTurnstileExpired, setIsTurnstileExpired] = useState(false);
   const turnstileRef = useRef<HTMLDivElement>(null);
   const widgetIdRef = useRef<string | null>(null);
   const turnstileSiteKey = typeof import.meta !== "undefined" && import.meta.env?.PUBLIC_TURNSTILE_SITE_KEY
@@ -93,18 +94,45 @@ export function Chatbot({ locale = "en" }: ChatbotProps) {
 
     const scriptId = "cf-turnstile-script";
 
+    const resetTurnstile = () => {
+      if (widgetIdRef.current && window.turnstile) {
+        try {
+          window.turnstile.reset(widgetIdRef.current);
+        } catch (e) {
+          console.warn("[Turnstile] Reset failed, re-rendering", e);
+          widgetIdRef.current = null;
+        }
+      }
+      setTurnstileToken(null);
+      setIsTurnstileExpired(false);
+    };
+
     const renderTurnstile = () => {
-      if (!turnstileRef.current || !window.turnstile || widgetIdRef.current) return;
+      if (!turnstileRef.current || !window.turnstile) return;
+
+      // Clean up old widget if exists
+      if (widgetIdRef.current) {
+        try {
+          window.turnstile.remove(widgetIdRef.current);
+        } catch (err) {
+          console.warn("[Turnstile] Cleanup error:", err);
+        }
+        widgetIdRef.current = null;
+      }
 
       widgetIdRef.current = window.turnstile.render(turnstileRef.current, {
         sitekey: turnstileSiteKey,
         callback: (token: string) => {
           setTurnstileToken(token);
+          setIsTurnstileExpired(false);
           console.log("[Turnstile] Token received");
         },
         "expired-callback": () => {
           setTurnstileToken(null);
-          console.warn("[Turnstile] Token expired");
+          setIsTurnstileExpired(true);
+          console.warn("[Turnstile] Token expired - will auto-renew on next submit");
+          // Auto-renew after a short delay
+          setTimeout(resetTurnstile, 800);
         },
         "error-callback": (error?: unknown) => {
           console.error("[Turnstile] Error:", error);
@@ -112,6 +140,7 @@ export function Chatbot({ locale = "en" }: ChatbotProps) {
           if (err?.code === 300030) {
             console.error("[Turnstile] Error 300030 - Check site key and domain in Cloudflare dashboard");
           }
+          setIsTurnstileExpired(true);
         },
         theme: "dark",
         appearance: "interaction-only",
@@ -258,10 +287,19 @@ export function Chatbot({ locale = "en" }: ChatbotProps) {
         </div>
 
         {turnstileSiteKey && (
-          <div ref={turnstileRef} className="flex justify-center"></div>
+          <div ref={turnstileRef} className="flex justify-center min-h-[70px]"></div>
         )}
 
-        <Button type="submit" disabled={isLoading || !url || selectedCategories.length === 0 || (turnstileSiteKey && !turnstileToken)}>
+        {isTurnstileExpired && (
+          <div className="text-center text-xs text-amber-400 bg-amber-500/10 border border-amber-500/30 rounded p-2">
+            Il captcha è scaduto. Lo sto rinnovando automaticamente...
+          </div>
+        )}
+
+        <Button
+          type="submit"
+          disabled={isLoading || !url || selectedCategories.length === 0}
+        >
           {isLoading ? t.chatbot.buttonLoading : t.chatbot.buttonRoast}
         </Button>
 
