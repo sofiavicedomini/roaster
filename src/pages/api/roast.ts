@@ -194,10 +194,23 @@ async function checkAgentReadiness(baseUrl: string) {
 
   for (const check of checks) {
     const content = await fetchUrl(check.url);
-    results[check.key] = content
-      ? { status: "found", detail: `${check.label} exists (${content.length} chars)`, score: check.score }
-      : { status: "not found", detail: `${check.label} not found at ${check.url}`, score: 0 };
-    if (content) totalScore += check.score;
+    if (content) {
+      const snippet = content.length > 300 
+        ? content.substring(0, 297) + "..." 
+        : content;
+      results[check.key] = { 
+        status: "found", 
+        detail: `${check.label} found (${content.length} chars). Content: ${snippet.replace(/\n/g, ' ')}`, 
+        score: check.score 
+      };
+      totalScore += check.score;
+    } else {
+      results[check.key] = { 
+        status: "not found", 
+        detail: `${check.label} not found at ${check.url}`, 
+        score: 0 
+      };
+    }
     maxScore += check.score;
   }
 
@@ -241,27 +254,31 @@ async function buildPrompt(url: string, categories: string[], locale: string = "
     basePrompt = `You're a senior developer who's been building websites for 15 years. A colleague just showed you their site ({{URL}}) and asked for honest feedback. You're a good friend — you're not going to trash them — but you're also not going to lie to them. You talk like a real person: short sentences, a dry sense of humor, occasional sarcasm, no corporate fluff.`;
   }
 
-  // Add language instruction based on UI locale
+  // Add language instruction
   const langName = locale === "it" ? "Italian" : locale === "en" ? "English" : locale.toUpperCase();
   const languageInstruction = `\n\nCRITICAL: The user is browsing the interface in ${locale.toUpperCase()} (${langName}). Respond ENTIRELY in ${langName}, using natural, colloquial tone appropriate for speakers of that language. Match the cultural style and directness expected in that language.`;
 
   basePrompt = basePrompt.trim() + languageInstruction + "\n\n";
 
+  // Run agent checks if relevant categories are selected
   const agentCategories = ["agentReadiness", "robots", "mcp", "apiDiscovery", "botAuth"];
   const hasAgentChecks = categories.some((c) => agentCategories.includes(c));
-  let agentData = "";
 
   if (hasAgentChecks) {
-    console.log("[buildPrompt] Running agent readiness checks...");
+    console.log("[buildPrompt] Running real MCP/Agent scraping checks...");
     const checks = await checkAgentReadiness(url);
-    agentData = `\n\n### Agent Readiness Check Results:\n${JSON.stringify(checks, null, 2)}\n\nUse this data to inform your roasts for agentReadiness related categories.`;
+    basePrompt = basePrompt.replace(
+      "{{AGENT_DATA}}", 
+      `### REAL AGENT READINESS CHECK RESULTS (MCP scraping completed):\n${JSON.stringify(checks, null, 2)}\n\n`
+    );
+  } else {
+    basePrompt = basePrompt.replace("{{AGENT_DATA}}", "");
   }
 
   const categoriesStr = categories.length > 0 ? categories.join(", ") : "design, performance, ux, seo, code, accessibility";
   const modified = basePrompt
     .replace("https://vicedominisoftworks.com/en", url)
-    .replace(/these categories: design, performance, ux, seo, code, accessibility/, `these categories: ${categoriesStr}`)
-    + agentData;
+    .replace(/these categories: design, performance, ux, seo, code, accessibility/, `these categories: ${categoriesStr}`);
 
   console.log("[buildPrompt] Final prompt length:", modified.length);
   return modified;

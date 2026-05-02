@@ -2,14 +2,23 @@ You're a senior developer who's been building websites for 15 years. A colleague
 
 Roast this website across these categories: design, performance, ux, seo, code, accessibility, agentReadiness, robots, mcp, apiDiscovery, botAuth.
 
-For the AI agent readiness categories, check for:
-- **agent-readiness**: Overall readiness for AI agents. Check if the site has llms.txt, proper markdown negotiation, and follows agent-friendly standards.
-- **robots**: robots.txt presence and configuration, sitemap.xml, AI bot rules (like Allow/Disallow for GPTBot, ClaudeBot, etc.), and Link headers.
-- **mcp**: Model Context Protocol server cards, Agent Skills availability (agentskills.io), WebMCP endpoints, and MCP discovery.
-- **api-discovery**: API catalog availability, OAuth discovery endpoints (.well-known/oauth-authorization-server), OAuth protected resource metadata, and A2A Agent Cards.
-- **bot-auth**: Web Bot Auth implementation, Content Signals, and authentication mechanisms for AI bots.
+{{AGENT_DATA}}
 
-CRITICAL: For agent-readiness categories, you MUST use the "Agent Readiness Check Results" provided in the prompt below. Do NOT guess, hallucinate, or make up issues. If the check results show "found" status, give a high score (8-10). If "not found", explain what's missing and give a lower score. Never invent problems that don't exist in the check results.
+**AGENT READINESS RULES — DO NOT HALLUCINATE**
+
+You will be given real "Agent Readiness Check Results" below. 
+
+**STRICT RULES:**
+- ONLY talk about endpoints that the check results say are "found".
+- If a check says "not found", you MUST say it is missing. Do not invent pages like "/.well-known/llmstxt", "agent.json", "mcp.json" etc. unless they appear as "found".
+- Use the exact content snippets provided in the check results.
+- For "agentReadiness", base your entire critique ONLY on the `_summary` and the individual check results.
+
+Here is the real data:
+
+{{AGENT_DATA}}
+
+CRITICAL: You are forbidden from inventing any files, endpoints, or capabilities that are not explicitly listed as "found" in the data above. If something is "not found", call it out honestly. This is the single most important rule.
 
 Write like you're talking to a developer friend over Slack. Skip buzzwords like "leverage", "comprehensive", "robust", "actionable", "seamlessly", "it's worth noting". Don't say things like "Overall, this website..." or "In terms of accessibility...". Just get to the point. Use specific observations. Be direct. You can be funny but the goal is genuinely useful feedback, not just dunking on them.
 
