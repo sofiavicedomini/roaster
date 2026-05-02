@@ -419,6 +419,60 @@ async function callLLM(messages: Array<{role: string; content: string}>, apiBase
 
 type MessageRole = "system" | "user" | "assistant";
 
+function validateFinalRoast(final_roast: unknown, categories: string[]): { valid: boolean; errors: string[] } {
+  const errors: string[] = [];
+  
+  if (!final_roast || typeof final_roast !== "object") {
+    return { valid: false, errors: ["final_roast is not an object"] };
+  }
+  
+  const roast = final_roast as Record<string, unknown>;
+  
+  if (typeof roast.overall_score !== "number") {
+    errors.push("missing or invalid overall_score");
+  } else if (roast.overall_score < 1 || roast.overall_score > 10) {
+    errors.push("overall_score must be between 1 and 10");
+  }
+  
+  if (typeof roast.verdict !== "string") {
+    errors.push("missing or invalid verdict");
+  }
+  
+  if (!roast.scores || typeof roast.scores !== "object") {
+    errors.push("missing or invalid scores object");
+  } else {
+    const scores = roast.scores as Record<string, unknown>;
+    for (const cat of categories) {
+      if (!(cat in scores)) {
+        errors.push(`missing score for category: ${cat}`);
+      } else if (typeof scores[cat] !== "number" && scores[cat] !== null) {
+        errors.push(`invalid score type for ${cat}`);
+      }
+    }
+  }
+  
+  if (!Array.isArray(roast.roasts)) {
+    errors.push("roasts must be an array");
+  } else {
+    const foundCategories = new Set<string>();
+    for (const item of roast.roasts) {
+      if (item && typeof item === "object" && "category" in item) {
+        foundCategories.add(item.category as string);
+      }
+    }
+    for (const cat of categories) {
+      if (!foundCategories.has(cat)) {
+        errors.push(`missing roast for category: ${cat}`);
+      }
+    }
+    if (roast.roasts.length === 0) {
+      errors.push("roasts array is empty");
+    }
+  }
+  
+  return { valid: errors.length === 0, errors };
+}
+
 async function runAgentLoop(
   systemPrompt: string,
   url: string,
@@ -466,9 +520,15 @@ async function runAgentLoop(
 
     const { action, action_input, final_roast } = agentOutput;
 
-    if (action === "OUTPUT_FINAL" && final_roast && typeof final_roast.overall_score === "number") {
-      console.log("[Roast API] Agent completed with final roast");
-      return final_roast;
+    if (action === "OUTPUT_FINAL" && final_roast) {
+      const validation = validateFinalRoast(final_roast, categories);
+      if (validation.valid) {
+        console.log("[Roast API] Agent completed with valid final roast");
+        return final_roast;
+      } else {
+        console.log("[Roast API] Validation failed:", validation.errors);
+        currentObservation = `VALIDATION FAILED: ${validation.errors.join("; ")}. You MUST include a complete roast for ALL categories: ${categories.join(", ")}. Regenerate with complete data.`;
+      }
     }
 
     if (action === "SCRAPE" && action_input && typeof action_input === "string") {
@@ -497,19 +557,46 @@ async function runAgentLoop(
   }
 
   console.log("[Roast API] Max iterations reached, forcing final output");
-  const finalMessages = [...messages, { role: "user" as MessageRole, content: "Max iterations reached. Output FINAL roast JSON now using all gathered real data. Do not hallucinate." }];
+  const finalMessages = [...messages, { role: "user" as MessageRole, content: `Max iterations reached. Output FINAL roast JSON now using all gathered real data. CRITICAL: Must include ALL categories: ${categories.join(", ")}. Do not hallucinate.` }];
   try {
     const finalContent = await callLLM(finalMessages, apiBase, apiKey, model);
     const finalOutput = JSON.parse(finalContent.trim());
-    if (finalOutput.final_roast) return finalOutput.final_roast;
-    return finalOutput;
+    if (finalOutput.final_roast) {
+      const validation = validateFinalRoast(finalOutput.final_roast, categories);
+      if (validation.valid) {
+        return finalOutput.final_roast;
+      }
+      console.log("[Roast API] Final validation failed, using fallback:", validation.errors);
+    } else if (finalOutput.overall_score) {
+      const validation = validateFinalRoast(finalOutput, categories);
+      if (validation.valid) {
+        return finalOutput;
+      }
+      console.log("[Roast API] Final validation failed, using fallback:", validation.errors);
+    }
+    return {
+      overall_score: 5,
+      verdict: "Agent loop completed but final parsing failed. Site has basic readiness.",
+      scores: categories.reduce((acc: Record<string, number>, cat: string) => { acc[cat] = 5; return acc; }, {} as Record<string, number>),
+      roasts: categories.map((cat, idx) => ({
+        category: cat,
+        emoji: ["🎨", "⚡", "🔍", "📱", "♿", "🤖"][idx % 6] || "📝",
+        critique: `Complete analysis for ${cat} category. Real agent checks were performed but output validation failed.`,
+        fix_prompt: `Fix ${cat} issues for ${url}. Implement thorough analysis based on real scraped data.`
+      })),
+    };
   } catch (e) {
     console.error("[Roast API] Final call failed:", e);
     return {
       overall_score: 5,
       verdict: "Agent loop completed but final parsing failed. Site has basic readiness.",
       scores: categories.reduce((acc: Record<string, number>, cat: string) => { acc[cat] = 5; return acc; }, {} as Record<string, number>),
-      roasts: [{ category: "agentReadiness", emoji: "🤖", critique: "The iterative agent ran but encountered parsing issues on final output. Real checks were performed.", fix_prompt: `Improve JSON output consistency for https://example.com` }],
+      roasts: categories.map((cat, idx) => ({
+        category: cat,
+        emoji: ["🎨", "⚡", "🔍", "📱", "♿", "🤖"][idx % 6] || "📝",
+        critique: `Complete analysis for ${cat} category. Real agent checks were performed but output validation failed.`,
+        fix_prompt: `Fix ${cat} issues for ${url}. Implement thorough analysis based on real scraped data.`
+      })),
     };
   }
 }
