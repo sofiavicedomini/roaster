@@ -32,6 +32,8 @@ export const onRequest = defineMiddleware(async (_, next) => {
     cspDirectives[2] += gtmDomains + cookiebotDomains
     // frame-src (index 7)
     cspDirectives[7] += " https://www.googletagmanager.com https://consentcdn.cookiebot.eu"
+    // connect-src (index 5) - Cookiebot API calls + CDN
+    cspDirectives[5] += " https://*.cookiebot.com https://cookiebot.com https://*.cookiebot.eu https://cookiebot.eu https://consentcdn.cookiebot.eu"
   }
 
 
