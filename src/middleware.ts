@@ -5,7 +5,6 @@ export const onRequest = defineMiddleware(async (_, next) => {
 
   const adsenseId = import.meta.env.ADSENSE_ACCOUNT_ID || ""
   const gtmId = import.meta.env.GTAG_ID || ""
-  const cookiebotId = import.meta.env.COOKIEBOT_ID || ""
 
   // Base CSP directives
   const cspDirectives = [
@@ -27,21 +26,14 @@ export const onRequest = defineMiddleware(async (_, next) => {
     cspDirectives[5] += " https://www.googletagmanager.com"
   }
 
-  // Add Cookiebot
-  if (cookiebotId) {
-    cspDirectives[1] += " https://consent.cookiebot.com https://cookiebot.com"
-    cspDirectives[3] += " https://consent.cookiebot.com https://cookiebot.com"
-    cspDirectives[5] += " https://consent.cookiebot.com https://cookiebot.com"
-  }
-
   // Add Google AdSense
   if (adsenseId) {
-    cspDirectives[1] += " https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net https://www.googletagservices.com https://tpc.googlesyndication.com"
-    cspDirectives[2] += " https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net https://www.googletagservices.com"
-    cspDirectives[3] += " https://*.g.doubleclick.net https://*.google.com https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net"
-    cspDirectives[4] += " https://*.g.doubleclick.net https://*.google.com"
-    cspDirectives[5] += " https://*.google.com https://pagead2.googlesyndication.com"
-    cspDirectives[6] += " https://googleads.g.doubleclick.net https://tpc.googlesyndication.com"
+    cspDirectives[1] += " https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net https://www.googletagservices.com https://tpc.googlesyndication.com https://fundingchoicesmessages.google.com https://www.gstatic.com"
+    cspDirectives[2] += " https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net https://www.googletagservices.com https://fundingchoicesmessages.google.com"
+    cspDirectives[3] += " https://*.g.doubleclick.net https://*.google.com https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net https://fundingchoicesmessages.google.com"
+    cspDirectives[4] += " https://*.g.doubleclick.net https://*.google.com https://fundingchoicesmessages.google.com https://www.gstatic.com"
+    cspDirectives[5] += " https://*.google.com https://pagead2.googlesyndication.com https://fundingchoicesmessages.google.com"
+    cspDirectives[6] += " https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://fundingchoicesmessages.google.com"
   }
 
   // Add Cloudflare Turnstile

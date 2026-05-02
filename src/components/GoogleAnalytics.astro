@@ -1,26 +1,14 @@
 ---
 const gtmId = import.meta.env.GTAG_ID || ""
-const cookiebotId = import.meta.env.COOKIEBOT_ID || ""
+const adsenseId = import.meta.env.ADSENSE_ACCOUNT_ID || ""
 const hasGtm = gtmId.length > 0
-const hasCookiebot = cookiebotId.length > 0
 ---
-
-{hasCookiebot && (
-  <!-- Cookiebot Consent Banner -->
-  <script
-    id="Cookiebot"
-    src="https://consent.cookiebot.com/uc.js"
-    data-cbid={cookiebotId}
-    data-blockingmode="auto"
-    type="text/javascript"
-  ></script>
-)}
 
 {hasGtm && (
   <>
     <!-- Google Tag Manager with Consent Mode v2 -->
     <script is:inline define:vars={{ gtmId }}>
-      // Default consent - denied until Cookiebot grants permission
+      // Default consent - denied by default, AdSense will handle the messaging
       window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}
 
@@ -31,22 +19,6 @@ const hasCookiebot = cookiebotId.length > 0
         'analytics_storage': 'denied',
         'wait_for_update': 500
       });
-
-      // Listen for Cookiebot consent events
-      window.addEventListener('CookiebotOnAccept', function() {
-        if (window.Cookiebot?.consent?.statistics) {
-          gtag('consent', 'update', {
-            'analytics_storage': 'granted',
-            'ad_storage': 'granted'
-          });
-        }
-        if (window.Cookiebot?.consent?.marketing) {
-          gtag('consent', 'update', {
-            'ad_user_data': 'granted',
-            'ad_personalization': 'granted'
-          });
-        }
-      }, false);
     </script>
     <script is:inline>
       (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
@@ -61,4 +33,15 @@ const hasCookiebot = cookiebotId.length > 0
       </iframe>
     </noscript>
   </>
+)}
+
+{adsenseId && (
+  <!-- Google AdSense -->
+  <script is:inline define:vars={{ adsenseId }}>
+    (adsbygoogle = window.adsbygoogle || []).push({
+      google_ad_client: adsenseId,
+      enable_page_level_ads: true
+    });
+  </script>
+  <script is:inline src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${adsenseId}`} crossorigin="anonymous"></script>
 )}
