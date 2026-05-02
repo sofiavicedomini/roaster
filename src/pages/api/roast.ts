@@ -422,6 +422,18 @@ async function checkAgentReadiness(baseUrl: string) {
   return results;
 }
 
+const LOCALE_TO_LANGUAGE: Record<string, string> = {
+  en: "English",
+  it: "Italian",
+  fr: "French",
+  es: "Spanish",
+  pt: "Portuguese",
+  de: "German",
+  nl: "Dutch",
+  ru: "Russian",
+  et: "Estonian",
+};
+
 async function buildPrompt(url: string, categories: string[], locale: string, checks: Record<string, unknown>): Promise<string> {
   const promptPath = join(process.cwd(), "prompt.md");
   let basePrompt = "";
@@ -431,21 +443,17 @@ async function buildPrompt(url: string, categories: string[], locale: string, ch
     basePrompt = `You're an iterative ReAct agent for website roasting.`;
   }
 
-  const langName = locale === "it" ? "Italian" : locale === "en" ? "English" : locale.toUpperCase();
-  const languageInstruction = `CRITICAL: Respond ENTIRELY in ${langName}.`;
-
-  const agentData = `### REAL AGENT READINESS CHECK RESULTS:\n${JSON.stringify(checks, null, 2)}`;
-
+  const langName = LOCALE_TO_LANGUAGE[locale] ?? locale.toUpperCase();
+  const agentData = JSON.stringify(checks, null, 2);
   const categoriesStr = categories.length > 0 ? categories.join(", ") : "design, performance, ux, seo, code, accessibility, agentReadiness";
 
   const modified = basePrompt
-    .replace("{{AGENT_DATA}}", agentData)
-    .replace("{{URL}}", url)
-    .replace("{{CATEGORIES}}", categoriesStr)
-    + languageInstruction
-    + `\n\nCRITICAL: You MUST provide a roast for ALL of these categories: ${categoriesStr}. Do NOT skip any. If a category is not in ${categoriesStr}, do NOT include it.`;
+    .replace(/\{\{AGENT_DATA\}\}/g, agentData)
+    .replace(/\{\{URL\}\}/g, url)
+    .replace(/\{\{CATEGORIES\}\}/g, categoriesStr)
+    .replace(/\{\{LANGUAGE\}\}/g, langName);
 
-  console.log("[buildPrompt] Agent prompt length:", modified.length);
+  console.log("[buildPrompt] Agent prompt length:", modified.length, "lang:", langName);
   return modified;
 }
 
@@ -467,23 +475,24 @@ type MessageRole = "system" | "user" | "assistant";
 
 function validateFinalRoast(final_roast: unknown, categories: string[]): { valid: boolean; errors: string[] } {
   const errors: string[] = [];
-  
+
   if (!final_roast || typeof final_roast !== "object") {
     return { valid: false, errors: ["final_roast is not an object"] };
   }
-  
+
   const roast = final_roast as Record<string, unknown>;
-  
+
   if (typeof roast.overall_score !== "number") {
     errors.push("missing or invalid overall_score");
   } else if (roast.overall_score < 1 || roast.overall_score > 10) {
     errors.push("overall_score must be between 1 and 10");
   }
-  
-  if (typeof roast.verdict !== "string") {
-    errors.push("missing or invalid verdict");
+
+  if (typeof roast.verdict !== "string" || roast.verdict.trim().length === 0) {
+    errors.push("missing or empty verdict");
   }
-  
+
+  // scores: every selected category must have a numeric score
   if (!roast.scores || typeof roast.scores !== "object") {
     errors.push("missing or invalid scores object");
   } else {
@@ -491,31 +500,51 @@ function validateFinalRoast(final_roast: unknown, categories: string[]): { valid
     for (const cat of categories) {
       if (!(cat in scores)) {
         errors.push(`missing score for category: ${cat}`);
-      } else if (typeof scores[cat] !== "number" && scores[cat] !== null) {
-        errors.push(`invalid score type for ${cat}`);
+      } else if (typeof scores[cat] !== "number") {
+        errors.push(`score for ${cat} must be a number (got: ${scores[cat]})`);
+      } else {
+        const s = scores[cat] as number;
+        if (s < 1 || s > 10) errors.push(`score for ${cat} out of range 1-10: ${s}`);
       }
     }
   }
-  
+
+  // roasts: every selected category must have a full entry with critique and fix_prompt
   if (!Array.isArray(roast.roasts)) {
     errors.push("roasts must be an array");
   } else {
-    const foundCategories = new Set<string>();
+    const roastMap = new Map<string, Record<string, unknown>>();
     for (const item of roast.roasts) {
       if (item && typeof item === "object" && "category" in item) {
-        foundCategories.add(item.category as string);
+        roastMap.set(item.category as string, item as Record<string, unknown>);
       }
     }
+
     for (const cat of categories) {
-      if (!foundCategories.has(cat)) {
-        errors.push(`missing roast for category: ${cat}`);
+      if (!roastMap.has(cat)) {
+        errors.push(`missing roast entry for category: ${cat}`);
+        continue;
+      }
+      const entry = roastMap.get(cat)!;
+
+      if (!entry.emoji || typeof entry.emoji !== "string" || entry.emoji.trim().length === 0) {
+        errors.push(`missing emoji for category: ${cat}`);
+      }
+
+      if (!entry.critique || typeof entry.critique !== "string" || entry.critique.trim().length < 30) {
+        errors.push(`critique for ${cat} is missing or too short (min 30 chars)`);
+      }
+
+      if (!entry.fix_prompt || typeof entry.fix_prompt !== "string" || entry.fix_prompt.trim().length < 30) {
+        errors.push(`fix_prompt for ${cat} is missing or too short (min 30 chars)`);
       }
     }
+
     if (roast.roasts.length === 0) {
       errors.push("roasts array is empty");
     }
   }
-  
+
   return { valid: errors.length === 0, errors };
 }
 
@@ -576,7 +605,7 @@ async function runAgentLoop(
         return final_roast;
       } else {
         console.log("[Roast API] Validation failed:", validation.errors);
-        currentObservation = `VALIDATION FAILED: ${validation.errors.join("; ")}. You MUST include a complete roast for ALL categories: ${categories.join(", ")}. Regenerate with complete data.`;
+        currentObservation = `VALIDATION FAILED — your output was rejected. Errors: ${validation.errors.join("; ")}. Fix ALL of these issues and re-emit OUTPUT_FINAL. Requirements: (1) numeric score for every category in [${categories.join(", ")}], (2) one roast entry per category with non-empty critique AND non-empty fix_prompt, (3) all text in the user's language. Do not skip any category.`;
       }
     }
 
@@ -599,14 +628,14 @@ async function runAgentLoop(
         currentObservation = `SCRAPE failed for ${scrapeUrl}: ${scrapeErr}. Do not retry same URL.`;
       }
     } else if (action === "ANALYZE" && action_input) {
-      currentObservation = `ANALYSIS on ${action_input} requested. Use all scraped real content and initial checks. Be specific about discovered files and links. Provide deep critique based on facts only.`;
+      currentObservation = `ANALYSIS on ${action_input} requested. Use all scraped real content and initial check results. Be brutal and specific — cite actual page elements, missing files, broken patterns you observed. No vague statements. Base everything on evidence. Remember: every category needs both a numeric score AND a fix_prompt.`;
     } else {
       currentObservation = `Unknown action "${action}". Valid actions: SCRAPE (with URL from discovered files), ANALYZE (category), OUTPUT_FINAL. Focus on thorough real scraping for agent readiness category.`;
     }
   }
 
   console.log("[Roast API] Max iterations reached, forcing final output");
-  const finalMessages = [...messages, { role: "user" as MessageRole, content: `Max iterations reached. Output FINAL roast JSON now using all gathered real data. CRITICAL: Must include ALL categories: ${categories.join(", ")}. Do not hallucinate.` }];
+  const finalMessages = [...messages, { role: "user" as MessageRole, content: `Max iterations reached. You MUST now emit OUTPUT_FINAL immediately. Use all data gathered so far. REQUIRED: numeric score (1-10) AND critique AND fix_prompt for EVERY category: ${categories.join(", ")}. All text in the user's language. Do not hallucinate. Do not skip any category. Do not leave fix_prompt empty.` }];
   try {
     const finalContent = await callLLM(finalMessages, apiBase, apiKey, model);
     const finalOutput = JSON.parse(finalContent.trim());
