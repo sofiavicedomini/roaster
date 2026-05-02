@@ -14,7 +14,7 @@ export const onRequest = defineMiddleware(async (_, next) => {
     "img-src 'self' data: https:",
     "font-src 'self' data:",
     "connect-src 'self' https:",
-    "frame-src 'self'",
+    "frame-src 'self' https://challenges.cloudflare.com https://googleads.g.doubleclick.net https://fundingchoicesmessages.google.com",
     "base-uri 'self'",
     "form-action 'self'",
   ]

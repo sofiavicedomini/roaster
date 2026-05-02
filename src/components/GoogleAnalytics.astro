@@ -1,6 +1,5 @@
 ---
 const gtmId = import.meta.env.GTAG_ID || ""
-const adsenseId = import.meta.env.ADSENSE_ACCOUNT_ID || ""
 const hasGtm = gtmId.length > 0
 ---
 
@@ -8,7 +7,7 @@ const hasGtm = gtmId.length > 0
   <>
     <!-- Google Tag Manager with Consent Mode v2 -->
     <script is:inline define:vars={{ gtmId }}>
-      // Default consent - denied by default, AdSense will handle the messaging
+      // Default consent - denied by default, AdSense/AdSense Privacy & Messaging handles consent
       window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}
 
@@ -33,15 +32,4 @@ const hasGtm = gtmId.length > 0
       </iframe>
     </noscript>
   </>
-)}
-
-{adsenseId && (
-  <!-- Google AdSense -->
-  <script is:inline define:vars={{ adsenseId }}>
-    (adsbygoogle = window.adsbygoogle || []).push({
-      google_ad_client: adsenseId,
-      enable_page_level_ads: true
-    });
-  </script>
-  <script is:inline src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${adsenseId}`} crossorigin="anonymous"></script>
 )}

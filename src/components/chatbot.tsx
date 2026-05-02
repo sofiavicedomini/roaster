@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { getTranslations, type Locale } from "@/i18n/utils";
 
@@ -82,43 +82,54 @@ export function Chatbot({ locale = "en" }: ChatbotProps) {
     ? import.meta.env.PUBLIC_TURNSTILE_SITE_KEY
     : "";
 
-  // Turnstile render function
-  const renderTurnstile = useCallback(() => {
-    if (!turnstileRef.current || !window.turnstile) return;
-
-    window.turnstile.render(turnstileRef.current, {
-      sitekey: turnstileSiteKey,
-      callback: (token: string) => setTurnstileToken(token),
-      "expired-callback": () => setTurnstileToken(null),
-      "error-callback": () => setTurnstileToken(null),
-    });
-  }, [turnstileSiteKey]);
-
-  // Load Turnstile script
+  // Load Turnstile script and render widget
   useEffect(() => {
     if (!turnstileSiteKey) return;
 
     const scriptId = "cf-turnstile-script";
+
+    const renderWidget = () => {
+      if (!turnstileRef.current || !window.turnstile) return;
+
+      // Reset previous widget if any
+      try {
+        window.turnstile.reset();
+      } catch {
+        // ignore
+      }
+    };
+
     if (document.getElementById(scriptId)) {
-      // Script already loaded, render widget
-      renderTurnstile();
+      // Script already loaded
+      renderWidget();
       return;
     }
 
     const script = document.createElement("script");
     script.id = scriptId;
-    script.src = "https://challenges.cloudflare.com/turnstile/v0/api.js?onload=onTurnstileLoad";
+    script.src = "https://challenges.cloudflare.com/turnstile/v0/api.js";
     script.async = true;
     script.defer = true;
 
-    window.onTurnstileLoad = () => renderTurnstile();
+    script.onload = () => {
+      console.log("[Turnstile] Script loaded");
+      renderWidget();
+    };
+
+    script.onerror = () => {
+      console.error("[Turnstile] Failed to load script");
+    };
 
     document.head.appendChild(script);
 
     return () => {
-      delete window.onTurnstileLoad;
+      try {
+        window.turnstile?.reset();
+      } catch {
+        // ignore
+      }
     };
-  }, [turnstileSiteKey, renderTurnstile]);
+  }, [turnstileSiteKey]);
 
   useEffect(() => {
     if (!isLoading) return;
