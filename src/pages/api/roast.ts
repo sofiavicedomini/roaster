@@ -22,6 +22,14 @@ export const POST: APIRoute = async ({ request }) => {
     const apiKey = import.meta.env.OPENAI_API_KEY || "dummy";
     const model = import.meta.env.OPENAI_MODEL || "llama3";
 
+    console.log("[Roast API] Request:", {
+      url,
+      categories,
+      model,
+      apiBase,
+      promptLength: prompt.length,
+    });
+
     const response = await fetch(`${apiBase}/chat/completions`, {
       method: "POST",
       headers: {
@@ -35,8 +43,11 @@ export const POST: APIRoute = async ({ request }) => {
       }),
     });
 
+    console.log("[Roast API] Response status:", response.status, response.statusText);
+
     if (!response.ok) {
       const errorText = await response.text();
+      console.error("[Roast API] Error response:", errorText);
       return new Response(
         JSON.stringify({ error: `AI API error: ${errorText}` }),
         { status: 502, headers: { "Content-Type": "application/json" } }
@@ -44,12 +55,36 @@ export const POST: APIRoute = async ({ request }) => {
     }
 
     const data = await response.json();
+    console.log("[Roast API] AI response:", {
+      model: data.model,
+      usage: data.usage,
+      choicesLength: data.choices?.length,
+      hasToolCalls: data.choices?.[0]?.message?.tool_calls?.length > 0,
+      contentType: typeof data.choices?.[0]?.message?.content,
+      contentPreview: typeof data.choices?.[0]?.message?.content === "string"
+        ? data.choices[0].message.content.substring(0, 200)
+        : "non-string content",
+    });
+
     const content = data.choices?.[0]?.message?.content || "";
+    const toolCalls = data.choices?.[0]?.message?.tool_calls;
+
+    if (toolCalls && toolCalls.length > 0) {
+      console.warn("[Roast API] AI attempted to use tools:", toolCalls);
+    }
 
     let parsed;
     try {
       parsed = JSON.parse(content);
-    } catch {
+      console.log("[Roast API] Parsed response:", {
+        hasOverallScore: typeof parsed.overall_score === "number",
+        verdictLength: parsed.verdict?.length,
+        scoresCount: Object.keys(parsed.scores || {}).length,
+        roastsCount: parsed.roasts?.length,
+      });
+    } catch (parseError) {
+      console.error("[Roast API] JSON parse error:", parseError);
+      console.error("[Roast API] Raw content:", content);
       return new Response(
         JSON.stringify({ error: "Invalid JSON response from AI", raw: content }),
         { status: 502, headers: { "Content-Type": "application/json" } }
@@ -61,6 +96,7 @@ export const POST: APIRoute = async ({ request }) => {
       headers: { "Content-Type": "application/json" },
     });
   } catch (err) {
+    console.error("[Roast API] Unhandled error:", err);
     return new Response(
       JSON.stringify({ error: err instanceof Error ? err.message : "Unknown error" }),
       { status: 500, headers: { "Content-Type": "application/json" } }
@@ -72,8 +108,10 @@ async function fetchUrl(url: string): Promise<string | null> {
   try {
     const res = await fetch(url, { headers: { "User-Agent": "Mozilla/5.0 Agent-Readiness-Checker" } });
     if (res.ok) return await res.text();
+    console.log(`[fetchUrl] ${url} returned ${res.status}`);
     return null;
-  } catch {
+  } catch (err) {
+    console.error(`[fetchUrl] Error fetching ${url}:`, err);
     return null;
   }
 }
@@ -115,16 +153,19 @@ async function checkAgentReadiness(baseUrl: string) {
     results["headers"] = { status: "error", detail: "Could not fetch homepage" };
   }
 
+  console.log("[Agent Readiness] Check results:", results);
   return results;
 }
 
 async function buildPrompt(url: string, categories: string[]): Promise<string> {
+  console.log("[buildPrompt] Building prompt for:", { url, categories });
   const promptPath = join(process.cwd(), "prompt.md");
   let basePrompt = "";
 
   try {
     basePrompt = readFileSync(promptPath, "utf-8");
   } catch {
+    console.warn("[buildPrompt] prompt.md not found, using default prompt");
     basePrompt = `You're a senior developer who's been building websites for 15 years. A colleague just showed you their site ({{URL}}) and asked for honest feedback. You're a good friend — you're not going to trash them — but you're also not going to lie to them. You talk like a real person: short sentences, a dry sense of humor, occasional sarcasm, no corporate fluff.
 
 Roast this website across these categories: {{CATEGORIES}}.
@@ -165,6 +206,7 @@ Include one roast object per requested category. Each critique should feel like 
   let agentData = "";
 
   if (hasAgentChecks) {
+    console.log("[buildPrompt] Running agent readiness checks...");
     const checks = await checkAgentReadiness(url);
     agentData = `\n\n### Agent Readiness Check Results:\n${JSON.stringify(checks, null, 2)}\n\nUse this data to inform your roasts for agent-readiness related categories.`;
   }
@@ -175,5 +217,6 @@ Include one roast object per requested category. Each critique should feel like 
     .replace(/these categories: design, performance, ux, seo, code, accessibility/, `these categories: ${categoriesStr}`)
     + agentData;
 
+  console.log("[buildPrompt] Final prompt length:", modified.length);
   return modified;
 }
