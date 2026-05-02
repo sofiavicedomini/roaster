@@ -19,6 +19,7 @@ import {
   generateJobId,
   resumeJob,
   incrementIteration,
+  saveRanking,
 } from "@/lib/redis";
 
 const locales: string[] = ["en", "it", "fr", "es", "pt", "de", "nl", "ru", "et"];
@@ -295,7 +296,18 @@ async function processRoast(
     result: JSON.stringify({ ...result, cached: false, cacheKey: cacheKey(normUrl) }),
   });
 
-    await jobDb.del(jobIdKey(normUrl, locale));
+  saveRanking(jobId, {
+    url,
+    normUrl,
+    score: (result as Record<string, unknown>).overall_score as number,
+    verdict: (result as Record<string, unknown>).verdict as string,
+    cats,
+    locale,
+    completedAt: cachedAt,
+    result: result as Record<string, unknown>,
+  }).catch((e) => console.warn("[Rankings] Failed to save:", e));
+
+  await jobDb.del(jobIdKey(normUrl, locale));
 }
 
 async function translateRoast(jobId: string, cached: Record<string, unknown>, locale: string) {

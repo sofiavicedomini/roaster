@@ -114,15 +114,9 @@ body::before {
     radial-gradient(ellipse at 70% 85%, oklch(0.705 0.213 47.604 / 0.5) 0%, transparent 40%),
     linear-gradient(180deg, oklch(0.148 0.004 228.8) 0%, oklch(0.218 0.008 223.9) 25%, oklch(0.444 0.177 26.899 / 0.6) 60%, oklch(0.704 0.191 22.216 / 0.5) 100%);
   animation: inferno-flicker 4s ease-in-out infinite alternate;
+  will-change: opacity;
+  contain: layout style;
 }
-
-
-@keyframes border-flicker {
-  0% { opacity: 0.7; }
-  100% { opacity: 0.9; }
-}
-
-
 
 @keyframes border-flicker {
   0% { opacity: 0.6; }
@@ -163,6 +157,7 @@ body::before {
     transparent 4px
   );
   animation: heat-wave 6s ease-in-out infinite;
+  will-change: transform;
 }
 
 @keyframes heat-wave {
@@ -177,8 +172,8 @@ body::before {
 }
 
 @keyframes burn {
-  0%, 100% { filter: brightness(1) blur(0); }
-  50% { filter: brightness(1.1) blur(0.3px); }
+  0%, 100% { filter: brightness(1); }
+  50% { filter: brightness(1.1); }
 }
 
 /* Fire glow on inputs */
@@ -201,6 +196,7 @@ button:not(:disabled):hover, [role="button"]:not(:disabled):hover {
   z-index: -1;
   background: oklch(0.56 0.021 213.5 / 0.1);
   animation: smoke-rise linear infinite;
+  will-change: transform, opacity;
 }
 
 @keyframes smoke-rise {
@@ -222,8 +218,8 @@ button:not(:disabled):hover, [role="button"]:not(:disabled):hover {
 }
 
 @keyframes inferno-flicker {
-  0%, 100% { opacity: 0.95; filter: brightness(1); }
-  50% { opacity: 1; filter: brightness(1.05); }
+  0%, 100% { opacity: 0.92; }
+  50% { opacity: 1; }
 }
 
 /* Fire particles */
@@ -233,6 +229,7 @@ button:not(:disabled):hover, [role="button"]:not(:disabled):hover {
   pointer-events: none;
   z-index: -1;
   animation: rise-and-fade linear infinite;
+  will-change: transform, opacity;
 }
 
 .fire-particle:nth-child(odd) {
@@ -295,6 +292,7 @@ body::after {
     linear-gradient(0deg, oklch(0.553 0.195 38.402 / 0.6) 0%, transparent 20%);
   animation: border-flicker 3s ease-in-out infinite alternate, shimmer 6s linear infinite;
   pointer-events: none;
+  will-change: transform, opacity;
 }
 
 @keyframes shimmer {
@@ -302,19 +300,28 @@ body::after {
   50% { transform: translateY(-2px); }
 }
 
-/* Fire glow animation for cards */
-@keyframes fire-glow {
-  0%, 100% {
-    box-shadow: 0 0 20px oklch(0.704 0.191 22.216 / 0.3), 0 0 40px oklch(0.553 0.195 38.402 / 0.2);
-  }
-  50% {
-    box-shadow: 0 0 25px oklch(0.837 0.128 66.29 / 0.35), 0 0 50px oklch(0.705 0.213 47.604 / 0.25);
-  }
+/* Fire glow for cards — static shadow + opacity-animated pseudo-element (GPU-friendly) */
+.inferno-card {
+  border-color: oklch(0.553 0.195 38.402 / 0.5) !important;
+  position: relative;
+  isolation: isolate;
 }
 
-.inferno-card {
-  animation: fire-glow 4s ease-in-out infinite;
-  border-color: oklch(0.553 0.195 38.402 / 0.5) !important;
+.inferno-card::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  box-shadow: 0 0 28px oklch(0.837 0.128 66.29 / 0.35), 0 0 55px oklch(0.705 0.213 47.604 / 0.25);
+  animation: fire-glow-fade 4s ease-in-out infinite;
+  pointer-events: none;
+  z-index: -1;
+  will-change: opacity;
+}
+
+@keyframes fire-glow-fade {
+  0%, 100% { opacity: 0.7; }
+  50% { opacity: 1; }
 }
 
 

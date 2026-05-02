@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { Copy, Check } from "lucide-react";
+import { Copy, Check, ChevronDown } from "lucide-react";
 import { getTranslations, type Locale } from "@/i18n/utils";
 
 // Type declarations for Cloudflare Turnstile
@@ -43,6 +43,70 @@ interface RoastResult {
 
 interface ChatbotProps {
   locale?: Locale;
+}
+
+function ThinkingPanel({ thoughts, isLoading }: { thoughts: string[]; isLoading: boolean }) {
+  const [isExpanded, setIsExpanded] = useState(true);
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
+  }, [thoughts]);
+
+  if (thoughts.length === 0) return null;
+
+  return (
+    <div className="rounded-lg border border-orange-500/20 bg-black/30 overflow-hidden">
+      <button
+        type="button"
+        onClick={() => setIsExpanded((v) => !v)}
+        className="w-full flex items-center gap-2.5 px-3 py-2.5 text-left hover:bg-orange-500/5 transition-colors"
+      >
+        {isLoading ? (
+          <span className="relative flex h-2 w-2 shrink-0">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75" />
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-orange-500" />
+          </span>
+        ) : (
+          <span className="h-2 w-2 rounded-full bg-green-500/70 shrink-0" />
+        )}
+        <span className="text-xs text-orange-300/80 font-medium flex-1">
+          {isLoading
+            ? `Thinking... (${thoughts.length} steps)`
+            : `Thought for ${thoughts.length} steps`}
+        </span>
+        <ChevronDown
+          className={`w-3.5 h-3.5 text-orange-400/40 transition-transform shrink-0 ${isExpanded ? "rotate-180" : ""}`}
+        />
+      </button>
+      {isExpanded && (
+        <div
+          ref={scrollRef}
+          className="border-t border-orange-500/10 px-3 py-2 max-h-44 overflow-y-auto scroll-smooth"
+        >
+          {thoughts.map((thought, i) => (
+            <div
+              key={i}
+              className={`flex gap-2 text-xs font-mono py-0.5 leading-relaxed ${
+                i === thoughts.length - 1 ? "text-orange-200/80" : "text-orange-400/35"
+              }`}
+            >
+              <span className="text-orange-600/40 select-none shrink-0">›</span>
+              <span>{thought}</span>
+            </div>
+          ))}
+          {isLoading && (
+            <div className="flex gap-2 text-xs font-mono py-0.5 text-orange-400/50">
+              <span className="text-orange-600/40 select-none shrink-0">›</span>
+              <span className="animate-pulse">▋</span>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
 }
 
 const CATEGORIES = [
@@ -200,6 +264,7 @@ export function Chatbot({ locale = "en" }: ChatbotProps) {
   const [jobStatus, setJobStatus] = useState<string>("");
   const [currentIteration, setCurrentIteration] = useState<number>(0);
   const [currentAction, setCurrentAction] = useState<string>("");
+  const [thoughtHistory, setThoughtHistory] = useState<string[]>([]);
 
   useEffect(() => {
     if (!jobId || !isLoading) return;
@@ -225,8 +290,12 @@ export function Chatbot({ locale = "en" }: ChatbotProps) {
             if (iterationMatch) {
               setCurrentIteration(parseInt(iterationMatch[1], 10));
             }
-            const action = data.progress.split(": ")[1] || data.progress;
+            const action = data.progress.split(": ").slice(1).join(": ") || data.progress;
             setCurrentAction(action);
+            setThoughtHistory((prev) => {
+              if (prev[prev.length - 1] === data.progress) return prev;
+              return [...prev, data.progress];
+            });
           }
         }
       } catch {
@@ -263,6 +332,9 @@ export function Chatbot({ locale = "en" }: ChatbotProps) {
     setResult(null);
     setCacheInfo(null);
     setJobId(null);
+    setThoughtHistory([]);
+    setCurrentIteration(0);
+    setCurrentAction("");
 
     try {
       const response = await fetch("/api/roast", {
@@ -420,11 +492,7 @@ export function Chatbot({ locale = "en" }: ChatbotProps) {
 
         {isLoading && (
           <div className="flex flex-col gap-2">
-            {currentIteration > 0 && (
-              <div className="text-center text-xs text-blue-400/80 font-mono">
-                Agent iteration {currentIteration}/6: {currentAction || t.chatbot.agentActions.thinking}
-              </div>
-            )}
+            <ThinkingPanel thoughts={thoughtHistory} isLoading={isLoading} />
             <div className="text-center text-sm text-orange-400/80 animate-pulse">
               {t.chatbot.loadingMessages[loadingMsgIdx]}
             </div>

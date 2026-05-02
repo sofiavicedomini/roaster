@@ -18,6 +18,14 @@ const { t } = useTranslations(locale)
   </head>
   <body>
     <div class="heat-distortion fire"></div>
+    <div class="fixed top-4 left-4 z-50">
+      <a
+        href="/rankings"
+        class="px-2.5 py-1 text-xs rounded-md bg-zinc-900/90 text-orange-400/80 border border-orange-500/20 hover:border-orange-400/50 hover:text-orange-300 transition-colors backdrop-blur-sm"
+      >
+        🔥 Rankings
+      </a>
+    </div>
     <LanguageSwitcher />
     <GoogleAnalytics />
     <slot />

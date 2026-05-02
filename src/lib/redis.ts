@@ -137,6 +137,72 @@ export function generateJobId(): string {
   });
 }
 
+export async function saveRanking(
+  uuid: string,
+  data: {
+    url: string;
+    normUrl: string;
+    score: number;
+    verdict: string;
+    cats: string[];
+    locale: string;
+    completedAt: string;
+    result: Record<string, unknown>;
+  },
+) {
+  const ts = new Date(data.completedAt).getTime();
+  await cacheDb.zadd("roast:rankings", ts, uuid);
+  await cacheDb.setex(`roast:ranking:${uuid}`, 30 * 24 * 3600, JSON.stringify(data));
+  // Keep only last 100 rankings
+  await cacheDb.zremrangebyrank("roast:rankings", 0, -101);
+}
+
+export async function getRankings(limit = 20): Promise<Array<{
+  uuid: string;
+  url: string;
+  normUrl: string;
+  score: number;
+  verdict: string;
+  cats: string[];
+  locale: string;
+  completedAt: string;
+} | null>> {
+  try {
+    const uuids = await cacheDb.zrevrange("roast:rankings", 0, limit - 1);
+    if (!uuids.length) return [];
+    return Promise.all(
+      uuids.map(async (uuid) => {
+        const raw = await cacheDb.get(`roast:ranking:${uuid}`);
+        if (!raw) return null;
+        const { result: _r, ...summary } = JSON.parse(raw);
+        return { uuid, ...summary };
+      }),
+    );
+  } catch {
+    return [];
+  }
+}
+
+export async function getRanking(uuid: string): Promise<null | {
+  uuid: string;
+  url: string;
+  normUrl: string;
+  score: number;
+  verdict: string;
+  cats: string[];
+  locale: string;
+  completedAt: string;
+  result: Record<string, unknown>;
+}> {
+  try {
+    const raw = await cacheDb.get(`roast:ranking:${uuid}`);
+    if (!raw) return null;
+    return { uuid, ...JSON.parse(raw) };
+  } catch {
+    return null;
+  }
+}
+
 export async function resumeJob(jobId: string, newCategories: string[]): Promise<{ shouldResume: boolean; job: Record<string, string> | null }> {
   const job = await getJob(jobId);
   if (!job) {

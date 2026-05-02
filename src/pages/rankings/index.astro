@@ -1,0 +1,67 @@
+---
+export const prerender = false;
+import Layout from "@/layouts/main.astro";
+import { getRankings } from "@/lib/redis";
+
+const rawRankings = await getRankings(50);
+const rankings = rawRankings.filter(Boolean) as NonNullable<typeof rawRankings[number]>[];
+
+function scoreColor(score: number) {
+  if (score >= 8) return "text-green-500";
+  if (score >= 5) return "text-yellow-500";
+  return "text-red-500";
+}
+
+function scoreFlames(score: number) {
+  return "🔥".repeat(Math.max(1, Math.ceil(score / 2)));
+}
+---
+
+<Layout>
+  <div class="flex min-h-svh flex-col items-center p-6 pt-20 pb-20 md:pt-10 md:pb-10">
+    <div class="w-full max-w-4xl">
+      <div class="mb-8 text-center">
+        <h1 class="text-4xl font-bold inferno-text">Recent Roasts</h1>
+        <p class="text-orange-400/80 mt-3 text-base">The latest sites that got torched 🔥</p>
+      </div>
+
+      {rankings.length === 0 ? (
+        <div class="text-center text-muted-foreground py-20 rounded-lg border border-dashed border-orange-500/20">
+          <p class="text-4xl mb-4">🔥</p>
+          <p class="text-lg font-medium">No roasts yet</p>
+          <p class="text-sm mt-2 opacity-60">Be the first to get torched!</p>
+          <a href="/" class="mt-6 inline-block text-sm text-orange-400 hover:text-orange-300 underline">
+            Roast a site →
+          </a>
+        </div>
+      ) : (
+        <div class="flex flex-col gap-3">
+          {rankings.map((r) => (
+            <a
+              href={`/rankings/${r.uuid}`}
+              class="group rounded-lg border bg-card p-4 hover:bg-muted/10 transition-colors inferno-card flex items-start gap-4 no-underline"
+            >
+              <div class={`text-2xl font-bold tabular-nums shrink-0 leading-none mt-0.5 ${scoreColor(r.score)}`}>
+                {r.score}<span class="text-sm font-normal opacity-60">/10</span>
+              </div>
+              <div class="flex-1 min-w-0">
+                <div class="font-medium text-sm text-foreground truncate">{r.normUrl || r.url}</div>
+                <div class="text-sm text-muted-foreground mt-1 line-clamp-2 leading-snug">{r.verdict}</div>
+                <div class="flex items-center gap-3 mt-2 text-xs text-muted-foreground/50">
+                  <span>{new Date(r.completedAt).toLocaleDateString("it-IT", { day: "2-digit", month: "short", year: "numeric" })}</span>
+                  <span>·</span>
+                  <span>{r.cats?.length ?? 0} categorie</span>
+                  <span>·</span>
+                  <span class="uppercase">{r.locale}</span>
+                </div>
+              </div>
+              <div class="shrink-0 text-xl leading-none mt-0.5" title={`Score: ${r.score}/10`}>
+                {scoreFlames(r.score)}
+              </div>
+            </a>
+          ))}
+        </div>
+      )}
+    </div>
+  </div>
+</Layout>
