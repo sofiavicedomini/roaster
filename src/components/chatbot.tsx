@@ -89,7 +89,7 @@ export function Chatbot() {
 
   return (
     <div className="flex flex-col gap-6 max-w-2xl mx-auto w-full">
-      <form onSubmit={handleSubmit} className="flex flex-col gap-4 rounded-lg border p-4 bg-card">
+      <form onSubmit={handleSubmit} className="flex flex-col gap-4 rounded-lg border p-4 bg-card inferno-card">
         <div className="flex flex-col gap-2">
           <label htmlFor="url" className="text-sm font-medium">
             Website URL
@@ -141,13 +141,13 @@ export function Chatbot() {
       </form>
 
       {error && (
-        <div className="p-4 rounded-lg bg-destructive/10 border border-destructive text-destructive text-sm">
+        <div className="p-4 rounded-lg bg-destructive/10 border border-destructive text-destructive text-sm inferno-card">
           {error}
         </div>
       )}
 
       {result && (
-        <div className="flex flex-col gap-4 rounded-lg border bg-card p-6">
+        <div className="flex flex-col gap-4 rounded-lg border bg-card p-6 inferno-card">
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-2xl font-bold">Overall Score: {result.overall_score}/10</h2>
