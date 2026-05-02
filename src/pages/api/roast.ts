@@ -435,24 +435,88 @@ async function fetchUrl(url: string): Promise<string | null> {
   }
 }
 
+function parseMcpStructure(parsed: Record<string, unknown>): string {
+  const parts: string[] = [];
+  // Claude Desktop / standard MCP: { mcpServers: { name: { url, type } } }
+  if (parsed.mcpServers && typeof parsed.mcpServers === "object") {
+    const servers = Object.entries(parsed.mcpServers as Record<string, unknown>);
+    parts.push(`mcpServers[${servers.length}]`);
+    for (const [name, cfg] of servers.slice(0, 3)) {
+      const c = cfg as Record<string, unknown>;
+      parts.push(`"${name}":{url=${c.url ?? "none"},type=${c.type ?? "?"},auth=${c.auth ? "yes" : "none"}}`);
+    }
+  }
+  // HTTP endpoints: { endpoints: [{ url, transport }] }
+  if (parsed.endpoints && Array.isArray(parsed.endpoints)) {
+    parts.push(`endpoints[${parsed.endpoints.length}]`);
+    for (const ep of (parsed.endpoints as Record<string, unknown>[]).slice(0, 2)) {
+      parts.push(`{url=${ep.url ?? "none"},transport=${ep.transport ?? ep.type ?? "?"}}`);
+    }
+  }
+  if (parsed.servers && Array.isArray(parsed.servers)) parts.push(`servers[${parsed.servers.length}]`);
+  if (parts.length === 0) parts.push(`unrecognized structure, keys: ${Object.keys(parsed).slice(0, 5).join(",")}`);
+  return parts.join("; ");
+}
+
+function extractMcpEndpoint(parsed: Record<string, unknown>): string | null {
+  if (parsed.mcpServers && typeof parsed.mcpServers === "object") {
+    const first = Object.values(parsed.mcpServers as Record<string, unknown>)[0] as Record<string, unknown> | undefined;
+    if (typeof first?.url === "string") return first.url;
+  }
+  if (parsed.endpoints && Array.isArray(parsed.endpoints)) {
+    const first = (parsed.endpoints as Record<string, unknown>[])[0];
+    if (typeof first?.url === "string") return first.url;
+  }
+  return null;
+}
+
+function parseAgentCardStructure(parsed: Record<string, unknown>): string {
+  const parts: string[] = [];
+  if (parsed.name) parts.push(`name="${parsed.name}"`);
+  if (parsed.version) parts.push(`version=${parsed.version}`);
+  if (parsed.description) parts.push(`description ✓`);
+  if (Array.isArray(parsed.skills)) parts.push(`skills[${parsed.skills.length}]`);
+  if (Array.isArray(parsed.endpoints)) {
+    parts.push(`endpoints[${parsed.endpoints.length}]`);
+    for (const ep of (parsed.endpoints as Record<string, unknown>[]).slice(0, 2)) {
+      parts.push(`{url=${ep.url},protocol=${ep.protocol ?? "?"}}`);
+    }
+  }
+  if (Array.isArray(parsed.capabilities)) parts.push(`capabilities[${parsed.capabilities.length}]`);
+  if (parts.length === 0) parts.push(`keys: ${Object.keys(parsed).slice(0, 5).join(",")}`);
+  return parts.join("; ");
+}
+
+function parseOAuthStructure(parsed: Record<string, unknown>): string {
+  const parts: string[] = [];
+  if (parsed.issuer) parts.push(`issuer=${parsed.issuer}`);
+  if (parsed.authorization_endpoint) parts.push(`authorization_endpoint ✓`);
+  if (parsed.token_endpoint) parts.push(`token_endpoint ✓`);
+  if (parsed.registration_endpoint) parts.push(`dynamic_client_registration ✓`);
+  if (Array.isArray(parsed.grant_types_supported)) parts.push(`grants: ${(parsed.grant_types_supported as string[]).join(",")}`);
+  if (Array.isArray(parsed.scopes_supported)) parts.push(`scopes[${(parsed.scopes_supported as string[]).length}]`);
+  if (parts.length === 0) parts.push(`keys: ${Object.keys(parsed).slice(0, 5).join(",")}`);
+  return parts.join("; ");
+}
+
 async function checkAgentReadiness(baseUrl: string) {
   const results: Record<string, { status: string; detail: string; score: number }> = {};
   const urlObj = new URL(baseUrl);
   const origin = urlObj.origin;
 
   const checks = [
-    { key: "robots", url: `${origin}/robots.txt`, label: "robots.txt", score: 2 },
-    { key: "sitemap", url: `${origin}/sitemap.xml`, label: "sitemap.xml", score: 1 },
-    { key: "llms", url: `${origin}/llms.txt`, label: "llms.txt", score: 3 },
-    { key: "llmsfull", url: `${origin}/llms-full.txt`, label: "llms-full.txt", score: 1 },
-    { key: "mcp", url: `${origin}/.well-known/mcp`, label: "MCP well-known", score: 3 },
-    { key: "oauth", url: `${origin}/.well-known/oauth-authorization-server`, label: "OAuth discovery", score: 2 },
-    { key: "oauth-protected", url: `${origin}/.well-known/oauth-protected-resource`, label: "OAuth protected resource", score: 1 },
-    { key: "agent-card", url: `${origin}/.well-known/agent.json`, label: "Agent Card", score: 2 },
-    { key: "a2a", url: `${origin}/.well-known/a2a.json`, label: "A2A Agent Card", score: 2 },
-    { key: "api-catalog", url: `${origin}/.well-known/api-catalog`, label: "API Catalog", score: 1 },
-    { key: "webmcp", url: `${origin}/.well-known/webmcp`, label: "WebMCP", score: 1 },
-    { key: "agentskills", url: `${origin}/.agentskills`, label: "Agent Skills", score: 1 },
+    { key: "robots", url: `${origin}/robots.txt`, label: "robots.txt", score: 2, type: "text" },
+    { key: "sitemap", url: `${origin}/sitemap.xml`, label: "sitemap.xml", score: 1, type: "text" },
+    { key: "llms", url: `${origin}/llms.txt`, label: "llms.txt", score: 3, type: "text" },
+    { key: "llmsfull", url: `${origin}/llms-full.txt`, label: "llms-full.txt", score: 1, type: "text" },
+    { key: "mcp", url: `${origin}/.well-known/mcp`, label: "MCP well-known", score: 3, type: "json" },
+    { key: "oauth", url: `${origin}/.well-known/oauth-authorization-server`, label: "OAuth discovery", score: 2, type: "json" },
+    { key: "oauth-protected", url: `${origin}/.well-known/oauth-protected-resource`, label: "OAuth protected resource", score: 1, type: "json" },
+    { key: "agent-card", url: `${origin}/.well-known/agent.json`, label: "Agent Card (A2A)", score: 2, type: "json" },
+    { key: "a2a", url: `${origin}/.well-known/a2a.json`, label: "A2A manifest", score: 2, type: "json" },
+    { key: "api-catalog", url: `${origin}/.well-known/api-catalog`, label: "API Catalog", score: 1, type: "json" },
+    { key: "webmcp", url: `${origin}/.well-known/webmcp`, label: "WebMCP", score: 1, type: "json" },
+    { key: "agentskills", url: `${origin}/.agentskills`, label: "Agent Skills", score: 1, type: "text" },
   ];
 
   let totalScore = 0;
@@ -461,16 +525,51 @@ async function checkAgentReadiness(baseUrl: string) {
   for (const check of checks) {
     const content = await fetchUrl(check.url);
     if (content) {
-      const snippet = content.length > 300 ? content.substring(0, 297) + "..." : content;
-      results[check.key] = { status: "found", detail: `${check.label} found (${content.length} chars). Content: ${snippet.replace(/\n/g, " ")}`, score: check.score };
-      totalScore += check.score;
+      let detail = `${check.label} found (${content.length} chars)`;
+      let score = check.score;
+
+      if (check.type === "json") {
+        try {
+          const parsed = JSON.parse(content) as Record<string, unknown>;
+          if (check.key === "mcp" || check.key === "webmcp") {
+            const structure = parseMcpStructure(parsed);
+            const endpoint = extractMcpEndpoint(parsed);
+            if (endpoint) {
+              const epReachable = await fetchUrl(endpoint);
+              detail += `. Structure: ${structure}. Endpoint ${endpoint}: ${epReachable ? "REACHABLE ✓" : "NOT reachable ✗"}`;
+              if (epReachable) score = Math.min(check.score + 1, 4);
+            } else {
+              detail += `. Structure: ${structure}`;
+            }
+          } else if (check.key === "agent-card" || check.key === "a2a") {
+            detail += `. Structure: ${parseAgentCardStructure(parsed)}`;
+          } else if (check.key === "oauth") {
+            detail += `. Structure: ${parseOAuthStructure(parsed)}`;
+          } else if (check.key === "api-catalog") {
+            const hasApis = !!(parsed.apis || parsed.openapi || parsed.swagger || parsed.endpoints || parsed.links);
+            detail += `. Valid JSON. Has API definitions: ${hasApis}. Keys: ${Object.keys(parsed).slice(0, 6).join(",")}`;
+          } else {
+            detail += `. Valid JSON. Keys: ${Object.keys(parsed).slice(0, 6).join(",")}`;
+          }
+        } catch {
+          const snippet = content.length > 200 ? content.substring(0, 197) + "..." : content;
+          detail += `. WARNING: invalid JSON. Raw content: ${snippet.replace(/\n/g, " ")}`;
+          score = Math.floor(check.score / 2);
+        }
+      } else {
+        const snippet = content.length > 400 ? content.substring(0, 397) + "..." : content;
+        detail += `. Content: ${snippet.replace(/\n/g, " ")}`;
+      }
+
+      results[check.key] = { status: "found", detail, score };
+      totalScore += score;
     } else {
       results[check.key] = { status: "not found", detail: `${check.label} not found at ${check.url}`, score: 0 };
     }
     maxScore += check.score;
   }
 
-  const headersToCheck = ["link", "x-robots-tag", "content-type", "x-content-signals"];
+  const headersToCheck = ["link", "x-robots-tag", "content-type", "x-content-signals", "x-mcp-endpoint", "x-agent-card"];
   try {
     const res = await fetch(baseUrl, { headers: { "User-Agent": "Mozilla/5.0 Agent-Readiness-Checker" } });
     const headers: string[] = [];
@@ -478,9 +577,13 @@ async function checkAgentReadiness(baseUrl: string) {
       const val = res.headers.get(h);
       if (val) headers.push(`${h}: ${val}`);
     }
+    const linkHeader = res.headers.get("link");
+    if (linkHeader && (linkHeader.includes("mcp") || linkHeader.includes("agent") || linkHeader.includes("llms"))) {
+      headers.push(`[agent Link rel]: ${linkHeader}`);
+    }
     results["headers"] = headers.length > 0
       ? { status: "found", detail: headers.join("; "), score: 1 }
-      : { status: "not found", detail: "No relevant headers found", score: 0 };
+      : { status: "not found", detail: "No agent-relevant HTTP headers found", score: 0 };
     if (headers.length > 0) totalScore += 1;
     maxScore += 1;
   } catch {
@@ -488,13 +591,31 @@ async function checkAgentReadiness(baseUrl: string) {
     maxScore += 1;
   }
 
+  // Per-category score breakdown for the agent
+  const catScores = {
+    robots: (results.robots?.score ?? 0) + (results.sitemap?.score ?? 0),
+    robotsMax: 3,
+    mcp: (results.mcp?.score ?? 0) + (results.webmcp?.score ?? 0) + (results.agentskills?.score ?? 0),
+    mcpMax: 5,
+    apiDiscovery: (results.llms?.score ?? 0) + (results.llmsfull?.score ?? 0) + (results["api-catalog"]?.score ?? 0),
+    apiDiscoveryMax: 5,
+    botAuth: (results.oauth?.score ?? 0) + (results["oauth-protected"]?.score ?? 0) + (results["agent-card"]?.score ?? 0) + (results.a2a?.score ?? 0),
+    botAuthMax: 7,
+  };
+
   results["_summary"] = {
-    status: `${totalScore}/${maxScore} checks passed`,
-    detail: `Agent Readiness Score: ${Math.round((totalScore / maxScore) * 10)}/10`,
+    status: `${totalScore}/${maxScore} points`,
+    detail: `Overall Agent Readiness: ${Math.round((totalScore / maxScore) * 10)}/10. robots/sitemap: ${catScores.robots}/${catScores.robotsMax}. MCP: ${catScores.mcp}/${catScores.mcpMax}. API discovery: ${catScores.apiDiscovery}/${catScores.apiDiscoveryMax}. Bot auth/A2A: ${catScores.botAuth}/${catScores.botAuthMax}`,
     score: Math.round((totalScore / maxScore) * 10),
   };
 
-  console.log("[Agent Readiness] Check results:", results);
+  results["_categoryMapping"] = {
+    status: "info",
+    detail: "USE THIS: 'robots' category→check keys: robots,sitemap | 'mcp' category→check keys: mcp,webmcp,agentskills | 'apiDiscovery' category→check keys: llms,llmsfull,api-catalog | 'botAuth' category→check keys: oauth,oauth-protected,agent-card,a2a | 'agentReadiness' category→overall score + headers",
+    score: 0,
+  };
+
+  console.log("[Agent Readiness]", results["_summary"].detail);
   return results;
 }
 

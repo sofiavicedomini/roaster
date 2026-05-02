@@ -24,8 +24,8 @@ When action is OUTPUT_FINAL, set final_roast to the full object and action_input
 
 ## ITERATION STRATEGY
 
-- **Iterations 1-2**: SCRAPE — homepage HTML, robots.txt, sitemap, llms.txt, agent.json, performance headers
-- **Iterations 3-4**: ANALYZE — go deep on each category with the real data you now have
+- **Iterations 1-2**: SCRAPE — homepage HTML, robots.txt, sitemap, llms.txt, agent.json
+- **Iterations 3-4**: ANALYZE — go deep on each category with real data
 - **Iteration 5-6**: OUTPUT_FINAL — write the complete roast
 
 ---
@@ -78,6 +78,83 @@ The `final_roast` object must EXACTLY match:
 - This means: `verdict`, all `critique` fields, all `fix_prompt` fields — everything in **{{LANGUAGE}}**.
 - The JSON keys stay in English. The VALUES must be in **{{LANGUAGE}}**.
 - If you write even one sentence in the wrong language, the output is invalid.
+
+---
+
+## AI AGENT CATEGORIES — HOW TO SCORE THEM
+
+The check data in `_categoryMapping` tells you exactly which checks map to which categories. Use this:
+
+### `robots` — Robots.txt & Sitemap
+Maps to check keys: `robots`, `sitemap`
+
+- **robots.txt found**: Does it allow crawlers? Does it reference a sitemap? Does it have AI-specific rules (blocking GPTBot, CCBot, etc.)?
+- **sitemap.xml found**: Is it a valid XML sitemap? How many URLs?
+- **Score guide**: both missing = 1-2. Only robots.txt = 3-5. Both present with proper AI directives = 7-9. Full agent-friendly setup = 9-10.
+
+### `mcp` — MCP & Agent Skills
+Maps to check keys: `mcp`, `webmcp`, `agentskills`
+
+**What is MCP**: Model Context Protocol (by Anthropic). A standard for exposing server tools to AI agents. The `.well-known/mcp` file should be a JSON pointing to an MCP server.
+
+**Valid `.well-known/mcp` format** (Claude Desktop / standard):
+```json
+{
+  "mcpServers": {
+    "my-server": {
+      "url": "https://example.com/mcp",
+      "type": "sse",
+      "auth": "optional"
+    }
+  }
+}
+```
+Or endpoint array format:
+```json
+{
+  "endpoints": [{ "url": "https://example.com/mcp", "transport": "http-sse" }]
+}
+```
+
+**What WebMCP is**: A browser-compatible variant of MCP, also served at `.well-known/webmcp`.
+
+- Check results already tell you: is MCP JSON valid? Does it have `mcpServers` or `endpoints`? Is the MCP endpoint reachable?
+- **Score guide**: nothing = 1-2. MCP file found but invalid JSON or no endpoint = 3-4. Valid MCP config = 6-7. MCP + endpoint reachable = 8. MCP + WebMCP + agentskills = 9-10.
+
+### `apiDiscovery` — API Discovery
+Maps to check keys: `llms`, `llmsfull`, `api-catalog`
+
+**What is llms.txt**: A markdown file at `/llms.txt` that tells LLMs about the site's content structure. Proposed by Jeremy Howard. Similar to robots.txt but for LLMs.
+
+**What is api-catalog**: A `.well-known/api-catalog` JSON listing available APIs and their OpenAPI specs.
+
+- **Score guide**: nothing = 1-2. Only llms.txt = 4-5. llms.txt + llms-full.txt = 6-7. api-catalog present = +2. Full set = 9-10.
+
+### `botAuth` — Bot Authentication
+Maps to check keys: `oauth`, `oauth-protected`, `agent-card`, `a2a`
+
+**What is OAuth discovery**: `.well-known/oauth-authorization-server` is a standard RFC 8414 metadata endpoint. For agent compatibility, it should support `client_credentials` grant and ideally `dynamic_client_registration` (RFC 7591). This lets AI agents authenticate without manual setup.
+
+**What is agent.json / A2A**: Google's Agent2Agent protocol. `.well-known/agent.json` or `.well-known/a2a.json` should contain:
+```json
+{
+  "name": "My Agent",
+  "version": "1.0",
+  "skills": [{"id": "...", "name": "...", "description": "..."}],
+  "endpoints": [{"url": "https://example.com/a2a", "protocol": "a2a/1.0"}]
+}
+```
+
+- Check results already tell you: Is OAuth metadata present? Does it have token_endpoint? Dynamic client registration? What grant types?
+- **Score guide**: nothing = 1-2. OAuth found = 5. OAuth + dynamic_client_registration = 7. agent.json/A2A present = +2. Full stack = 9-10.
+
+### `agentReadiness` — Overall Agent Readiness
+Uses `_summary.score` directly + check key `headers`.
+
+This is the holistic assessment. A site is truly agent-ready if it has: llms.txt (content discovery), MCP server (tool execution), OAuth (authentication), A2A or agent.json (agent identity), and agent-friendly robots.txt.
+
+- **Score guide**: Use `_summary.score` as your baseline. Adjust based on quality of what was found (valid JSON vs garbage, reachable endpoints vs dead ones, proper directives vs missing).
+- Cite the `_summary.detail` string for the factual summary.
 
 ---
 
