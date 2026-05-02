@@ -6,15 +6,16 @@ export const onRequest = defineMiddleware(async (_, next) => {
   const adsenseId = import.meta.env.ADSENSE_ACCOUNT_ID || ""
   const gtmId = import.meta.env.GTAG_ID || ""
 
-  // Base CSP directives (permissive for Turnstile + AdSense)
+  // Base CSP directives (AdSense/Google privacy iframe compatible)
   const cspDirectives = [
     "default-src 'self'",
-    "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://challenges.cloudflare.com blob: data:",
+    "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://challenges.cloudflare.com blob: data: 'sha256-eJGI0Ik4oYe/PKLDOt4wcN76wYs8h+Ew05pMzdY6xG8='",
+    "script-src-elem 'self' 'unsafe-inline' 'unsafe-eval' https://challenges.cloudflare.com blob: data: 'sha256-eJGI0Ik4oYe/PKLDOt4wcN76wYs8h+Ew05pMzdY6xG8='",
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' data: https: blob:",
     "font-src 'self' data: https:",
     "connect-src 'self' https: blob: wss:",
-    "frame-src 'self' https://challenges.cloudflare.com https://www.googletagmanager.com https://www.google.com https://googleads.g.doubleclick.net",
+    "frame-src 'self' https://challenges.cloudflare.com https://www.googletagmanager.com https://www.google.com https://googleads.g.doubleclick.net https://fundingchoicesmessages.google.com",
     "child-src 'self' blob: https://challenges.cloudflare.com",
     "base-uri 'self'",
     "form-action 'self'",
