@@ -21,11 +21,14 @@ export const onRequest = defineMiddleware(async (_, next) => {
     "form-action 'self'",
   ]
 
-  // Add Google Tag Manager + AdSense + Turnstile domains (idempotent)
+  // Add Google Tag Manager + AdSense domains
   if (gtmId || adsenseId) {
+    // script-src (index 1)
     cspDirectives[1] += " https://www.googletagmanager.com https://tagmanager.google.com https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net https://www.googletagservices.com https://tpc.googlesyndication.com https://fundingchoicesmessages.google.com https://www.gstatic.com"
-    cspDirectives[3] += " https://www.googletagmanager.com https://*.g.doubleclick.net https://*.google.com https://pagead2.googlesyndication.com https://fundingchoicesmessages.google.com"
-    cspDirectives[5] += " https://www.googletagmanager.com https://*.google.com https://pagead2.googlesyndication.com https://fundingchoicesmessages.google.com https://googleads.g.doubleclick.net"
+    // script-src-elem (index 2)
+    cspDirectives[2] += " https://www.googletagmanager.com https://tagmanager.google.com https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net https://www.googletagservices.com https://tpc.googlesyndication.com https://fundingchoicesmessages.google.com https://www.gstatic.com"
+    // frame-src (index 7)
+    cspDirectives[7] += " https://www.googletagmanager.com"
   }
 
   // Build CSP header value
