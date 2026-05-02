@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Copy } from "lucide-react";
+import { toast, Toaster } from "sonner";
 import { getTranslations, type Locale } from "@/i18n/utils";
 
 // Type declarations for Cloudflare Turnstile
@@ -236,10 +237,17 @@ export function Chatbot({ locale = "en" }: ChatbotProps) {
   };
 
   const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text).then(() => {
-      // Could add toast here in future
-      console.log("Prompt copied to clipboard");
-    });
+    navigator.clipboard
+      .writeText(text)
+      .then(() => {
+        toast.success("Prompt copied to clipboard", {
+          description: "Ready to paste into OpenCode",
+          duration: 2000,
+        });
+      })
+      .catch(() => {
+        toast.error("Failed to copy prompt");
+      });
   };
 
   return (
@@ -385,6 +393,7 @@ export function Chatbot({ locale = "en" }: ChatbotProps) {
           </div>
         </div>
       )}
+      <Toaster position="top-right" richColors closeButton />
     </div>
   );
 }
