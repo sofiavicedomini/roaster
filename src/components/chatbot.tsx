@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 
 interface RoastResult {
@@ -11,6 +11,29 @@ interface RoastResult {
     critique: string;
   }>;
 }
+
+const ROASTER_LOADING_MESSAGES = [
+  "Preheating the grill...",
+  "Counting misplaced pixels...",
+  "Measuring load times...",
+  "Looking for ugly fonts...",
+  "Analyzing color choices...",
+  "Checking if the site is accessible...",
+  "Measuring painful UX...",
+  "Hunting for code errors...",
+  "Checking if the site is mobile-friendly...",
+  "Analyzing SEO (or lack thereof)...",
+  "Trying to understand the copy...",
+  "Checking if the site is credible...",
+  "Measuring how much it burns...",
+  "Preparing the hot sauce...",
+  "Lighting the fire...",
+  "Scanning for robots.txt...",
+  "Checking agent readiness...",
+  "Looking for MCP servers...",
+  "Testing API discovery...",
+  "Checking OAuth endpoints...",
+];
 
 const CATEGORIES = [
   { id: "design", label: "Design", group: "Technical" },
@@ -25,6 +48,11 @@ const CATEGORIES = [
   { id: "brand", label: "Brand", group: "Trust" },
   { id: "credibility", label: "Credibility", group: "Trust" },
   { id: "security", label: "Security", group: "Trust" },
+  { id: "agent-readiness", label: "Agent Readiness", group: "AI Agents" },
+  { id: "robots", label: "Robots & Sitemap", group: "AI Agents" },
+  { id: "mcp", label: "MCP & Skills", group: "AI Agents" },
+  { id: "api-discovery", label: "API Discovery", group: "AI Agents" },
+  { id: "bot-auth", label: "Bot Auth", group: "AI Agents" },
 ];
 
 export function Chatbot() {
@@ -34,6 +62,7 @@ export function Chatbot() {
     "performance",
     "ux",
     "seo",
+    "agent-readiness",
   ]);
 
   const groups = CATEGORIES.reduce((acc, cat) => {
@@ -42,8 +71,17 @@ export function Chatbot() {
     return acc;
   }, {} as Record<string, typeof CATEGORIES>);
   const [isLoading, setIsLoading] = useState(false);
+  const [loadingMsgIdx, setLoadingMsgIdx] = useState(0);
   const [result, setResult] = useState<RoastResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!isLoading) return;
+    const interval = setInterval(() => {
+      setLoadingMsgIdx((prev) => (prev + 1) % ROASTER_LOADING_MESSAGES.length);
+    }, 2000);
+    return () => clearInterval(interval);
+  }, [isLoading]);
 
   const toggleCategory = (id: string) => {
     setSelectedCategories((prev) =>
@@ -56,6 +94,7 @@ export function Chatbot() {
     if (!url) return;
 
     setIsLoading(true);
+    setLoadingMsgIdx(0);
     setError(null);
     setResult(null);
 
@@ -136,8 +175,14 @@ export function Chatbot() {
         </div>
 
         <Button type="submit" disabled={isLoading || !url || selectedCategories.length === 0}>
-          {isLoading ? "Roasting..." : "Roast this site"}
+          {isLoading ? "The Roaster sta pensando..." : "Roast this site"}
         </Button>
+
+        {isLoading && (
+          <div className="text-center text-sm text-orange-400/80 animate-pulse">
+            {ROASTER_LOADING_MESSAGES[loadingMsgIdx]}
+          </div>
+        )}
       </form>
 
       {error && (

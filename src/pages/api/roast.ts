@@ -68,6 +68,56 @@ export const POST: APIRoute = async ({ request }) => {
   }
 };
 
+async function fetchUrl(url: string): Promise<string | null> {
+  try {
+    const res = await fetch(url, { headers: { "User-Agent": "Mozilla/5.0 Agent-Readiness-Checker" } });
+    if (res.ok) return await res.text();
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+async function checkAgentReadiness(baseUrl: string) {
+  const results: Record<string, { status: string; detail: string }> = {};
+  const urlObj = new URL(baseUrl);
+  const origin = urlObj.origin;
+
+  const checks = [
+    { key: "robots", url: `${origin}/robots.txt`, label: "robots.txt" },
+    { key: "sitemap", url: `${origin}/sitemap.xml`, label: "sitemap.xml" },
+    { key: "llms", url: `${origin}/llms.txt`, label: "llms.txt" },
+    { key: "mcp", url: `${origin}/.well-known/mcp`, label: "MCP well-known" },
+    { key: "oauth", url: `${origin}/.well-known/oauth-authorization-server`, label: "OAuth discovery" },
+    { key: "agent-card", url: `${origin}/.well-known/agent.json`, label: "Agent Card" },
+    { key: "a2a", url: `${origin}/.well-known/a2a.json`, label: "A2A Agent Card" },
+  ];
+
+  for (const check of checks) {
+    const content = await fetchUrl(check.url);
+    results[check.key] = content
+      ? { status: "found", detail: `${check.label} exists (${content.length} chars)` }
+      : { status: "not found", detail: `${check.label} not found at ${check.url}` };
+  }
+
+  const headersToCheck = ["link", "x-robots-tag", "content-type"];
+  try {
+    const res = await fetch(baseUrl, { headers: { "User-Agent": "Mozilla/5.0 Agent-Readiness-Checker" } });
+    const headers: string[] = [];
+    for (const h of headersToCheck) {
+      const val = res.headers.get(h);
+      if (val) headers.push(`${h}: ${val}`);
+    }
+    results["headers"] = headers.length > 0
+      ? { status: "found", detail: headers.join("; ") }
+      : { status: "not found", detail: "No relevant headers found" };
+  } catch {
+    results["headers"] = { status: "error", detail: "Could not fetch homepage" };
+  }
+
+  return results;
+}
+
 async function buildPrompt(url: string, categories: string[]): Promise<string> {
   const promptPath = join(process.cwd(), "prompt.md");
   let basePrompt = "";
@@ -91,7 +141,12 @@ Respond ONLY with a JSON object (no markdown, no preamble) in exactly this forma
     "ux": <1-10 or null>,
     "seo": <1-10 or null>,
     "code": <1-10 or null>,
-    "accessibility": <1-10 or null>
+    "accessibility": <1-10 or null>,
+    "agent-readiness": <1-10 or null>,
+    "robots": <1-10 or null>,
+    "mcp": <1-10 or null>,
+    "api-discovery": <1-10 or null>,
+    "bot-auth": <1-10 or null>
   },
   "roasts": [
     {
@@ -105,10 +160,20 @@ Respond ONLY with a JSON object (no markdown, no preamble) in exactly this forma
 Include one roast object per requested category. Each critique should feel like it came from a person, not a report generator.`;
   }
 
+  const agentCategories = ["agent-readiness", "robots", "mcp", "api-discovery", "bot-auth"];
+  const hasAgentChecks = categories.some((c) => agentCategories.includes(c));
+  let agentData = "";
+
+  if (hasAgentChecks) {
+    const checks = await checkAgentReadiness(url);
+    agentData = `\n\n### Agent Readiness Check Results:\n${JSON.stringify(checks, null, 2)}\n\nUse this data to inform your roasts for agent-readiness related categories.`;
+  }
+
   const categoriesStr = categories.length > 0 ? categories.join(", ") : "design, performance, ux, seo, code, accessibility";
   const modified = basePrompt
     .replace("https://vicedominisoftworks.com/en", url)
-    .replace(/these categories: design, performance, ux, seo, code, accessibility/, `these categories: ${categoriesStr}`);
+    .replace(/these categories: design, performance, ux, seo, code, accessibility/, `these categories: ${categoriesStr}`)
+    + agentData;
 
   return modified;
 }
