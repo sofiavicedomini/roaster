@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Copy } from "lucide-react";
-import { toast, Toaster } from "sonner";
 import { getTranslations, type Locale } from "@/i18n/utils";
 
 // Type declarations for Cloudflare Turnstile
@@ -84,6 +83,7 @@ export function Chatbot({ locale = "en" }: ChatbotProps) {
   const [error, setError] = useState<string | null>(null);
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
   const [isTurnstileExpired, setIsTurnstileExpired] = useState(false);
+  const [showCopied, setShowCopied] = useState(false);
   const turnstileRef = useRef<HTMLDivElement>(null);
   const widgetIdRef = useRef<string | null>(null);
   const turnstileSiteKey = typeof import.meta !== "undefined" && import.meta.env?.PUBLIC_TURNSTILE_SITE_KEY
@@ -240,13 +240,12 @@ export function Chatbot({ locale = "en" }: ChatbotProps) {
     navigator.clipboard
       .writeText(text)
       .then(() => {
-        toast.success("Prompt copied to clipboard", {
-          description: "Ready to paste into OpenCode",
-          duration: 2000,
-        });
+        setShowCopied(true);
+        setTimeout(() => setShowCopied(false), 2000);
       })
-      .catch(() => {
-        toast.error("Failed to copy prompt");
+      .catch((err) => {
+        console.error("Failed to copy:", err);
+        alert("Failed to copy prompt");
       });
   };
 
@@ -309,6 +308,13 @@ export function Chatbot({ locale = "en" }: ChatbotProps) {
         {isTurnstileExpired && (
           <div className="text-center text-xs text-amber-400 bg-amber-500/10 border border-amber-500/30 rounded p-2">
             Il captcha è scaduto. Lo sto rinnovando automaticamente...
+          </div>
+        )}
+
+        {showCopied && (
+          <div className="fixed top-4 right-4 bg-emerald-600 text-white text-sm px-4 py-2.5 rounded-xl shadow-xl border border-emerald-500/50 flex items-center gap-2 z-50 animate-in fade-in slide-in-from-top-2">
+            <span>Copied to clipboard</span>
+            <span className="text-xs opacity-75">✓</span>
           </div>
         )}
 
