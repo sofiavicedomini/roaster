@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
+import { getTranslations, type Locale } from "@/i18n/utils";
 
 interface RoastResult {
   overall_score: number;
@@ -13,50 +14,32 @@ interface RoastResult {
   }>;
 }
 
-const ROASTER_LOADING_MESSAGES = [
-  "Preheating the grill...",
-  "Counting misplaced pixels...",
-  "Measuring load times...",
-  "Looking for ugly fonts...",
-  "Analyzing color choices...",
-  "Checking if the site is accessible...",
-  "Measuring painful UX...",
-  "Hunting for code errors...",
-  "Checking if the site is mobile-friendly...",
-  "Analyzing SEO (or lack thereof)...",
-  "Trying to understand the copy...",
-  "Checking if the site is credible...",
-  "Measuring how much it burns...",
-  "Preparing the hot sauce...",
-  "Lighting the fire...",
-  "Scanning for robots.txt...",
-  "Checking agent readiness...",
-  "Looking for MCP servers...",
-  "Testing API discovery...",
-  "Checking OAuth endpoints...",
-];
+interface ChatbotProps {
+  locale?: Locale;
+}
 
 const CATEGORIES = [
-  { id: "design", label: "Design", group: "Technical" },
-  { id: "performance", label: "Performance", group: "Technical" },
-  { id: "code", label: "Code", group: "Technical" },
-  { id: "mobile", label: "Mobile", group: "Technical" },
-  { id: "ux", label: "UX", group: "Experience" },
-  { id: "accessibility", label: "Accessibility", group: "Experience" },
-  { id: "conversion", label: "Conversion", group: "Experience" },
-  { id: "seo", label: "SEO", group: "Content" },
-  { id: "copy", label: "Copy", group: "Content" },
-  { id: "brand", label: "Brand", group: "Trust" },
-  { id: "credibility", label: "Credibility", group: "Trust" },
-  { id: "security", label: "Security", group: "Trust" },
-  { id: "agent-readiness", label: "Agent Readiness", group: "AI Agents" },
-  { id: "robots", label: "Robots & Sitemap", group: "AI Agents" },
-  { id: "mcp", label: "MCP & Skills", group: "AI Agents" },
-  { id: "api-discovery", label: "API Discovery", group: "AI Agents" },
-  { id: "bot-auth", label: "Bot Auth", group: "AI Agents" },
+  { id: "design", group: "technical" },
+  { id: "performance", group: "technical" },
+  { id: "code", group: "technical" },
+  { id: "mobile", group: "technical" },
+  { id: "ux", group: "experience" },
+  { id: "accessibility", group: "experience" },
+  { id: "conversion", group: "experience" },
+  { id: "seo", group: "content" },
+  { id: "copy", group: "content" },
+  { id: "brand", group: "trust" },
+  { id: "credibility", group: "trust" },
+  { id: "security", group: "trust" },
+  { id: "agent-readiness", group: "aiAgents" },
+  { id: "robots", group: "aiAgents" },
+  { id: "mcp", group: "aiAgents" },
+  { id: "api-discovery", group: "aiAgents" },
+  { id: "bot-auth", group: "aiAgents" },
 ];
 
-export function Chatbot() {
+export function Chatbot({ locale = "en" }: ChatbotProps) {
+  const t = getTranslations(locale);
   const [url, setUrl] = useState("");
   const [selectedCategories, setSelectedCategories] = useState<string[]>([
     "design",
@@ -79,10 +62,10 @@ export function Chatbot() {
   useEffect(() => {
     if (!isLoading) return;
     const interval = setInterval(() => {
-      setLoadingMsgIdx((prev) => (prev + 1) % ROASTER_LOADING_MESSAGES.length);
+      setLoadingMsgIdx((prev) => (prev + 1) % t.chatbot.loadingMessages.length);
     }, 2000);
     return () => clearInterval(interval);
-  }, [isLoading]);
+  }, [isLoading, t.chatbot.loadingMessages.length]);
 
   const toggleCategory = (id: string) => {
     setSelectedCategories((prev) =>
@@ -103,7 +86,7 @@ export function Chatbot() {
       const response = await fetch("/api/roast", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url, categories: selectedCategories }),
+        body: JSON.stringify({ url, categories: selectedCategories, locale }),
       });
 
       const data = await response.json();
@@ -114,7 +97,7 @@ export function Chatbot() {
 
       setResult(data);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong");
+      setError(err instanceof Error ? err.message : t.errors.unknown);
     } finally {
       setIsLoading(false);
     }
@@ -132,24 +115,26 @@ export function Chatbot() {
       <form onSubmit={handleSubmit} className="flex flex-col gap-4 rounded-lg border p-4 bg-card inferno-card">
         <div className="flex flex-col gap-2">
           <label htmlFor="url" className="text-sm font-medium">
-            Website URL
+            {t.chatbot.urlLabel}
           </label>
           <input
             id="url"
             type="url"
             value={url}
             onChange={(e) => setUrl(e.target.value)}
-            placeholder="https://example.com"
+            placeholder={t.chatbot.urlPlaceholder}
             className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             required
           />
         </div>
 
         <div className="flex flex-col gap-3">
-          <label className="text-sm font-medium">Categories to analyze</label>
+          <label className="text-sm font-medium">{t.chatbot.categoriesLabel}</label>
           {Object.entries(groups).map(([group, cats]) => (
             <div key={group} className="flex flex-col gap-2">
-              <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{group}</span>
+              <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                {t.chatbot.groups[group as keyof typeof t.chatbot.groups] || group}
+              </span>
               <div className="flex flex-wrap gap-2">
                 {cats.map((cat) => (
                   <button
@@ -162,7 +147,9 @@ export function Chatbot() {
                         : "border-border hover:bg-muted"
                     }`}
                   >
-                    <span className="text-sm">{cat.label}</span>
+                    <span className="text-sm">
+                      {t.chatbot.categories[cat.id as keyof typeof t.chatbot.categories] || cat.id}
+                    </span>
                     {selectedCategories.includes(cat.id) && (
                       <svg className="w-4 h-4 text-primary" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
@@ -176,12 +163,12 @@ export function Chatbot() {
         </div>
 
         <Button type="submit" disabled={isLoading || !url || selectedCategories.length === 0}>
-          {isLoading ? "The Roaster sta pensando..." : "Roast this site"}
+          {isLoading ? t.chatbot.buttonLoading : t.chatbot.buttonRoast}
         </Button>
 
         {isLoading && (
           <div className="text-center text-sm text-orange-400/80 animate-pulse">
-            {ROASTER_LOADING_MESSAGES[loadingMsgIdx]}
+            {t.chatbot.loadingMessages[loadingMsgIdx]}
           </div>
         )}
       </form>
@@ -196,7 +183,9 @@ export function Chatbot() {
         <div className="flex flex-col gap-4 rounded-lg border bg-card p-6 inferno-card">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-2xl font-bold">Overall Score: {result.overall_score}/10</h2>
+              <h2 className="text-2xl font-bold">
+                {t.chatbot.overallScore.replace("{score}", String(result.overall_score))}
+              </h2>
               <p className="text-muted-foreground mt-1">{result.verdict}</p>
             </div>
             <div className="flex gap-1 text-3xl">
@@ -210,7 +199,9 @@ export function Chatbot() {
                 key={cat}
                 className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-muted"
               >
-                <span className="text-sm capitalize">{cat}</span>
+                <span className="text-sm capitalize">
+                  {t.chatbot.categories[cat as keyof typeof t.chatbot.categories] || cat}
+                </span>
                 <span className={`font-bold ${getScoreColor(score)}`}>
                   {score !== null ? score : "—"}
                 </span>
@@ -219,19 +210,21 @@ export function Chatbot() {
           </div>
 
           <div className="flex flex-col gap-4 pt-4 border-t">
-            <h3 className="font-medium text-lg">Detailed Roasts</h3>
+            <h3 className="font-medium text-lg">{t.chatbot.detailedRoasts}</h3>
             {result.roasts.map((roast, i) => (
               <div key={i} className="flex flex-col gap-2 p-3 rounded-lg bg-muted/50">
                 <div className="flex gap-3">
                   <span className="text-2xl">{roast.emoji}</span>
                   <div className="flex-1">
-                    <h4 className="font-medium capitalize">{roast.category}</h4>
+                    <h4 className="font-medium capitalize">
+                      {t.chatbot.categories[roast.category as keyof typeof t.chatbot.categories] || roast.category}
+                    </h4>
                     <p className="text-sm text-muted-foreground mt-1">{roast.critique}</p>
                   </div>
                 </div>
                 {roast.fix_prompt && (
                   <div className="ml-10 mt-2 p-3 rounded-md bg-background border border-orange-500/20">
-                    <p className="text-xs text-muted-foreground mb-1">Fix prompt for AI agent:</p>
+                    <p className="text-xs text-muted-foreground mb-1">{t.chatbot.fixPrompt}</p>
                     <code className="text-xs text-orange-400 break-all">{roast.fix_prompt}</code>
                   </div>
                 )}

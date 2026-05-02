@@ -1,0 +1,72 @@
+{
+  "site": {
+    "title": "Röst mich 🔥",
+    "description": "Erhalte eine ehrliche, schonungslose Kritik jeder Webseite",
+    "footer": "Ein Projekt von <span class=\"font-semibold\">Vicedomini Softworks</span>"
+  },
+  "chatbot": {
+    "urlLabel": "Webseite URL",
+    "urlPlaceholder": "https://beispiel.de",
+    "categoriesLabel": "Zu analysierende Kategorien",
+    "buttonRoast": "Röst diese Seite",
+    "buttonLoading": "Der Roaster denkt nach...",
+    "overallScore": "Gesamtpunktzahl: {score}/10",
+    "detailedRoasts": "Detaillierte Roasts",
+    "fixPrompt": "Korrektur-Prompt für KI-Agent:",
+    "groups": {
+      "technical": "Technisch",
+      "experience": "Erlebnis",
+      "content": "Inhalt",
+      "trust": "Vertrauen",
+      "aiAgents": "KI-Agenten"
+    },
+    "categories": {
+      "design": "Design",
+      "performance": "Performance",
+      "code": "Code",
+      "mobile": "Mobile",
+      "ux": "UX",
+      "accessibility": "Barrierefreiheit",
+      "conversion": "Ziele",
+      "seo": "SEO",
+      "copy": "Copy",
+      "brand": "Marke",
+      "credibility": "Glaubwürdigkeit",
+      "security": "Sicherheit",
+      "agentReadiness": "Agent Readiness",
+      "robots": "Robots & Sitemap",
+      "mcp": "MCP & Skills",
+      "apiDiscovery": "API Discovery",
+      "botAuth": "Bot Auth"
+    },
+    "loadingMessages": [
+      "Grill vorheizen...",
+      "Pixel zählen...",
+      "Ladezeiten messen...",
+      "Hässliche Schriftarten suchen...",
+      "Farbauswahl analysieren...",
+      "Prüfen, ob die Seite zugänglich ist...",
+      "Schmerzhafte UX messen...",
+      "Code-Fehler jagen...",
+      "Prüfen, ob die Seite mobile-friendly ist...",
+      "SEO analysieren (oder das Fehlen)...",
+      "Versuch, den Text zu verstehen...",
+      "Prüfen, ob die Seite glaubwürdig ist...",
+      "Messen, wie sehr es brennt...",
+      "Heiße Soße vorbereiten...",
+      "Feuer entzünden...",
+      "robots.txt scannen...",
+      "Agent Readiness prüfen...",
+      "MCP-Server suchen...",
+      "API Discovery testen...",
+      "OAuth-Endpunkte prüfen..."
+    ]
+  },
+  "errors": {
+    "urlRequired": "URL ist erforderlich",
+    "highTraffic": "Wir haben derzeit sehr viel Verkehr. Bitte versuchen Sie es in einigen Augenblicken erneut.",
+    "invalidJson": "Ungültige JSON-Antwort von der KI",
+    "unknown": "Unbekannter Fehler",
+    "aiApi": "KI-API-Fehler: "
+  }
+}

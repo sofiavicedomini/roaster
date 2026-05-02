@@ -1,0 +1,72 @@
+{
+  "site": {
+    "title": "Róastrame 🔥",
+    "description": "Obtén una crítica honesta y sin rodeos de cualquier sitio web",
+    "footer": "Un proyecto de <span class=\"font-semibold\">Vicedomini Softworks</span>"
+  },
+  "chatbot": {
+    "urlLabel": "URL del sitio",
+    "urlPlaceholder": "https://ejemplo.es",
+    "categoriesLabel": "Categorías a analizar",
+    "buttonRoast": "Roast este sitio",
+    "buttonLoading": "El Roaster está pensando...",
+    "overallScore": "Puntuación global: {score}/10",
+    "detailedRoasts": "Roasts detallados",
+    "fixPrompt": "Prompt de corrección para agente IA:",
+    "groups": {
+      "technical": "Técnico",
+      "experience": "Experiencia",
+      "content": "Contenido",
+      "trust": "Confianza",
+      "aiAgents": "AI Agents"
+    },
+    "categories": {
+      "design": "Diseño",
+      "performance": "Rendimiento",
+      "code": "Código",
+      "mobile": "Móvil",
+      "ux": "UX",
+      "accessibility": "Accesibilidad",
+      "conversion": "Objetivos",
+      "seo": "SEO",
+      "copy": "Copy",
+      "brand": "Marca",
+      "credibility": "Credibilidad",
+      "security": "Seguridad",
+      "agentReadiness": "Agent Readiness",
+      "robots": "Robots & Sitemap",
+      "mcp": "MCP & Skills",
+      "apiDiscovery": "API Discovery",
+      "botAuth": "Bot Auth"
+    },
+    "loadingMessages": [
+      "Precalentando la parrilla...",
+      "Contando píxeles mal colocados...",
+      "Midiendo tiempos de carga...",
+      "Buscando fuentes feas...",
+      "Analizando elecciones de color...",
+      "Comprobando si el sitio es accesible...",
+      "Midiendo UX dolorosa...",
+      "Cazando errores de código...",
+      "Comprobando si el sitio es mobile-friendly...",
+      "Analizando SEO (o su falta)...",
+      "Tratando de entender el copy...",
+      "Comprobando si el sitio es creíble...",
+      "Midiendo cuánto arde...",
+      "Preparando la salsa picante...",
+      "Encendiendo el fuego...",
+      "Escaneando robots.txt...",
+      "Comprobando agent readiness...",
+      "Buscando servidores MCP...",
+      "Probando API discovery...",
+      "Comprobando endpoints OAuth..."
+    ]
+  },
+  "errors": {
+    "urlRequired": "La URL es obligatoria",
+    "highTraffic": "Estamos experimentando mucho tráfico. Por favor, inténtalo de nuevo en unos momentos.",
+    "invalidJson": "Respuesta JSON no válida de la IA",
+    "unknown": "Error desconocido",
+    "aiApi": "Error de API de IA: "
+  }
+}

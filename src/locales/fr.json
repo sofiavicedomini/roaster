@@ -1,0 +1,72 @@
+{
+  "site": {
+    "title": "Grille-moi 🔥",
+    "description": "Obtenez une critique honnête et sans filtre de n'importe quel site web",
+    "footer": "Un projet de <span class=\"font-semibold\">Vicedomini Softworks</span>"
+  },
+  "chatbot": {
+    "urlLabel": "URL du site",
+    "urlPlaceholder": "https://exemple.fr",
+    "categoriesLabel": "Catégories à analyser",
+    "buttonRoast": "Roaster ce site",
+    "buttonLoading": "Le Roaster réfléchit...",
+    "overallScore": "Score global : {score}/10",
+    "detailedRoasts": "Roasts détaillés",
+    "fixPrompt": "Prompt de correction pour l'agent IA :",
+    "groups": {
+      "technical": "Technique",
+      "experience": "Expérience",
+      "content": "Contenu",
+      "trust": "Confiance",
+      "aiAgents": "AI Agents"
+    },
+    "categories": {
+      "design": "Design",
+      "performance": "Performance",
+      "code": "Code",
+      "mobile": "Mobile",
+      "ux": "UX",
+      "accessibility": "Accessibilité",
+      "conversion": "Objectifs",
+      "seo": "SEO",
+      "copy": "Copy",
+      "brand": "Marque",
+      "credibility": "Crédibilité",
+      "security": "Sécurité",
+      "agentReadiness": "Agent Readiness",
+      "robots": "Robots & Sitemap",
+      "mcp": "MCP & Skills",
+      "apiDiscovery": "API Discovery",
+      "botAuth": "Bot Auth"
+    },
+    "loadingMessages": [
+      "Préchauffage du grill...",
+      "Comptage des pixels mal placés...",
+      "Mesure des temps de chargement...",
+      "Recherche de polices laides...",
+      "Analyse des choix de couleurs...",
+      "Vérification de l'accessibilité du site...",
+      "Mesure de l'UX douloureuse...",
+      "Chasse aux erreurs de code...",
+      "Vérification si le site est mobile-friendly...",
+      "Analyse du SEO (ou de son absence)...",
+      "Essai de comprendre le copy...",
+      "Vérification de la crédibilité du site...",
+      "Mesure de la brûlure...",
+      "Préparation de la sauce piquante...",
+      "Allumage du feu...",
+      "Scan de robots.txt...",
+      "Vérification de l'agent readiness...",
+      "Recherche de serveurs MCP...",
+      "Test de l'API discovery...",
+      "Vérification des endpoints OAuth..."
+    ]
+  },
+  "errors": {
+    "urlRequired": "L'URL est requise",
+    "highTraffic": "Nous subissons une forte affluence. Veuillez réessayer dans quelques instants.",
+    "invalidJson": "Réponse JSON invalide de l'IA",
+    "unknown": "Erreur inconnue",
+    "aiApi": "Erreur API IA : "
+  }
+}

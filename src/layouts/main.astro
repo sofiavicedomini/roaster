@@ -1,16 +1,22 @@
 ---
 import "@/styles/global.css"
+import { getLocaleFromURL, useTranslations } from "@/i18n/utils"
+import LanguageSwitcher from "@/components/LanguageSwitcher.astro"
+
+const locale = getLocaleFromURL(Astro.url, Astro.request)
+const { t } = useTranslations(locale)
 ---
 
-<html lang="en" class="dark">
+<html lang={locale} class="dark">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <title>Website Roaster 🔥</title>
+    <title>{t("site.title")}</title>
   </head>
   <body>
     <div class="heat-distortion fire"></div>
+    <LanguageSwitcher />
     <slot />
     <div class="fixed bottom-4 right-4 z-50">
       <a
@@ -18,9 +24,8 @@ import "@/styles/global.css"
         target="_blank"
         rel="noopener noreferrer"
         class="block rounded-lg bg-zinc-900/90 backdrop-blur-sm border border-orange-500/30 px-4 py-2 text-sm text-orange-400/90 shadow-lg hover:bg-zinc-800/90 hover:border-orange-400/50 transition-all duration-200"
-      >
-        A project by <span class="font-semibold">Vicedomini Softworks</span>
-      </a>
+        set:html={t("site.footer")}
+      />
     </div>
   </body>
 </html>

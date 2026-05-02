@@ -1,0 +1,72 @@
+{
+  "site": {
+    "title": "Prae mind 🔥",
+    "description": "Saa aus ehtne, järeleandmatu kriitika ükskõik millise veebisaidi kohta",
+    "footer": "Projekt: <span class=\"font-semibold\">Vicedomini Softworks</span>"
+  },
+  "chatbot": {
+    "urlLabel": "Veebisaidi URL",
+    "urlPlaceholder": "https://näide.ee",
+    "categoriesLabel": "Analüüsitavad kategooriad",
+    "buttonRoast": "Prae see sait",
+    "buttonLoading": "Roaster mõtleb...",
+    "overallScore": "Üldine hinne: {score}/10",
+    "detailedRoasts": "Detailne roastimine",
+    "fixPrompt": "Paranduse prompt AI-agendile:",
+    "groups": {
+      "technical": "Tehniline",
+      "experience": "Kogemus",
+      "content": "Sisu",
+      "trust": "Usaldus",
+      "aiAgents": "AI-agendid"
+    },
+    "categories": {
+      "design": "Disain",
+      "performance": "Jõudlus",
+      "code": "Kood",
+      "mobile": "Mobiil",
+      "ux": "UX",
+      "accessibility": "Juurdepääsetavus",
+      "conversion": "Eesmärgid",
+      "seo": "SEO",
+      "copy": "Tekstid",
+      "brand": "Bränd",
+      "credibility": "Usaldusväärsus",
+      "security": "Turvalisus",
+      "agentReadiness": "Agent Readiness",
+      "robots": "Robots & Sitemap",
+      "mcp": "MCP & Skills",
+      "apiDiscovery": "API Discovery",
+      "botAuth": "Bot Auth"
+    },
+    "loadingMessages": [
+      "Grilli eelsoojendamine...",
+      "Vigases kohas olevate pikslite lugemine...",
+      "Laadimisaegade mõõtmine...",
+      "Inetute fontide otsimine...",
+      "Värvivalikute analüüs...",
+      "Kontrollimine, kas sait on ligipääsetav...",
+      "Valuliku UX mõõtmine...",
+      "Koodivigade jahtimine...",
+      "Kontrollimine, kas sait on mobiilisõbralik...",
+      "SEO analüüs (või selle puudumine)...",
+      "Püüe mõista tekste...",
+      "Kontrollimine, kas sait on usaldusväärne...",
+      "Mõõdetakse, kui palju see põleb...",
+      "Kuumakastme valmistamine...",
+      "Tule süütamine...",
+      "robots.txt skannimine...",
+      "Agendi valmisoleku kontrollimine...",
+      "MCP-serverite otsimine...",
+      "API Discovery testimine...",
+      "OAuth-i lõpp-punktide kontrollimine..."
+    ]
+  },
+  "errors": {
+    "urlRequired": "URL on kohustuslik",
+    "highTraffic": "Hetkel on liiklus väga suur. Palun proovi mõne hetke pärast uuesti.",
+    "invalidJson": "Vigane JSON-vastus AI-lt",
+    "unknown": "Tundmatu viga",
+    "aiApi": "AI API viga: "
+  }
+}

@@ -1,0 +1,72 @@
+{
+  "site": {
+    "title": "Stroncami 🔥",
+    "description": "Ottieni una critica onesta e senza filtri per qualsiasi sito web",
+    "footer": "Un progetto di <span class=\"font-semibold\">Vicedomini Softworks</span>"
+  },
+  "chatbot": {
+    "urlLabel": "URL del sito",
+    "urlPlaceholder": "https://esempio.it",
+    "categoriesLabel": "Categorie da analizzare",
+    "buttonRoast": "Stroncami questo sito",
+    "buttonLoading": "Il Roaster sta pensando...",
+    "overallScore": "Punteggio complessivo: {score}/10",
+    "detailedRoasts": "Stroncature dettagliate",
+    "fixPrompt": "Prompt di correzione per AI agent:",
+    "groups": {
+      "technical": "Tecnico",
+      "experience": "Esperienza",
+      "content": "Contenuti",
+      "trust": "Fiducia",
+      "aiAgents": "AI Agents"
+    },
+    "categories": {
+      "design": "Design",
+      "performance": "Performance",
+      "code": "Codice",
+      "mobile": "Mobile",
+      "ux": "UX",
+      "accessibility": "Accessibilità",
+      "conversion": "Obiettivi",
+      "seo": "SEO",
+      "copy": "Copy",
+      "brand": "Brand",
+      "credibility": "Credibilità",
+      "security": "Sicurezza",
+      "agentReadiness": "Agent Readiness",
+      "robots": "Robots & Sitemap",
+      "mcp": "MCP & Skills",
+      "apiDiscovery": "API Discovery",
+      "botAuth": "Bot Auth"
+    },
+    "loadingMessages": [
+      "Preriscaldamento della griglia...",
+      "Contando i pixel fuori posto...",
+      "Misurando i tempi di caricamento...",
+      "Cercando font brutti...",
+      "Analizzando le scelte di colore...",
+      "Controllando se il sito è accessibile...",
+      "Misurando lo UX doloroso...",
+      "Cacciando errori di codice...",
+      "Controllando se il sito è mobile-friendly...",
+      "Analizzando la SEO (o la sua mancanza)...",
+      "Cercando di capire il copy...",
+      "Controllando se il sito è credibile...",
+      "Misurando quanto brucia...",
+      "Preparando la salsa piccante...",
+      "Accendendo il fuoco...",
+      "Scansionando robots.txt...",
+      "Controllando l'agent readiness...",
+      "Cercando server MCP...",
+      "Testando l'API discovery...",
+      "Controllando gli endpoint OAuth..."
+    ]
+  },
+  "errors": {
+    "urlRequired": "L'URL è obbligatorio",
+    "highTraffic": "C'è molto traffico in questo momento. Riprova tra qualche istante.",
+    "invalidJson": "Risposta JSON non valida dall'AI",
+    "unknown": "Errore sconosciuto",
+    "aiApi": "Errore API AI: "
+  }
+}

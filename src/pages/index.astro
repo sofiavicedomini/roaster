@@ -1,18 +1,14 @@
 ---
-import Layout from "@/layouts/main.astro"
-import { Chatbot } from "@/components/chatbot"
+import { getLocaleFromURL } from "@/i18n/utils"
+
+const locale = getLocaleFromURL(Astro.url)
 ---
 
-<Layout>
-  <div class="flex min-h-svh flex-col items-center justify-center p-6">
-    <div class="w-full max-w-2xl">
-      <div class="mb-8 text-center">
-        <h1 class="text-6xl font-bold inferno-text">
-          Website Roaster
-        </h1>
-        <p class="text-orange-400/90 mt-3 text-lg animate-pulse">🔥 Get an honest, no-BS critique of any website 🔥</p>
-      </div>
-      <Chatbot client:only="react" />
-    </div>
-  </div>
-</Layout>
+<html lang={locale} class="dark">
+  <head>
+    <meta http-equiv="refresh" content={`0;url=/${locale}`} />
+  </head>
+  <body>
+    <p>Redirecting...</p>
+  </body>
+</html>

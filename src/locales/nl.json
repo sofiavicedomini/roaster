@@ -1,0 +1,72 @@
+{
+  "site": {
+    "title": "Röst mij 🔥",
+    "description": "Krijg een eerlijke, botte kritiek op elke website",
+    "footer": "Een project van <span class=\"font-semibold\">Vicedomini Softworks</span>"
+  },
+  "chatbot": {
+    "urlLabel": "Website URL",
+    "urlPlaceholder": "https://voorbeeld.nl",
+    "categoriesLabel": "Categorieën om te analyseren",
+    "buttonRoast": "Röst deze site",
+    "buttonLoading": "De Roaster denkt na...",
+    "overallScore": "Totale score: {score}/10",
+    "detailedRoasts": "Gedetailleerde Roasts",
+    "fixPrompt": "Correctie-prompt voor AI-agent:",
+    "groups": {
+      "technical": "Technisch",
+      "experience": "Ervaring",
+      "content": "Inhoud",
+      "trust": "Vertrouwen",
+      "aiAgents": "AI-agenten"
+    },
+    "categories": {
+      "design": "Design",
+      "performance": "Performance",
+      "code": "Code",
+      "mobile": "Mobile",
+      "ux": "UX",
+      "accessibility": "Toegankelijkheid",
+      "conversion": "Doelen",
+      "seo": "SEO",
+      "copy": "Copy",
+      "brand": "Merk",
+      "credibility": "Geloofwaardigheid",
+      "security": "Beveiliging",
+      "agentReadiness": "Agent Readiness",
+      "robots": "Robots & Sitemap",
+      "mcp": "MCP & Skills",
+      "apiDiscovery": "API Discovery",
+      "botAuth": "Bot Auth"
+    },
+    "loadingMessages": [
+      "Grill voorverwarmen...",
+      "Pixels tellen...",
+      "Laadtijden meten...",
+      "Lelijke lettertypen zoeken...",
+      "Kleurkeuzes analyseren...",
+      "Controleren of de site toegankelijk is...",
+      "Pijnlijke UX meten...",
+      "Codefouten opsporen...",
+      "Controleren of de site mobielvriendelijk is...",
+      "SEO analyseren (of het ontbreken)...",
+      "Proberen de tekst te begrijpen...",
+      "Controleren of de site geloofwaardig is...",
+      "Meten hoeveel het brandt...",
+      "Heerlijke saus voorbereiden...",
+      "Vuur ontsteken...",
+      "robots.txt scannen...",
+      "Agent Readiness controleren...",
+      "MCP-servers zoeken...",
+      "API Discovery testen...",
+      "OAuth-eindpunten controleren..."
+    ]
+  },
+  "errors": {
+    "urlRequired": "URL is verplicht",
+    "highTraffic": "We hebben momenteel veel verkeer. Probeer het over een paar momenten opnieuw.",
+    "invalidJson": "Ongeldige JSON-reactie van AI",
+    "unknown": "Onbekende fout",
+    "aiApi": "AI-API-fout: "
+  }
+}

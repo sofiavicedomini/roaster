@@ -3,14 +3,20 @@ export const prerender = false;
 import type { APIRoute } from "astro";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
+import { getTranslations, type Locale } from "@/i18n/utils";
+
+const locales: string[] = ["en", "it", "fr", "es", "pt", "de", "nl", "ru", "et"];
 
 export const POST: APIRoute = async ({ request }) => {
+  let t: ReturnType<typeof getTranslations> | null = null;
   try {
     const body = await request.json();
-    const { url, categories } = body;
+    const { url, categories, locale = "en" } = body;
+    const safeLocale = locales.includes(locale as Locale) ? locale as Locale : "en" as Locale;
+    t = getTranslations(safeLocale);
 
     if (!url) {
-      return new Response(JSON.stringify({ error: "URL is required" }), {
+      return new Response(JSON.stringify({ error: t.errors.urlRequired }), {
         status: 400,
         headers: { "Content-Type": "application/json" },
       });
@@ -47,9 +53,19 @@ export const POST: APIRoute = async ({ request }) => {
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error("[Roast API] Error response:", errorText);
+      console.error("[Roast API] Error response:", response.status, errorText);
+
+      if (response.status === 429) {
+        return new Response(
+          JSON.stringify({
+            error: t.errors.highTraffic,
+          }),
+          { status: 429, headers: { "Content-Type": "application/json" } }
+        );
+      }
+
       return new Response(
-        JSON.stringify({ error: `AI API error: ${errorText}` }),
+        JSON.stringify({ error: `${t.errors.aiApi}${errorText}` }),
         { status: 502, headers: { "Content-Type": "application/json" } }
       );
     }
@@ -86,7 +102,7 @@ export const POST: APIRoute = async ({ request }) => {
       console.error("[Roast API] JSON parse error:", parseError);
       console.error("[Roast API] Raw content:", content);
       return new Response(
-        JSON.stringify({ error: "Invalid JSON response from AI", raw: content }),
+        JSON.stringify({ error: t.errors.invalidJson, raw: content }),
         { status: 502, headers: { "Content-Type": "application/json" } }
       );
     }
@@ -97,8 +113,9 @@ export const POST: APIRoute = async ({ request }) => {
     });
   } catch (err) {
     console.error("[Roast API] Unhandled error:", err);
+    const errorMsg = t ? t.errors.unknown : "Unknown error";
     return new Response(
-      JSON.stringify({ error: err instanceof Error ? err.message : "Unknown error" }),
+      JSON.stringify({ error: err instanceof Error ? err.message : errorMsg }),
       { status: 500, headers: { "Content-Type": "application/json" } }
     );
   }
@@ -190,6 +207,8 @@ async function buildPrompt(url: string, categories: string[]): Promise<string> {
 Roast this website across these categories: {{CATEGORIES}}.
 
 Write like you're talking to a developer friend over Slack. Skip buzzwords like "leverage", "comprehensive", "robust", "actionable", "seamlessly", "it's worth noting". Don't say things like "Overall, this website..." or "In terms of accessibility...". Just get to the point. Use specific observations. Be direct. You can be funny but the goal is genuinely useful feedback, not just dunking on them.
+
+For the "conversion" category, consider any goal the site might have: ecommerce sales, signups, downloads, brand exposure, newsletter subscriptions, etc. Don't assume it's an online store.
 
 Respond ONLY with a JSON object (no markdown, no preamble) in exactly this format:
 {

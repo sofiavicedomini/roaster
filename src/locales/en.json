@@ -1,0 +1,72 @@
+{
+  "site": {
+    "title": "Roast Me 🔥",
+    "description": "Get an honest, no-BS critique of any website",
+    "footer": "A project by <span class=\"font-semibold\">Vicedomini Softworks</span>"
+  },
+  "chatbot": {
+    "urlLabel": "Website URL",
+    "urlPlaceholder": "https://example.com",
+    "categoriesLabel": "Categories to analyze",
+    "buttonRoast": "Roast this site",
+    "buttonLoading": "The Roaster is thinking...",
+    "overallScore": "Overall Score: {score}/10",
+    "detailedRoasts": "Detailed Roasts",
+    "fixPrompt": "Fix prompt for AI agent:",
+    "groups": {
+      "technical": "Technical",
+      "experience": "Experience",
+      "content": "Content",
+      "trust": "Trust",
+      "aiAgents": "AI Agents"
+    },
+    "categories": {
+      "design": "Design",
+      "performance": "Performance",
+      "code": "Code",
+      "mobile": "Mobile",
+      "ux": "UX",
+      "accessibility": "Accessibility",
+      "conversion": "Goals",
+      "seo": "SEO",
+      "copy": "Copy",
+      "brand": "Brand",
+      "credibility": "Credibility",
+      "security": "Security",
+      "agentReadiness": "Agent Readiness",
+      "robots": "Robots & Sitemap",
+      "mcp": "MCP & Skills",
+      "apiDiscovery": "API Discovery",
+      "botAuth": "Bot Auth"
+    },
+    "loadingMessages": [
+      "Preheating the grill...",
+      "Counting misplaced pixels...",
+      "Measuring load times...",
+      "Looking for ugly fonts...",
+      "Analyzing color choices...",
+      "Checking if the site is accessible...",
+      "Measuring painful UX...",
+      "Hunting for code errors...",
+      "Checking if the site is mobile-friendly...",
+      "Analyzing SEO (or lack thereof)...",
+      "Trying to understand the copy...",
+      "Checking if the site is credible...",
+      "Measuring how much it burns...",
+      "Preparing the hot sauce...",
+      "Lighting the fire...",
+      "Scanning for robots.txt...",
+      "Checking agent readiness...",
+      "Looking for MCP servers...",
+      "Testing API discovery...",
+      "Checking OAuth endpoints..."
+    ]
+  },
+  "errors": {
+    "urlRequired": "URL is required",
+    "highTraffic": "We're experiencing high traffic right now. Please try again in a few moments.",
+    "invalidJson": "Invalid JSON response from AI",
+    "unknown": "Unknown error",
+    "aiApi": "AI API error: "
+  }
+}
