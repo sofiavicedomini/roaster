@@ -127,7 +127,7 @@ export function Chatbot({ locale = "en" }: ChatbotProps) {
         callback: (token: string) => {
           setTurnstileToken(token);
           setIsTurnstileExpired(false);
-          console.log("[Turnstile] Token received");
+          console.log("[Turnstile] Token received - will be invalidated after use");
         },
         "expired-callback": () => {
           setTurnstileToken(null);
@@ -213,6 +213,16 @@ export function Chatbot({ locale = "en" }: ChatbotProps) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ url, categories: selectedCategories, locale, turnstileToken }),
       });
+
+      // Invalidate token immediately after use
+      if (turnstileToken && window.turnstile && widgetIdRef.current) {
+        try {
+          window.turnstile.reset(widgetIdRef.current);
+          setTurnstileToken(null);
+        } catch (resetErr) {
+          console.warn("[Turnstile] Reset after use failed:", resetErr);
+        }
+      }
 
       const data = await response.json();
 

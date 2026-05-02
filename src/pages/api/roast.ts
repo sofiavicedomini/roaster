@@ -188,7 +188,8 @@ async function buildPrompt(url: string, categories: string[], locale: string, ch
   const modified = basePrompt
     .replace("{{AGENT_DATA}}", agentData)
     .replace("{{URL}}", url)
-    .replace("{{CATEGORIES}}", categoriesStr) + "\n\n" + languageInstruction;
+    .replace("{{CATEGORIES}}", categoriesStr)
+    + `\n\nCRITICAL: You MUST provide a roast for ALL of these categories: ${categoriesStr}. Do NOT skip any. If a category is not in ${categoriesStr}, do NOT include it.`;
 
   console.log("[buildPrompt] Agent prompt length:", modified.length);
   return modified;
