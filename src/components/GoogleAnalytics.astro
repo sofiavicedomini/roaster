@@ -1,10 +1,11 @@
 ---
 const gtmId = import.meta.env.GTAG_ID || ""
+const adSenseId = import.meta.env.ADSENSE_ACCOUNT_ID || ""
 const hasGtm = gtmId.length > 0
+const hasAdSense = adSenseId.length > 0
 ---
 
-{hasGtm && (
-  <>
+{(hasGtm || hasAdSense) && (
     <!-- Google Tag Manager with Consent Mode v2 -->
     <script is:inline define:vars={{ gtmId }}>
       // Default consent - denied by default, AdSense/AdSense Privacy & Messaging handles consent
@@ -31,5 +32,12 @@ const hasGtm = gtmId.length > 0
         height="0" width="0" style="display:none;visibility:hidden">
       </iframe>
     </noscript>
+  </>
+)}
+
+{hasAdSense && (
+  <>
+    <!-- AdSense via GTM -->
+    <div id="gtm-nocount" data-scope="default"></div>
   </>
 )}

@@ -424,3 +424,13 @@ body::after {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* Cloudflare Turnstile */
+.cf-turnstile {
+  margin: 1rem auto;
+  display: block;
+}
+
+div[ref*="turnstile"] {
+  min-height: 70px;
+}

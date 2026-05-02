@@ -6,8 +6,9 @@ import { getTranslations, type Locale } from "@/i18n/utils";
 declare global {
   interface Window {
     turnstile?: {
-      render: (container: HTMLElement, options: TurnstileOptions) => void;
-      reset: () => void;
+      render: (container: HTMLElement, options: TurnstileOptions) => string;
+      reset: (widgetId?: string) => void;
+      remove: (widgetId: string) => void;
     };
     onTurnstileLoad?: () => void;
   }
@@ -16,7 +17,10 @@ declare global {
     sitekey: string;
     callback: (token: string) => void;
     "expired-callback"?: () => void;
-    "error-callback"?: () => void;
+    "error-callback"?: (error?: unknown) => void;
+    theme?: "light" | "dark" | "auto";
+    size?: "normal" | "compact" | "invisible";
+    appearance?: "always" | "execute" | "interaction-only";
   }
 }
 
@@ -76,33 +80,48 @@ export function Chatbot({ locale = "en" }: ChatbotProps) {
   const [loadingMsgIdx, setLoadingMsgIdx] = useState(0);
   const [result, setResult] = useState<RoastResult | null>(null);
   const [error, setError] = useState<string | null>(null);
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
   const turnstileRef = useRef<HTMLDivElement>(null);
+  const widgetIdRef = useRef<string | null>(null);
   const turnstileSiteKey = typeof import.meta !== "undefined" && import.meta.env?.PUBLIC_TURNSTILE_SITE_KEY
     ? import.meta.env.PUBLIC_TURNSTILE_SITE_KEY
     : "";
 
   // Load Turnstile script and render widget
   useEffect(() => {
-    if (!turnstileSiteKey) return;
+    if (!turnstileSiteKey || !turnstileRef.current) return;
 
     const scriptId = "cf-turnstile-script";
 
-    const renderWidget = () => {
-      if (!turnstileRef.current || !window.turnstile) return;
+    const renderTurnstile = () => {
+      if (!turnstileRef.current || !window.turnstile || widgetIdRef.current) return;
 
-      // Reset previous widget if any
-      try {
-        window.turnstile.reset();
-      } catch {
-        // ignore
-      }
+      widgetIdRef.current = window.turnstile.render(turnstileRef.current, {
+        sitekey: turnstileSiteKey,
+        callback: (token: string) => {
+          setTurnstileToken(token);
+          console.log("[Turnstile] Token received");
+        },
+        "expired-callback": () => {
+          setTurnstileToken(null);
+          console.warn("[Turnstile] Token expired");
+        },
+        "error-callback": (error?: unknown) => {
+          console.error("[Turnstile] Error:", error);
+          const err = error as Record<string, unknown>;
+          if (err?.code === 300030) {
+            console.error("[Turnstile] Error 300030 - Check site key and domain in Cloudflare dashboard");
+          }
+        },
+        theme: "dark",
+        appearance: "interaction-only",
+        size: "normal",
+      });
     };
 
     if (document.getElementById(scriptId)) {
       // Script already loaded
-      renderWidget();
+      setTimeout(renderTurnstile, 100);
       return;
     }
 
@@ -113,8 +132,8 @@ export function Chatbot({ locale = "en" }: ChatbotProps) {
     script.defer = true;
 
     script.onload = () => {
-      console.log("[Turnstile] Script loaded");
-      renderWidget();
+      console.log("[Turnstile] Script loaded successfully");
+      setTimeout(renderTurnstile, 200);
     };
 
     script.onerror = () => {
@@ -124,11 +143,14 @@ export function Chatbot({ locale = "en" }: ChatbotProps) {
     document.head.appendChild(script);
 
     return () => {
-      try {
-        window.turnstile?.reset();
-      } catch {
-        // ignore
+      if (widgetIdRef.current && window.turnstile) {
+        try {
+          window.turnstile.remove(widgetIdRef.current);
+        } catch (err) {
+          console.warn("[Turnstile] Cleanup error:", err);
+        }
       }
+      widgetIdRef.current = null;
     };
   }, [turnstileSiteKey]);
 
