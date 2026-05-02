@@ -1,6 +1,24 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { getTranslations, type Locale } from "@/i18n/utils";
+
+// Type declarations for Cloudflare Turnstile
+declare global {
+  interface Window {
+    turnstile?: {
+      render: (container: HTMLElement, options: TurnstileOptions) => void;
+      reset: () => void;
+    };
+    onTurnstileLoad?: () => void;
+  }
+
+  interface TurnstileOptions {
+    sitekey: string;
+    callback: (token: string) => void;
+    "expired-callback"?: () => void;
+    "error-callback"?: () => void;
+  }
+}
 
 interface RoastResult {
   overall_score: number;
@@ -58,6 +76,49 @@ export function Chatbot({ locale = "en" }: ChatbotProps) {
   const [loadingMsgIdx, setLoadingMsgIdx] = useState(0);
   const [result, setResult] = useState<RoastResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+  const turnstileRef = useRef<HTMLDivElement>(null);
+  const turnstileSiteKey = typeof import.meta !== "undefined" && import.meta.env?.TURNSTILE_SITE_KEY
+    ? import.meta.env.TURNSTILE_SITE_KEY
+    : "";
+
+  // Turnstile render function
+  const renderTurnstile = useCallback(() => {
+    if (!turnstileRef.current || !window.turnstile) return;
+
+    window.turnstile.render(turnstileRef.current, {
+      sitekey: turnstileSiteKey,
+      callback: (token: string) => setTurnstileToken(token),
+      "expired-callback": () => setTurnstileToken(null),
+      "error-callback": () => setTurnstileToken(null),
+    });
+  }, [turnstileSiteKey]);
+
+  // Load Turnstile script
+  useEffect(() => {
+    if (!turnstileSiteKey) return;
+
+    const scriptId = "cf-turnstile-script";
+    if (document.getElementById(scriptId)) {
+      // Script already loaded, render widget
+      renderTurnstile();
+      return;
+    }
+
+    const script = document.createElement("script");
+    script.id = scriptId;
+    script.src = "https://challenges.cloudflare.com/turnstile/v0/api.js?onload=onTurnstileLoad";
+    script.async = true;
+    script.defer = true;
+
+    window.onTurnstileLoad = () => renderTurnstile();
+
+    document.head.appendChild(script);
+
+    return () => {
+      delete window.onTurnstileLoad;
+    };
+  }, [turnstileSiteKey, renderTurnstile]);
 
   useEffect(() => {
     if (!isLoading) return;
@@ -86,7 +147,7 @@ export function Chatbot({ locale = "en" }: ChatbotProps) {
       const response = await fetch("/api/roast", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url, categories: selectedCategories, locale }),
+        body: JSON.stringify({ url, categories: selectedCategories, locale, turnstileToken }),
       });
 
       const data = await response.json();
@@ -162,7 +223,11 @@ export function Chatbot({ locale = "en" }: ChatbotProps) {
           ))}
         </div>
 
-        <Button type="submit" disabled={isLoading || !url || selectedCategories.length === 0}>
+        {turnstileSiteKey && (
+          <div ref={turnstileRef} className="flex justify-center"></div>
+        )}
+
+        <Button type="submit" disabled={isLoading || !url || selectedCategories.length === 0 || (turnstileSiteKey && !turnstileToken)}>
           {isLoading ? t.chatbot.buttonLoading : t.chatbot.buttonRoast}
         </Button>
 

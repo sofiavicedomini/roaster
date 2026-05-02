@@ -19,6 +19,7 @@ const { t } = useTranslations(locale)
 const seoTitle = title || t("site.title")
 const seoDescription = description || t("site.seoDescription")
 const keywords = t("site.keywords")
+const adsenseId = import.meta.env.ADSENSE_ACCOUNT_ID || ""
 ---
 
 <!-- Primary Meta Tags -->
@@ -89,3 +90,6 @@ const keywords = t("site.keywords")
 <meta name="theme-color" content="#000000" />
 <meta name="msapplication-TileColor" content="#000000" />
 <link rel="manifest" href="/manifest.json" />
+
+<!-- Google AdSense -->
+{adsenseId && <meta name="google-adsense-account" content={adsenseId} />}

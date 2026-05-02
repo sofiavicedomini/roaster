@@ -7,20 +7,49 @@ import { getTranslations, type Locale } from "@/i18n/utils";
 
 const locales: string[] = ["en", "it", "fr", "es", "pt", "de", "nl", "ru", "et"];
 
-export const POST: APIRoute = async ({ request }) => {
-  let t: ReturnType<typeof getTranslations> | null = null;
-  try {
-    const body = await request.json();
-    const { url, categories, locale = "en" } = body;
+  export const POST: APIRoute = async ({ request }) => {
+    let t: ReturnType<typeof getTranslations> | null = null;
+    try {
+      const body = await request.json();
+      const { url, categories, locale = "en", turnstileToken } = body;
     const safeLocale = locales.includes(locale as Locale) ? locale as Locale : "en" as Locale;
     t = getTranslations(safeLocale);
 
-    if (!url) {
-      return new Response(JSON.stringify({ error: t.errors.urlRequired }), {
-        status: 400,
-        headers: { "Content-Type": "application/json" },
-      });
-    }
+      if (!url) {
+        return new Response(JSON.stringify({ error: t.errors.urlRequired }), {
+          status: 400,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+
+      // Verify Turnstile token if configured
+      const turnstileSecret = import.meta.env.TURNSTILE_SECRET_KEY;
+      if (turnstileSecret && turnstileToken) {
+        const turnstileResponse = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body: new URLSearchParams({
+            secret: turnstileSecret,
+            response: turnstileToken,
+            remoteip: request.headers.get("x-forwarded-for") || "",
+          }),
+        });
+
+        const turnstileData = await turnstileResponse.json() as { success: boolean };
+        if (!turnstileData.success) {
+          console.warn("[Roast API] Turnstile verification failed:", turnstileData);
+          return new Response(JSON.stringify({ error: "CAPTCHA verification failed" }), {
+            status: 403,
+            headers: { "Content-Type": "application/json" },
+          });
+        }
+        console.log("[Roast API] Turnstile verification passed");
+      } else if (turnstileSecret && !turnstileToken) {
+        return new Response(JSON.stringify({ error: "CAPTCHA token required" }), {
+          status: 403,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
 
     const prompt = await buildPrompt(url, categories);
 
