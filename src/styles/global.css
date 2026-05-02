@@ -2,6 +2,7 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 @import "@fontsource-variable/figtree";
+@import "./fire.css";
 
 @theme inline {
     --font-heading: var(--font-sans);
@@ -112,23 +113,16 @@ body::before {
     radial-gradient(ellipse at 30% 90%, oklch(0.47 0.157 37.304 / 0.5) 0%, transparent 40%),
     radial-gradient(ellipse at 70% 85%, oklch(0.705 0.213 47.604 / 0.5) 0%, transparent 40%),
     linear-gradient(180deg, oklch(0.148 0.004 228.8) 0%, oklch(0.218 0.008 223.9) 25%, oklch(0.444 0.177 26.899 / 0.6) 60%, oklch(0.704 0.191 22.216 / 0.5) 100%);
-  animation: inferno-flicker 2s ease-in-out infinite alternate;
+  animation: inferno-flicker 4s ease-in-out infinite alternate;
 }
 
-/* Fire border effect around viewport */
-body::after {
-  content: "";
-  position: fixed;
-  inset: 0;
-  z-index: -1;
-  background:
-    linear-gradient(90deg, oklch(0.837 0.128 66.29 / 0.4) 0%, transparent 15%),
-    linear-gradient(270deg, oklch(0.646 0.222 41.116 / 0.4) 0%, transparent 15%),
-    linear-gradient(180deg, oklch(0.705 0.213 47.604 / 0.3) 0%, transparent 10%),
-    linear-gradient(0deg, oklch(0.553 0.195 38.402 / 0.6) 0%, transparent 20%);
-  animation: border-flicker 1.5s ease-in-out infinite alternate;
-  pointer-events: none;
+
+@keyframes border-flicker {
+  0% { opacity: 0.7; }
+  100% { opacity: 0.9; }
 }
+
+
 
 @keyframes border-flicker {
   0% { opacity: 0.6; }
@@ -136,12 +130,100 @@ body::after {
   100% { opacity: 0.7; }
 }
 
+/* Fire scrollbar */
+::-webkit-scrollbar {
+  width: 12px;
+}
+
+::-webkit-scrollbar-track {
+  background: oklch(0.148 0.004 228.8);
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, oklch(0.837 0.128 66.29), oklch(0.704 0.191 22.216));
+  border-radius: 6px;
+  box-shadow: 0 0 10px oklch(0.705 0.213 47.604 / 0.8);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, oklch(0.705 0.213 47.604), oklch(0.646 0.222 41.116));
+  box-shadow: 0 0 15px oklch(0.837 0.128 66.29 / 0.9);
+}
+
+/* Heat distortion overlay */
+.heat-distortion {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent 0px,
+    oklch(0.837 0.128 66.29 / 0.02) 2px,
+    transparent 4px
+  );
+  animation: heat-wave 6s ease-in-out infinite;
+}
+
+@keyframes heat-wave {
+  0%, 100% { transform: translateY(0) skewY(0deg); }
+  50% { transform: translateY(-1px) skewY(0.2deg); }
+}
+
+/* Burning text effect for h1 */
+.inferno-text {
+  text-shadow: 0 0 10px oklch(0.837 0.128 66.29 / 0.8), 0 0 20px oklch(0.705 0.213 47.604 / 0.6), 0 0 30px oklch(0.646 0.222 41.116 / 0.4), 0 0 40px oklch(0.553 0.195 38.402 / 0.3), 0 0 50px oklch(0.47 0.157 37.304 / 0.2);
+  animation: text-flicker 6s ease-in-out infinite alternate, burn 4s ease-in-out infinite;
+}
+
+@keyframes burn {
+  0%, 100% { filter: brightness(1) blur(0); }
+  50% { filter: brightness(1.1) blur(0.3px); }
+}
+
+/* Fire glow on inputs */
+input:focus, textarea:focus, select:focus {
+  box-shadow: 0 0 15px oklch(0.837 0.128 66.29 / 0.6), 0 0 30px oklch(0.705 0.213 47.604 / 0.4), inset 0 0 15px oklch(0.704 0.191 22.216 / 0.2) !important;
+  border-color: oklch(0.837 0.128 66.29 / 0.8) !important;
+}
+
+/* Fire button hover effect */
+button:not(:disabled):hover, [role="button"]:not(:disabled):hover {
+  box-shadow: 0 0 20px oklch(0.837 0.128 66.29 / 0.7), 0 0 40px oklch(0.705 0.213 47.604 / 0.5) !important;
+  filter: brightness(1.1);
+}
+
+/* Smoke particles */
+.smoke-particle {
+  position: fixed;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: -1;
+  background: oklch(0.56 0.021 213.5 / 0.1);
+  animation: smoke-rise linear infinite;
+}
+
+@keyframes smoke-rise {
+  0% {
+    transform: translateY(0) translateX(0) scale(1);
+    opacity: 0.3;
+    filter: blur(5px);
+  }
+  50% {
+    transform: translateY(-50vh) translateX(30px) scale(3);
+    opacity: 0.15;
+    filter: blur(15px);
+  }
+  100% {
+    transform: translateY(-100vh) translateX(-20px) scale(5);
+    opacity: 0;
+    filter: blur(30px);
+  }
+}
+
 @keyframes inferno-flicker {
-  0% { opacity: 0.9; filter: brightness(1); }
-  25% { opacity: 1; filter: brightness(1.1); }
-  50% { opacity: 0.95; filter: brightness(1.05); }
-  75% { opacity: 1; filter: brightness(1.15); }
-  100% { opacity: 0.9; filter: brightness(1); }
+  0%, 100% { opacity: 0.95; filter: brightness(1); }
+  50% { opacity: 1; filter: brightness(1.05); }
 }
 
 /* Fire particles */
@@ -193,26 +275,31 @@ body::after {
   }
 }
 
-/* Heat shimmer effect */
+/* Heat shimmer and fire border effect */
 body::after {
   content: "";
   position: fixed;
   inset: 0;
   z-index: -1;
-  background: repeating-linear-gradient(
-    0deg,
-    transparent,
-    transparent 2px,
-    oklch(0.837 0.128 66.29 / 0.03) 2px,
-    oklch(0.837 0.128 66.29 / 0.03) 4px
-  );
-  animation: shimmer 3s linear infinite;
+  background:
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      oklch(0.837 0.128 66.29 / 0.03) 2px,
+      oklch(0.837 0.128 66.29 / 0.03) 4px
+    ),
+    linear-gradient(90deg, oklch(0.837 0.128 66.29 / 0.4) 0%, transparent 15%),
+    linear-gradient(270deg, oklch(0.646 0.222 41.116 / 0.4) 0%, transparent 15%),
+    linear-gradient(180deg, oklch(0.705 0.213 47.604 / 0.3) 0%, transparent 10%),
+    linear-gradient(0deg, oklch(0.553 0.195 38.402 / 0.6) 0%, transparent 20%);
+  animation: border-flicker 3s ease-in-out infinite alternate, shimmer 6s linear infinite;
   pointer-events: none;
 }
 
 @keyframes shimmer {
   0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-4px); }
+  50% { transform: translateY(-2px); }
 }
 
 /* Fire glow animation for cards */
@@ -221,29 +308,25 @@ body::after {
     box-shadow: 0 0 20px oklch(0.704 0.191 22.216 / 0.3), 0 0 40px oklch(0.553 0.195 38.402 / 0.2);
   }
   50% {
-    box-shadow: 0 0 30px oklch(0.837 0.128 66.29 / 0.4), 0 0 60px oklch(0.705 0.213 47.604 / 0.3), 0 0 80px oklch(0.646 0.222 41.116 / 0.2);
+    box-shadow: 0 0 25px oklch(0.837 0.128 66.29 / 0.35), 0 0 50px oklch(0.705 0.213 47.604 / 0.25);
   }
 }
 
 .inferno-card {
-  animation: fire-glow 2s ease-in-out infinite;
+  animation: fire-glow 4s ease-in-out infinite;
   border-color: oklch(0.553 0.195 38.402 / 0.5) !important;
 }
 
-/* Flickering text shadow for headings */
-.inferno-text {
-  text-shadow: 0 0 10px oklch(0.837 0.128 66.29 / 0.8), 0 0 20px oklch(0.705 0.213 47.604 / 0.6), 0 0 30px oklch(0.646 0.222 41.116 / 0.4);
-  animation: text-flicker 3s ease-in-out infinite alternate;
-}
+
 
 @keyframes text-flicker {
-  0%, 19%, 21%, 23%, 25%, 54%, 56%, 100% {
+  0%, 100% {
     opacity: 1;
     text-shadow: 0 0 10px oklch(0.837 0.128 66.29 / 0.8), 0 0 20px oklch(0.705 0.213 47.604 / 0.6), 0 0 30px oklch(0.646 0.222 41.116 / 0.4);
   }
-  20%, 24%, 55% {
-    opacity: 0.9;
-    text-shadow: 0 0 5px oklch(0.837 0.128 66.29 / 0.6), 0 0 10px oklch(0.705 0.213 47.604 / 0.4);
+  50% {
+    opacity: 0.95;
+    text-shadow: 0 0 8px oklch(0.837 0.128 66.29 / 0.7), 0 0 15px oklch(0.705 0.213 47.604 / 0.5);
   }
 }
 
@@ -329,4 +412,15 @@ body::after {
   html {
     @apply font-sans;
     }
+}
+
+/* Accessibility: Respect user preference for reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
