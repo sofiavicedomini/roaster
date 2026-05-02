@@ -250,11 +250,11 @@ Respond ONLY with a JSON object (no markdown, no preamble) in exactly this forma
     "seo": <1-10 or null>,
     "code": <1-10 or null>,
     "accessibility": <1-10 or null>,
-    "agent-readiness": <1-10 or null>,
+    "agentReadiness": <1-10 or null>,
     "robots": <1-10 or null>,
     "mcp": <1-10 or null>,
-    "api-discovery": <1-10 or null>,
-    "bot-auth": <1-10 or null>
+    "apiDiscovery": <1-10 or null>,
+    "botAuth": <1-10 or null>
   },
   "roasts": [
     {
@@ -268,14 +268,14 @@ Respond ONLY with a JSON object (no markdown, no preamble) in exactly this forma
 Include one roast object per requested category. Each critique should feel like it came from a person, not a report generator.`;
   }
 
-  const agentCategories = ["agent-readiness", "robots", "mcp", "api-discovery", "bot-auth"];
+  const agentCategories = ["agentReadiness", "robots", "mcp", "apiDiscovery", "botAuth"];
   const hasAgentChecks = categories.some((c) => agentCategories.includes(c));
   let agentData = "";
 
   if (hasAgentChecks) {
     console.log("[buildPrompt] Running agent readiness checks...");
     const checks = await checkAgentReadiness(url);
-    agentData = `\n\n### Agent Readiness Check Results:\n${JSON.stringify(checks, null, 2)}\n\nUse this data to inform your roasts for agent-readiness related categories.`;
+    agentData = `\n\n### Agent Readiness Check Results:\n${JSON.stringify(checks, null, 2)}\n\nUse this data to inform your roasts for agentReadiness related categories.`;
   }
 
   const categoriesStr = categories.length > 0 ? categories.join(", ") : "design, performance, ux, seo, code, accessibility";

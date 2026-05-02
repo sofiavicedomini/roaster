@@ -53,11 +53,11 @@ const CATEGORIES = [
   { id: "brand", group: "trust" },
   { id: "credibility", group: "trust" },
   { id: "security", group: "trust" },
-  { id: "agent-readiness", group: "aiAgents" },
+  { id: "agentReadiness", group: "aiAgents" },
   { id: "robots", group: "aiAgents" },
   { id: "mcp", group: "aiAgents" },
-  { id: "api-discovery", group: "aiAgents" },
-  { id: "bot-auth", group: "aiAgents" },
+  { id: "apiDiscovery", group: "aiAgents" },
+  { id: "botAuth", group: "aiAgents" },
 ];
 
 export function Chatbot({ locale = "en" }: ChatbotProps) {
@@ -68,7 +68,7 @@ export function Chatbot({ locale = "en" }: ChatbotProps) {
     "performance",
     "ux",
     "seo",
-    "agent-readiness",
+    "agentReadiness",
   ]);
 
   const groups = CATEGORIES.reduce((acc, cat) => {
