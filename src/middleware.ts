@@ -15,7 +15,7 @@ export const onRequest = defineMiddleware(async (_, next) => {
     "img-src 'self' data: https: blob:",
     "font-src 'self' data: https:",
     "connect-src 'self' https: blob: wss:",
-    "frame-src 'self' https://challenges.cloudflare.com https://www.googletagmanager.com https://www.google.com https://googleads.g.doubleclick.net https://fundingchoicesmessages.google.com",
+    "frame-src 'self' https://challenges.cloudflare.com https://www.googletagmanager.com https://www.google.com https://googleads.g.doubleclick.net https://fundingchoicesmessages.google.com https://consentcdn.cookiebot.eu",
     "child-src 'self' blob: https://challenges.cloudflare.com",
     "base-uri 'self'",
     "form-action 'self'",
@@ -31,10 +31,9 @@ export const onRequest = defineMiddleware(async (_, next) => {
     // script-src-elem (index 2)
     cspDirectives[2] += gtmDomains + cookiebotDomains
     // frame-src (index 7)
-    cspDirectives[7] += " https://www.googletagmanager.com"
-    // connect-src (index 5) - Cookiebot API calls
-    cspDirectives[5] += " https://*.cookiebot.com https://cookiebot.com https://*.cookiebot.eu https://cookiebot.eu"
+    cspDirectives[7] += " https://www.googletagmanager.com https://consentcdn.cookiebot.eu"
   }
+
 
   // Build CSP header value
   const cspValue = cspDirectives.join("; ")
