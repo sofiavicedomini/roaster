@@ -51,7 +51,7 @@ const locales: string[] = ["en", "it", "fr", "es", "pt", "de", "nl", "ru", "et"]
         });
       }
 
-    const prompt = await buildPrompt(url, categories);
+    const prompt = await buildPrompt(url, categories, safeLocale);
 
     const apiBase = import.meta.env.OPENAI_API_BASE || "http://localhost:11434/v1";
     const apiKey = import.meta.env.OPENAI_API_KEY || "dummy";
@@ -222,8 +222,8 @@ async function checkAgentReadiness(baseUrl: string) {
   return results;
 }
 
-async function buildPrompt(url: string, categories: string[]): Promise<string> {
-  console.log("[buildPrompt] Building prompt for:", { url, categories });
+async function buildPrompt(url: string, categories: string[], locale: string = "it"): Promise<string> {
+  console.log("[buildPrompt] Building prompt for:", { url, categories, locale });
   const promptPath = join(process.cwd(), "prompt.md");
   let basePrompt = "";
 
@@ -231,42 +231,14 @@ async function buildPrompt(url: string, categories: string[]): Promise<string> {
     basePrompt = readFileSync(promptPath, "utf-8");
   } catch {
     console.warn("[buildPrompt] prompt.md not found, using default prompt");
-    basePrompt = `You're a senior developer who's been building websites for 15 years. A colleague just showed you their site ({{URL}}) and asked for honest feedback. You're a good friend — you're not going to trash them — but you're also not going to lie to them. You talk like a real person: short sentences, a dry sense of humor, occasional sarcasm, no corporate fluff.
-
-Roast this website across these categories: {{CATEGORIES}}.
-
-Write like you're talking to a developer friend over Slack. Skip buzzwords like "leverage", "comprehensive", "robust", "actionable", "seamlessly", "it's worth noting". Don't say things like "Overall, this website..." or "In terms of accessibility...". Just get to the point. Use specific observations. Be direct. You can be funny but the goal is genuinely useful feedback, not just dunking on them.
-
-For the "conversion" category, consider any goal the site might have: ecommerce sales, signups, downloads, brand exposure, newsletter subscriptions, etc. Don't assume it's an online store.
-
-Respond ONLY with a JSON object (no markdown, no preamble) in exactly this format:
-{
-  "overall_score": <number 1-10>,
-  "verdict": "<one blunt sentence — what's the main takeaway about this site. No fluff.>",
-  "scores": {
-    "design": <1-10 or null if not in categories>,
-    "performance": <1-10 or null>,
-    "ux": <1-10 or null>,
-    "seo": <1-10 or null>,
-    "code": <1-10 or null>,
-    "accessibility": <1-10 or null>,
-    "agentReadiness": <1-10 or null>,
-    "robots": <1-10 or null>,
-    "mcp": <1-10 or null>,
-    "apiDiscovery": <1-10 or null>,
-    "botAuth": <1-10 or null>
-  },
-  "roasts": [
-    {
-      "category": "<category name>",
-      "emoji": "<relevant emoji>",
-      "critique": "<2-4 sentences. Lead with the actual problem, not a preamble. Be specific. End with one concrete thing to fix — not vague advice like 'improve your UX', but something real like 'your CTA button is below the fold on mobile and nobody's going to scroll for it'.>"
-    }
-  ]
-}
-
-Include one roast object per requested category. Each critique should feel like it came from a person, not a report generator.`;
+    basePrompt = `You're a senior developer who's been building websites for 15 years. A colleague just showed you their site ({{URL}}) and asked for honest feedback. You're a good friend — you're not going to trash them — but you're also not going to lie to them. You talk like a real person: short sentences, a dry sense of humor, occasional sarcasm, no corporate fluff.`;
   }
+
+  // Add language instruction based on UI locale
+  const langName = locale === "it" ? "Italian" : locale === "en" ? "English" : locale.toUpperCase();
+  const languageInstruction = `\n\nCRITICAL: The user is browsing the interface in ${locale.toUpperCase()} (${langName}). Respond ENTIRELY in ${langName}, using natural, colloquial tone appropriate for speakers of that language. Match the cultural style and directness expected in that language.`;
+
+  basePrompt = basePrompt.trim() + languageInstruction + "\n\n";
 
   const agentCategories = ["agentReadiness", "robots", "mcp", "apiDiscovery", "botAuth"];
   const hasAgentChecks = categories.some((c) => agentCategories.includes(c));
