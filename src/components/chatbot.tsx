@@ -78,8 +78,8 @@ export function Chatbot({ locale = "en" }: ChatbotProps) {
   const [error, setError] = useState<string | null>(null);
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
   const turnstileRef = useRef<HTMLDivElement>(null);
-  const turnstileSiteKey = typeof import.meta !== "undefined" && import.meta.env?.TURNSTILE_SITE_KEY
-    ? import.meta.env.TURNSTILE_SITE_KEY
+  const turnstileSiteKey = typeof import.meta !== "undefined" && import.meta.env?.PUBLIC_TURNSTILE_SITE_KEY
+    ? import.meta.env.PUBLIC_TURNSTILE_SITE_KEY
     : "";
 
   // Turnstile render function
