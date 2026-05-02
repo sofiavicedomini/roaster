@@ -70,6 +70,21 @@
     "accept": "Akzeptieren",
     "decline": "Ablehnen"
   },
+  "rankings": {
+    "navLink": "🔥 Rankings",
+    "title": "Neueste Roasts",
+    "subtitle": "Die letzten Websites, die abgefackelt wurden 🔥",
+    "noRoasts": "Noch keine Roasts",
+    "noRoastsSubtitle": "Sei der Erste, der gegrillt wird!",
+    "roastSiteCta": "Website grillen →",
+    "categories": "Kategorien",
+    "backLink": "← Alle Rankings",
+    "analyzedOn": "Analysiert am",
+    "scoresTitle": "Punkte nach Kategorie",
+    "roastsTitle": "Detaillierter Roast",
+    "fixPromptLabel": "Korrektur-Prompt für KI-Agent:",
+    "roastYourSiteCta": "Möchtest du deine Website grillen? →"
+  },
   "errors": {
     "urlRequired": "URL ist erforderlich",
     "highTraffic": "Wir haben derzeit sehr viel Verkehr. Bitte versuchen Sie es in einigen Augenblicken erneut.",

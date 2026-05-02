@@ -70,6 +70,21 @@
     "accept": "Accepter",
     "decline": "Refuser"
   },
+  "rankings": {
+    "navLink": "🔥 Rankings",
+    "title": "Roasts Récents",
+    "subtitle": "Les derniers sites grillés 🔥",
+    "noRoasts": "Aucun roast pour l'instant",
+    "noRoastsSubtitle": "Soyez le premier à vous faire griller !",
+    "roastSiteCta": "Griller un site →",
+    "categories": "catégories",
+    "backLink": "← Tous les rankings",
+    "analyzedOn": "Analysé le",
+    "scoresTitle": "Scores par catégorie",
+    "roastsTitle": "Roast détaillé",
+    "fixPromptLabel": "Prompt de correction pour agent IA :",
+    "roastYourSiteCta": "Vous voulez griller votre site ? →"
+  },
   "errors": {
     "urlRequired": "L'URL est requise",
     "highTraffic": "Nous subissons une forte affluence. Veuillez réessayer dans quelques instants.",

@@ -89,6 +89,21 @@
     "accept": "Accept",
     "decline": "Decline"
   },
+  "rankings": {
+    "navLink": "🔥 Rankings",
+    "title": "Recent Roasts",
+    "subtitle": "The latest sites that got torched 🔥",
+    "noRoasts": "No roasts yet",
+    "noRoastsSubtitle": "Be the first to get torched!",
+    "roastSiteCta": "Roast a site →",
+    "categories": "categories",
+    "backLink": "← All rankings",
+    "analyzedOn": "Analyzed on",
+    "scoresTitle": "Scores by category",
+    "roastsTitle": "Detailed Roast",
+    "fixPromptLabel": "Fix prompt for AI agent:",
+    "roastYourSiteCta": "Want to roast your site? →"
+  },
   "errors": {
     "urlRequired": "URL is required",
     "highTraffic": "We're experiencing high traffic right now. Please try again in a few moments.",

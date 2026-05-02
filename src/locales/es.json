@@ -70,6 +70,21 @@
     "accept": "Aceptar",
     "decline": "Rechazar"
   },
+  "rankings": {
+    "navLink": "🔥 Rankings",
+    "title": "Roasts Recientes",
+    "subtitle": "Los últimos sitios en arder 🔥",
+    "noRoasts": "Aún no hay roasts",
+    "noRoastsSubtitle": "¡Sé el primero en ser destrozado!",
+    "roastSiteCta": "Destrozar un sitio →",
+    "categories": "categorías",
+    "backLink": "← Todos los rankings",
+    "analyzedOn": "Analizado el",
+    "scoresTitle": "Puntuaciones por categoría",
+    "roastsTitle": "Roast detallado",
+    "fixPromptLabel": "Prompt de corrección para agente IA:",
+    "roastYourSiteCta": "¿Quieres destrozar tu sitio? →"
+  },
   "errors": {
     "urlRequired": "La URL es obligatoria",
     "highTraffic": "Estamos experimentando mucho tráfico. Por favor, inténtalo de nuevo en unos momentos.",

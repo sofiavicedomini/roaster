@@ -70,6 +70,21 @@
     "accept": "Accepteren",
     "decline": "Weigeren"
   },
+  "rankings": {
+    "navLink": "🔥 Rankings",
+    "title": "Recente Roasts",
+    "subtitle": "De laatste sites die in vlammen opgingen 🔥",
+    "noRoasts": "Nog geen roasts",
+    "noRoastsSubtitle": "Wees de eerste die wordt gegrild!",
+    "roastSiteCta": "Een site grillen →",
+    "categories": "categorieën",
+    "backLink": "← Alle rankings",
+    "analyzedOn": "Geanalyseerd op",
+    "scoresTitle": "Scores per categorie",
+    "roastsTitle": "Gedetailleerde roast",
+    "fixPromptLabel": "Correctieprompt voor AI-agent:",
+    "roastYourSiteCta": "Wil je jouw site roosteren? →"
+  },
   "errors": {
     "urlRequired": "URL is verplicht",
     "highTraffic": "We hebben momenteel veel verkeer. Probeer het over een paar momenten opnieuw.",

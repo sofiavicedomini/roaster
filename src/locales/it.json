@@ -89,6 +89,21 @@
     "accept": "Accetta",
     "decline": "Rifiuta"
   },
+  "rankings": {
+    "navLink": "🔥 Rankings",
+    "title": "Roast Recenti",
+    "subtitle": "Gli ultimi siti che hanno preso fuoco 🔥",
+    "noRoasts": "Nessun roast ancora",
+    "noRoastsSubtitle": "Sii il primo a farti stroncare!",
+    "roastSiteCta": "Stroncami un sito →",
+    "categories": "categorie",
+    "backLink": "← Tutti i ranking",
+    "analyzedOn": "Analizzato il",
+    "scoresTitle": "Punteggi per categoria",
+    "roastsTitle": "Stroncatura dettagliata",
+    "fixPromptLabel": "Prompt di correzione per AI agent:",
+    "roastYourSiteCta": "Vuoi roastare il tuo sito? →"
+  },
   "errors": {
     "urlRequired": "L'URL è obbligatorio",
     "highTraffic": "C'è molto traffico in questo momento. Riprova tra qualche istante.",

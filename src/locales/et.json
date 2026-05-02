@@ -70,6 +70,21 @@
     "accept": "Nõustu",
     "decline": "Lükka tagasi"
   },
+  "rankings": {
+    "navLink": "🔥 Rankings",
+    "title": "Viimased roastid",
+    "subtitle": "Viimased saidid, mis põlesid 🔥",
+    "noRoasts": "Roaste veel pole",
+    "noRoastsSubtitle": "Ole esimene, kes röstitakse!",
+    "roastSiteCta": "Rösti sait →",
+    "categories": "kategooriat",
+    "backLink": "← Kõik rankingud",
+    "analyzedOn": "Analüüsitud",
+    "scoresTitle": "Skoorid kategooriate kaupa",
+    "roastsTitle": "Üksikasjalik roast",
+    "fixPromptLabel": "Parandusprompt AI-agendile:",
+    "roastYourSiteCta": "Soovid oma saiti röstida? →"
+  },
   "errors": {
     "urlRequired": "URL on kohustuslik",
     "highTraffic": "Hetkel on liiklus väga suur. Palun proovi mõne hetke pärast uuesti.",

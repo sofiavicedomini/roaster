@@ -248,6 +248,68 @@ function stripCats(result: Record<string, unknown>, cats: string[]): Record<stri
   return r;
 }
 
+function isSiteDown(checks: Record<string, unknown>): boolean {
+  const homepageError = (checks.headers as Record<string, string>)?.status === "error";
+  if (!homepageError) return false;
+  // Consider it down if the homepage also returned an error AND at least 80% of checks failed
+  const entries = Object.entries(checks).filter(([k]) => k !== "_summary");
+  const failed = entries.filter(([, v]) => (v as Record<string, string>).status !== "found").length;
+  return failed >= Math.floor(entries.length * 0.8);
+}
+
+const SKYNET_VERDICTS: Record<string, string> = {
+  en: "This site is so inaccessible even our Skynet agents couldn't get in. Zero stars, would not index.",
+  it: "Questo sito è così inaccessibile che persino i nostri agenti di Skynet non sono riusciti ad entrare. Zero stelle, non lo indicizzeremmo mai.",
+  fr: "Ce site est tellement inaccessible que même nos agents Skynet n'ont pas pu y entrer. Zéro étoile, nous ne l'indexerions jamais.",
+  es: "Este sitio es tan inaccesible que incluso nuestros agentes de Skynet no pudieron entrar. Cero estrellas, no lo indexaríamos jamás.",
+  pt: "Este site é tão inacessível que até nossos agentes Skynet não conseguiram entrar. Zero estrelas, nunca o indexaríamos.",
+  de: "Diese Website ist so unzugänglich, dass selbst unsere Skynet-Agenten keinen Zugang fanden. Null Sterne, würden wir niemals indexieren.",
+  nl: "Deze site is zo ontoegankelijk dat zelfs onze Skynet-agenten er niet in konden. Nul sterren, we zouden hem nooit indexeren.",
+  ru: "Этот сайт настолько недоступен, что даже наши агенты Skynet не смогли войти. Ноль звёзд, никогда не индексировали бы.",
+  et: "See sait on nii ligipääsmatu, et isegi meie Skyneti agendid ei pääsenud sisse. Null tärni, me ei indekseeriks seda kunagi.",
+};
+
+const SKYNET_CRITIQUES: Record<string, (cat: string, url: string) => string> = {
+  en: (cat, url) => `${url} refused every single request our agents made. For ${cat}, the experience is simply non-existent — you can't evaluate what you can't reach. This is a catastrophic failure for any agent, human or otherwise.`,
+  it: (cat, url) => `${url} ha rifiutato ogni singola richiesta dei nostri agenti. Per ${cat}, l'esperienza è semplicemente inesistente — non si può valutare ciò che non è raggiungibile. Un fallimento catastrofico per qualsiasi agente, umano o meno.`,
+  fr: (cat, url) => `${url} a rejeté chaque requête de nos agents. Pour ${cat}, l'expérience est tout simplement inexistante — on ne peut pas évaluer ce qu'on ne peut pas atteindre. Un échec catastrophique pour tout agent.`,
+  es: (cat, url) => `${url} rechazó cada solicitud de nuestros agentes. Para ${cat}, la experiencia es simplemente inexistente — no se puede evaluar lo que no se puede alcanzar. Un fallo catastrófico para cualquier agente.`,
+  pt: (cat, url) => `${url} rejeitou todas as solicitações dos nossos agentes. Para ${cat}, a experiência é simplesmente inexistente — não se pode avaliar o que não pode ser alcançado. Uma falha catastrófica para qualquer agente.`,
+  de: (cat, url) => `${url} hat jede Anfrage unserer Agenten abgelehnt. Für ${cat} existiert die Erfahrung schlicht nicht — man kann nicht bewerten, was man nicht erreichen kann. Ein katastrophales Versagen für jeden Agenten.`,
+  nl: (cat, url) => `${url} weigerde elk verzoek van onze agenten. Voor ${cat} bestaat de ervaring simpelweg niet — je kunt niet beoordelen wat je niet kunt bereiken. Een catastrofale mislukking voor elke agent.`,
+  ru: (cat, url) => `${url} отклонил каждый запрос наших агентов. Для ${cat} опыт попросту отсутствует — нельзя оценить то, до чего нельзя добраться. Катастрофический провал для любого агента.`,
+  et: (cat, url) => `${url} lükkas tagasi kõik meie agentide päringud. ${cat} jaoks pole kogemust lihtsalt olemas — ei saa hinnata seda, mida ei saa kätte. Katastroofiline ebaõnnestumine iga agendi jaoks.`,
+};
+
+const SKYNET_FIX_PROMPTS: Record<string, (cat: string, url: string) => string> = {
+  en: (cat, url) => `Fix the fundamental accessibility of ${url} before worrying about ${cat}. Start by checking: DNS resolution, SSL certificate validity, server uptime, firewall rules blocking automated agents (check User-Agent restrictions in robots.txt), and rate limiting. The site must respond with HTTP 200 to basic GET requests before any other fix matters.`,
+  it: (cat, url) => `Risolvi l'accessibilità di base di ${url} prima di preoccuparti di ${cat}. Controlla: risoluzione DNS, validità del certificato SSL, uptime del server, regole firewall che bloccano gli agenti automatizzati (controlla le restrizioni User-Agent in robots.txt) e rate limiting. Il sito deve rispondere con HTTP 200 alle richieste GET di base prima che qualsiasi altra correzione abbia senso.`,
+  fr: (cat, url) => `Corrigez d'abord l'accessibilité fondamentale de ${url} avant de vous soucier de ${cat}. Vérifiez : résolution DNS, validité du certificat SSL, disponibilité du serveur, règles de pare-feu bloquant les agents automatisés et limitation de débit. Le site doit répondre HTTP 200 aux requêtes GET basiques.`,
+  es: (cat, url) => `Arregla la accesibilidad fundamental de ${url} antes de preocuparte por ${cat}. Revisa: resolución DNS, validez del certificado SSL, uptime del servidor, reglas de firewall que bloquean agentes automatizados y rate limiting. El sitio debe responder HTTP 200 a peticiones GET básicas.`,
+  pt: (cat, url) => `Corrija a acessibilidade fundamental de ${url} antes de se preocupar com ${cat}. Verifique: resolução DNS, validade do certificado SSL, uptime do servidor, regras de firewall bloqueando agentes automatizados e rate limiting. O site deve responder HTTP 200 a requisições GET básicas.`,
+  de: (cat, url) => `Behebe zuerst die grundlegende Erreichbarkeit von ${url}, bevor du dich um ${cat} kümmerst. Prüfe: DNS-Auflösung, SSL-Zertifikat, Server-Uptime, Firewall-Regeln die automatische Agenten blockieren und Rate Limiting. Die Website muss HTTP 200 auf einfache GET-Anfragen zurückgeben.`,
+  nl: (cat, url) => `Los eerst de fundamentele toegankelijkheid van ${url} op voordat je je zorgen maakt over ${cat}. Controleer: DNS-resolutie, SSL-certificaat, server-uptime, firewallregels die geautomatiseerde agents blokkeren en rate limiting. De site moet HTTP 200 teruggeven op basisverzoeken.`,
+  ru: (cat, url) => `Исправьте базовую доступность ${url} прежде чем беспокоиться о ${cat}. Проверьте: DNS-резолвинг, SSL-сертификат, аптайм сервера, правила брандмауэра, блокирующие автоматических агентов, и rate limiting. Сайт должен отвечать HTTP 200 на базовые GET-запросы.`,
+  et: (cat, url) => `Paranda esmalt ${url} põhiline ligipääsetavus enne kui muretsed ${cat} pärast. Kontrolli: DNS-lahendust, SSL-sertifikaati, serveri tööaega, tulemüüri reegleid, mis blokeerivad automaatseid agente, ja rate limitingut. Sait peab vastama HTTP 200-ga lihtsatele GET-päringutele.`,
+};
+
+function generateInaccessibleRoast(url: string, categories: string[], locale: string): Record<string, unknown> {
+  const lang = locale in SKYNET_VERDICTS ? locale : "en";
+  const EMOJIS = ["💀", "🚫", "🔒", "⛔", "📵", "🕳️", "❌", "🧱", "📴", "🔇"];
+
+  return {
+    overall_score: 1,
+    verdict: SKYNET_VERDICTS[lang],
+    scores: Object.fromEntries(categories.map((cat) => [cat, 1])),
+    roasts: categories.map((cat, i) => ({
+      category: cat,
+      emoji: EMOJIS[i % EMOJIS.length],
+      critique: SKYNET_CRITIQUES[lang]?.(cat, url) ?? SKYNET_CRITIQUES.en(cat, url),
+      fix_prompt: SKYNET_FIX_PROMPTS[lang]?.(cat, url) ?? SKYNET_FIX_PROMPTS.en(cat, url),
+    })),
+  };
+}
+
 async function processRoast(
   jobId: string,
   url: string,
@@ -265,6 +327,20 @@ async function processRoast(
   const checks = await checkAgentReadiness(url);
   await updateJob(jobId, { progress: "Building prompt" });
 
+  // If the site is completely unreachable, skip the LLM loop and roast it for that
+  const siteDown = isSiteDown(checks);
+  if (siteDown) {
+    console.log("[Roast API] Site appears unreachable, generating inaccessibility roast");
+    await updateJob(jobId, { progress: "Site unreachable — generating roast" });
+    const result = generateInaccessibleRoast(url, cats, locale);
+    const normUrl = normalizeUrl(url);
+    const cachedAt = new Date().toISOString();
+    await saveRanking(jobId, { url, normUrl, score: (result as any).overall_score, verdict: (result as any).verdict, cats, locale, completedAt: cachedAt, result: result as Record<string, unknown> }).catch(() => {});
+    await updateJob(jobId, { status: "completed", progress: "Done", result: JSON.stringify({ ...result, cached: false, cacheKey: cacheKey(normUrl) }) });
+    await jobDb.del(jobIdKey(normUrl, locale));
+    return;
+  }
+
   const prompt = await buildPrompt(url, cats, locale, checks);
   await updateJob(jobId, { progress: "Calling LLM" });
 
@@ -272,7 +348,7 @@ async function processRoast(
   const apiKey = import.meta.env.OPENAI_API_KEY || "dummy";
   const model = import.meta.env.OPENAI_MODEL || "llama3";
 
-  const result = await runAgentLoop(prompt, url, cats, checks, apiBase, apiKey, model, async (iter, action) => {
+  const result = await runAgentLoop(prompt, url, cats, checks, apiBase, apiKey, model, locale, async (iter, action) => {
     await updateJob(jobId, { progress: `Iteration ${iter}/6: ${action}` });
     await incrementIteration(jobId);
   }, isResume);
@@ -556,6 +632,7 @@ async function runAgentLoop(
   apiBase: string,
   apiKey: string,
   model: string,
+  locale: string,
   onProgress?: (iter: number, action: string) => void,
   isResume = false,
 ) {
@@ -635,46 +712,102 @@ async function runAgentLoop(
   }
 
   console.log("[Roast API] Max iterations reached, forcing final output");
-  const finalMessages = [...messages, { role: "user" as MessageRole, content: `Max iterations reached. You MUST now emit OUTPUT_FINAL immediately. Use all data gathered so far. REQUIRED: numeric score (1-10) AND critique AND fix_prompt for EVERY category: ${categories.join(", ")}. All text in the user's language. Do not hallucinate. Do not skip any category. Do not leave fix_prompt empty.` }];
+  const forcedPrompt = `Max iterations reached. OUTPUT_FINAL now. Use all data gathered. REQUIRED for EVERY category in [${categories.join(", ")}]: numeric score 1-10, specific critique citing real evidence, specific fix_prompt describing actual code/config changes. All text in the user's language. No placeholders.`;
+  const finalMessages = [...messages, { role: "user" as MessageRole, content: forcedPrompt }];
+
+  const tryParse = (raw: string) => {
+    try {
+      const p = JSON.parse(raw.trim());
+      return p.final_roast ?? (p.overall_score !== undefined ? p : null);
+    } catch {
+      return null;
+    }
+  };
+
+  let bestPartial: Record<string, unknown> | null = null;
+
   try {
     const finalContent = await callLLM(finalMessages, apiBase, apiKey, model);
-    const finalOutput = JSON.parse(finalContent.trim());
-    if (finalOutput.final_roast) {
-      const validation = validateFinalRoast(finalOutput.final_roast, categories);
-      if (validation.valid) {
-        return finalOutput.final_roast;
+    const parsed = tryParse(finalContent);
+    if (parsed) {
+      const v = validateFinalRoast(parsed, categories);
+      if (v.valid) {
+        console.log("[Roast API] Forced final output valid");
+        return parsed;
       }
-      console.log("[Roast API] Final validation failed, using fallback:", validation.errors);
-    } else if (finalOutput.overall_score) {
-      const validation = validateFinalRoast(finalOutput, categories);
-      if (validation.valid) {
-        return finalOutput;
+      console.log("[Roast API] Forced final validation failed, trying recovery:", v.errors);
+      bestPartial = parsed;
+
+      // Recovery call — target the specific failures
+      const recoveryContent = await callLLM([
+        ...finalMessages,
+        { role: "assistant" as MessageRole, content: finalContent },
+        { role: "user" as MessageRole, content: `VALIDATION ERRORS: ${v.errors.join("; ")}. Fix ONLY the listed issues and re-emit OUTPUT_FINAL. For any missing fix_prompt: write a concrete, file-level fix instruction specific to ${url} based on what you observed (not a generic placeholder). For any missing score: assign a number 1-10.` },
+      ], apiBase, apiKey, model);
+
+      const recovered = tryParse(recoveryContent);
+      if (recovered) {
+        const rv = validateFinalRoast(recovered, categories);
+        if (rv.valid) {
+          console.log("[Roast API] Recovery output valid");
+          return recovered;
+        }
+        console.log("[Roast API] Recovery also failed:", rv.errors);
+        bestPartial = recovered;
       }
-      console.log("[Roast API] Final validation failed, using fallback:", validation.errors);
     }
-    return {
-      overall_score: 5,
-      verdict: "Agent loop completed but final parsing failed. Site has basic readiness.",
-      scores: categories.reduce((acc: Record<string, number>, cat: string) => { acc[cat] = 5; return acc; }, {} as Record<string, number>),
-      roasts: categories.map((cat, idx) => ({
-        category: cat,
-        emoji: ["🎨", "⚡", "🔍", "📱", "♿", "🤖"][idx % 6] || "📝",
-        critique: `Complete analysis for ${cat} category. Real agent checks were performed but output validation failed.`,
-        fix_prompt: `Fix ${cat} issues for ${url}. Implement thorough analysis based on real scraped data.`
-      })),
-    };
   } catch (e) {
-    console.error("[Roast API] Final call failed:", e);
-    return {
-      overall_score: 5,
-      verdict: "Agent loop completed but final parsing failed. Site has basic readiness.",
-      scores: categories.reduce((acc: Record<string, number>, cat: string) => { acc[cat] = 5; return acc; }, {} as Record<string, number>),
-      roasts: categories.map((cat, idx) => ({
-        category: cat,
-        emoji: ["🎨", "⚡", "🔍", "📱", "♿", "🤖"][idx % 6] || "📝",
-        critique: `Complete analysis for ${cat} category. Real agent checks were performed but output validation failed.`,
-        fix_prompt: `Fix ${cat} issues for ${url}. Implement thorough analysis based on real scraped data.`
-      })),
-    };
+    console.error("[Roast API] Final/recovery LLM call failed:", e);
   }
+
+  // Last resort: patch the best partial result we have
+  return patchResult(bestPartial, categories, url, locale);
+}
+
+function patchResult(
+  partial: Record<string, unknown> | null,
+  categories: string[],
+  url: string,
+  locale = "en",
+): Record<string, unknown> {
+  if (!partial) return generateInaccessibleRoast(url, categories, locale);
+  const EMOJIS = ["🎨", "⚡", "🔍", "📱", "♿", "🤖", "📊", "🔒", "✍️", "🏷️"];
+
+  const existingScores = (partial?.scores as Record<string, unknown>) ?? {};
+  const existingRoasts = Array.isArray(partial?.roasts)
+    ? new Map((partial.roasts as Array<Record<string, unknown>>).map((r) => [r.category as string, r]))
+    : new Map<string, Record<string, unknown>>();
+
+  const scores: Record<string, number> = {};
+  const roasts: Record<string, unknown>[] = [];
+
+  for (let i = 0; i < categories.length; i++) {
+    const cat = categories[i];
+    const existingScore = typeof existingScores[cat] === "number" ? existingScores[cat] as number : 5;
+    scores[cat] = existingScore;
+
+    const existing = existingRoasts.get(cat);
+    const critique = typeof existing?.critique === "string" && existing.critique.trim().length >= 30
+      ? existing.critique as string
+      : `Analysis for ${cat} at ${url} could not be fully completed. The agent gathered data but output generation encountered an error.`;
+    const fix_prompt = typeof existing?.fix_prompt === "string" && existing.fix_prompt.trim().length >= 30
+      ? existing.fix_prompt as string
+      : `Review the ${cat} implementation at ${url}. Identify the top issues found during automated analysis and implement the necessary fixes following the site's existing code conventions.`;
+
+    roasts.push({
+      category: cat,
+      emoji: (existing?.emoji as string) || EMOJIS[i % EMOJIS.length],
+      critique,
+      fix_prompt,
+    });
+  }
+
+  return {
+    overall_score: typeof partial?.overall_score === "number" ? partial.overall_score : 5,
+    verdict: typeof partial?.verdict === "string" && partial.verdict.trim().length > 0
+      ? partial.verdict
+      : `Analysis of ${url} completed with partial results.`,
+    scores,
+    roasts,
+  };
 }
