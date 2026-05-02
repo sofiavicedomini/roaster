@@ -76,12 +76,49 @@ export async function setJobId(normUrl: string, locale: string, jobId: string) {
 }
 
 export async function createJob(jobId: string, fields: Record<string, string>) {
-  await jobDb.hset(`roast:job:${jobId}`, { ...fields, createdAt: new Date().toISOString() });
+  const now = new Date().toISOString();
+  await jobDb.hset(`roast:job:${jobId}`, { 
+    ...fields, 
+    createdAt: now,
+    lastUpdate: now,
+    iterationCount: "0"
+  });
   await jobDb.expire(`roast:job:${jobId}`, 3600);
 }
 
 export async function updateJob(jobId: string, fields: Record<string, string>) {
-  await jobDb.hset(`roast:job:${jobId}`, fields);
+  const updates: Record<string, string> = { ...fields, lastUpdate: new Date().toISOString() };
+  if (fields.progress) {
+    const job = await getJob(jobId);
+    if (job) {
+      const currentCount = parseInt(job.iterationCount || "0", 10);
+      if (currentCount > 0) {
+        updates.iterationCount = String(currentCount);
+      }
+    }
+  }
+  await jobDb.hset(`roast:job:${jobId}`, updates);
+}
+
+export async function incrementIteration(jobId: string) {
+  const job = await getJob(jobId);
+  if (job) {
+    const currentCount = parseInt(job.iterationCount || "0", 10);
+    await jobDb.hset(`roast:job:${jobId}`, { 
+      iterationCount: String(currentCount + 1),
+      lastUpdate: new Date().toISOString()
+    });
+  }
+}
+
+export async function resetJobProgress(jobId: string) {
+  const job = await getJob(jobId);
+  if (job) {
+    await jobDb.hset(`roast:job:${jobId}`, { 
+      iterationCount: "0",
+      lastUpdate: new Date().toISOString()
+    });
+  }
 }
 
 export async function getJob(jobId: string): Promise<null | Record<string, string>> {
@@ -98,4 +135,41 @@ export function generateJobId(): string {
     const r = (Math.random() * 16) | 0;
     return (c === "x" ? r : (r & 0x3) | 0x8).toString(16);
   });
+}
+
+export async function resumeJob(jobId: string, newCategories: string[]): Promise<{ shouldResume: boolean; job: Record<string, string> | null }> {
+  const job = await getJob(jobId);
+  if (!job) {
+    return { shouldResume: false, job: null };
+  }
+  
+  if (job.status === "completed") {
+    return { shouldResume: false, job };
+  }
+  
+  if (job.status === "failed") {
+    await resetJobProgress(jobId);
+    return { shouldResume: true, job: { ...job, status: "pending", error: "" } };
+  }
+  
+  if (job.status === "pending" || job.status === "processing") {
+    const lastUpdate = new Date(job.lastUpdate || job.createdAt);
+    const now = new Date();
+    const minutesSinceUpdate = (now.getTime() - lastUpdate.getTime()) / 60000;
+    
+    if (minutesSinceUpdate > 5) {
+      const currentIteration = parseInt(job.iterationCount || "0", 10);
+      if (currentIteration >= 3) {
+        await resetJobProgress(jobId);
+        await updateJob(jobId, { 
+          status: "pending", 
+          progress: "Resuming from stuck state",
+          cats: newCategories.join(",")
+        });
+        return { shouldResume: true, job: { ...job, status: "pending" } };
+      }
+    }
+  }
+  
+  return { shouldResume: false, job };
 }

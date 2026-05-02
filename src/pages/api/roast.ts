@@ -17,6 +17,8 @@ import {
   updateJob,
   getJob,
   generateJobId,
+  resumeJob,
+  incrementIteration,
 } from "@/lib/redis";
 
 const locales: string[] = ["en", "it", "fr", "es", "pt", "de", "nl", "ru", "et"];
@@ -140,7 +142,32 @@ export const POST: APIRoute = async ({ request }) => {
     const existingJobId = await getJobId(normUrl, safeLocale);
     if (existingJobId) {
       const job = await getJob(existingJobId);
+      if (job && job.status === "completed") {
+        const hasAllCats = cats.every((c) => job.cats?.split(",").includes(c));
+        if (hasAllCats) {
+          return new Response(JSON.stringify({ jobId: existingJobId, status: job.status, cached: false }), {
+            status: 202,
+            headers: { "Content-Type": "application/json" },
+          });
+        }
+      }
+      
       if (job && ["pending", "processing"].includes(job.status)) {
+        const { shouldResume } = await resumeJob(existingJobId, cats);
+        
+        if (shouldResume) {
+          console.log(`[Roast API] Resuming stuck job ${existingJobId}`);
+          await setJobId(normUrl, safeLocale, existingJobId);
+          processRoast(existingJobId, url, cats, safeLocale, true).catch((e) => {
+            console.error("[Roast BG] Resume error:", e);
+            updateJob(existingJobId, { status: "failed", error: e instanceof Error ? e.message : "Unknown error" }).catch(() => {});
+          });
+          return new Response(JSON.stringify({ jobId: existingJobId, status: "resuming", cached: false }), {
+            status: 202,
+            headers: { "Content-Type": "application/json" },
+          });
+        }
+        
         return new Response(JSON.stringify({ jobId: existingJobId, status: job.status, cached: false }), {
           status: 202,
           headers: { "Content-Type": "application/json" },
@@ -225,8 +252,14 @@ async function processRoast(
   url: string,
   cats: string[],
   locale: string,
+  isResume = false,
 ) {
-  await updateJob(jobId, { status: "processing", progress: "Initial checks" });
+  if (isResume) {
+    await updateJob(jobId, { status: "processing", progress: "Resuming agent loop" });
+    await incrementIteration(jobId);
+  } else {
+    await updateJob(jobId, { status: "processing", progress: "Initial checks" });
+  }
 
   const checks = await checkAgentReadiness(url);
   await updateJob(jobId, { progress: "Building prompt" });
@@ -240,7 +273,8 @@ async function processRoast(
 
   const result = await runAgentLoop(prompt, url, cats, checks, apiBase, apiKey, model, async (iter, action) => {
     await updateJob(jobId, { progress: `Iteration ${iter}/6: ${action}` });
-  });
+    await incrementIteration(jobId);
+  }, isResume);
 
   const normUrl = normalizeUrl(url);
   const cachedAt = new Date().toISOString();
@@ -482,11 +516,14 @@ async function runAgentLoop(
   apiKey: string,
   model: string,
   onProgress?: (iter: number, action: string) => void,
+  isResume = false,
 ) {
   const messages: Array<{role: MessageRole; content: string}> = [{ role: "system", content: systemPrompt }];
   let iteration = 0;
-  const maxIterations = 6;
-  let currentObservation = `Initial data loaded with real checks for ${url}. Begin iterative analysis focusing on thorough scraping for agentReadiness.`;
+  const maxIterations = isResume ? 3 : 6;
+  let currentObservation = isResume 
+    ? `Resuming analysis for ${url}. Previous iterations may have been stuck. Focus on completing ALL categories: ${categories.join(", ")}.`
+    : `Initial data loaded with real checks for ${url}. Begin iterative analysis focusing on thorough scraping for agentReadiness.`;
 
   while (iteration < maxIterations) {
     iteration++;
