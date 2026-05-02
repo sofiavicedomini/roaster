@@ -61,9 +61,28 @@
       "Controllando l'agent readiness...",
       "Cercando server MCP...",
       "Testando l'API discovery...",
-      "Controllando gli endpoint OAuth..."
+      "Controllando gli endpoint OAuth...",
+      "Iterazione agent {iteration}/6: Pensiero...",
+      "Iterazione agent {iteration}/6: Analisi dati...",
+      "Iterazione agent {iteration}/6: Estrazione contenuti...",
+      "Iterazione agent {iteration}/6: Costruzione critica...",
+      "Iterazione agent {iteration}/6: Validazione risultati...",
+      "Iterazione agent {iteration}/6: Raffinamento feedback...",
+      "Ripresa analisi bloccata...",
+      "Validazione stroncatura completa...",
+      "Verifica copertura tutte le categorie..."
     ],
-    "verifyingRobot": "Verifica che non sei un robot..."
+    "verifyingRobot": "Verifica che non sei un robot...",
+    "agentIteration": "Iterazione agent {iteration}/6: {action}",
+    "agentActions": {
+      "thinking": "pensiero...",
+      "analyzing": "analisi dati...",
+      "scraping": "estrazione contenuti...",
+      "building": "costruzione critica...",
+      "validating": "validazione risultati...",
+      "refining": "raffinamento feedback...",
+      "unknown": "elaborazione..."
+    }
   },
   "privacy": {
     "message": "Utilizziamo i cookie per analizzare il traffico del sito e migliorare la tua esperienza. I tuoi dati rimangono privati e non vengono condivisi.",

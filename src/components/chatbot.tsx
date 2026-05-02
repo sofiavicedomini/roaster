@@ -197,7 +197,10 @@ export function Chatbot({ locale = "en" }: ChatbotProps) {
     return () => clearInterval(interval);
   }, [isLoading, t.chatbot.loadingMessages.length]);
 
-  // Poll job status
+  const [jobStatus, setJobStatus] = useState<string>("");
+  const [currentIteration, setCurrentIteration] = useState<number>(0);
+  const [currentAction, setCurrentAction] = useState<string>("");
+
   useEffect(() => {
     if (!jobId || !isLoading) return;
     const timer = setInterval(async () => {
@@ -215,6 +218,16 @@ export function Chatbot({ locale = "en" }: ChatbotProps) {
           setIsLoading(false);
           setJobId(null);
           clearInterval(timer);
+        } else {
+          setJobStatus(data.status);
+          if (data.progress) {
+            const iterationMatch = data.progress.match(/Iteration (\d+)/);
+            if (iterationMatch) {
+              setCurrentIteration(parseInt(iterationMatch[1], 10));
+            }
+            const action = data.progress.split(": ")[1] || data.progress;
+            setCurrentAction(action);
+          }
         }
       } catch {
         console.error("[Poll] Error");
@@ -406,8 +419,20 @@ export function Chatbot({ locale = "en" }: ChatbotProps) {
         </Button>
 
         {isLoading && (
-          <div className="text-center text-sm text-orange-400/80 animate-pulse">
-            {t.chatbot.loadingMessages[loadingMsgIdx]}
+          <div className="flex flex-col gap-2">
+            {currentIteration > 0 && (
+              <div className="text-center text-xs text-blue-400/80 font-mono">
+                Agent iteration {currentIteration}/6: {currentAction || t.chatbot.agentActions.thinking}
+              </div>
+            )}
+            <div className="text-center text-sm text-orange-400/80 animate-pulse">
+              {t.chatbot.loadingMessages[loadingMsgIdx]}
+            </div>
+            {jobStatus === "resuming" && (
+              <div className="text-center text-xs text-amber-400/80">
+                Resuming stuck analysis...
+              </div>
+            )}
           </div>
         )}
       </form>

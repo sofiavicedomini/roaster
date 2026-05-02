@@ -61,9 +61,28 @@
       "Checking agent readiness...",
       "Looking for MCP servers...",
       "Testing API discovery...",
-      "Checking OAuth endpoints..."
+      "Checking OAuth endpoints...",
+      "Agent iteration {iteration}/6: Thinking...",
+      "Agent iteration {iteration}/6: Analyzing data...",
+      "Agent iteration {iteration}/6: Scraping content...",
+      "Agent iteration {iteration}/6: Building critique...",
+      "Agent iteration {iteration}/6: Validating results...",
+      "Agent iteration {iteration}/6: Refining feedback...",
+      "Resuming stuck analysis...",
+      "Validating complete roast...",
+      "Ensuring all categories covered..."
     ],
-    "verifyingRobot": "Verifying you are not a robot..."
+    "verifyingRobot": "Verifying you are not a robot...",
+    "agentIteration": "Agent iteration {iteration}/6: {action}",
+    "agentActions": {
+      "thinking": "thinking...",
+      "analyzing": "analyzing data...",
+      "scraping": "scraping content...",
+      "building": "building critique...",
+      "validating": "validating results...",
+      "refining": "refining feedback...",
+      "unknown": "processing..."
+    }
   },
   "privacy": {
     "message": "We use cookies to analyze site traffic and improve your experience. Your data stays private and is not shared.",
