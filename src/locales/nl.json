@@ -62,7 +62,8 @@
       "MCP-servers zoeken...",
       "API Discovery testen...",
       "OAuth-eindpunten controleren..."
-    ]
+    ],
+    "verifyingRobot": "Verifiëren dat u geen robot bent..."
   },
   "privacy": {
     "message": "We gebruiken cookies om siteverkeer te analyseren en je ervaring te verbeteren. Je gegevens blijven privé en worden niet gedeeld.",

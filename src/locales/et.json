@@ -62,7 +62,8 @@
       "MCP-serverite otsimine...",
       "API Discovery testimine...",
       "OAuth-i lõpp-punktide kontrollimine..."
-    ]
+    ],
+    "verifyingRobot": "Kontrollimine, et sa ei ole robot..."
   },
   "privacy": {
     "message": "Kasutame küpsiseid, et analüüsida saida liiklust ja parandada sinu kogemust. Sinu andmed jäävad privaatseks ja neid ei jagata.",

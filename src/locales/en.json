@@ -62,7 +62,8 @@
       "Looking for MCP servers...",
       "Testing API discovery...",
       "Checking OAuth endpoints..."
-    ]
+    ],
+    "verifyingRobot": "Verifying you are not a robot..."
   },
   "privacy": {
     "message": "We use cookies to analyze site traffic and improve your experience. Your data stays private and is not shared.",

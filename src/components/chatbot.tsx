@@ -381,6 +381,12 @@ export function Chatbot({ locale = "en" }: ChatbotProps) {
           <div ref={turnstileRef} className="flex justify-center min-h-[70px]"></div>
         )}
 
+        {turnstileSiteKey && !turnstileToken && !isTurnstileExpired && (
+          <div className="text-center text-xs text-amber-400/70">
+            {(t as any).verifyingRobot}
+          </div>
+        )}
+
         {isTurnstileExpired && (
           <div className="text-center text-xs text-amber-400 bg-amber-500/10 border border-amber-500/30 rounded p-2">
             Il captcha è scaduto. Lo sto rinnovando automaticamente...
