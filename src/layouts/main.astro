@@ -2,6 +2,8 @@
 import "@/styles/global.css"
 import { getLocaleFromURL, useTranslations } from "@/i18n/utils"
 import LanguageSwitcher from "@/components/LanguageSwitcher.astro"
+import SEO from "@/components/SEO.astro"
+import GoogleAnalytics from "@/components/GoogleAnalytics.astro"
 
 const locale = getLocaleFromURL(Astro.url, Astro.request)
 const { t } = useTranslations(locale)
@@ -12,11 +14,12 @@ const { t } = useTranslations(locale)
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <title>{t("site.title")}</title>
+    <SEO locale={locale} />
   </head>
   <body>
     <div class="heat-distortion fire"></div>
     <LanguageSwitcher />
+    <GoogleAnalytics />
     <slot />
     <div class="fixed bottom-4 right-4 z-50">
       <a

@@ -2,6 +2,8 @@
   "site": {
     "title": "Röst mij 🔥",
     "description": "Krijg een eerlijke, botte kritiek op elke website",
+    "seoDescription": "Krijg een brutale, eerlijke kritiek op elke website met Röst mij. AI-gestuurde analyse van design, prestaties, SEO, UX, toegankelijkheid, beveiliging en meer. Ontdek wat er mis is met je site.",
+    "keywords": "website kritiek, site analyse, SEO checker, prestatie audit, UX beoordeling, website beoordeling, AI website analyse, website rösten",
     "footer": "Een project van <span class=\"font-semibold\">Vicedomini Softworks</span>"
   },
   "chatbot": {
@@ -61,6 +63,11 @@
       "API Discovery testen...",
       "OAuth-eindpunten controleren..."
     ]
+  },
+  "privacy": {
+    "message": "We gebruiken cookies om siteverkeer te analyseren en je ervaring te verbeteren. Je gegevens blijven privé en worden niet gedeeld.",
+    "accept": "Accepteren",
+    "decline": "Weigeren"
   },
   "errors": {
     "urlRequired": "URL is verplicht",

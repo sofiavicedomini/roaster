@@ -2,6 +2,8 @@
   "site": {
     "title": "Róast-me 🔥",
     "description": "Obtenha uma crítica honesta e sem filtros de qualquer site",
+    "seoDescription": "Obtenha uma crítica brutal e honesta de qualquer site com Róast-me. Análise por IA de design, performance, SEO, UX, acessibilidade, segurança e muito mais. Descubra o que está errado com seu site.",
+    "keywords": "crítica site web, análise site web, verificador SEO, auditoria performance, revisão UX, avaliador web, análise IA sites web, roast site",
     "footer": "Um projeto da <span class=\"font-semibold\">Vicedomini Softworks</span>"
   },
   "chatbot": {
@@ -61,6 +63,11 @@
       "Testando API discovery...",
       "Verificando endpoints OAuth..."
     ]
+  },
+  "privacy": {
+    "message": "Usamos cookies para analisar o tráfego do site e melhorar sua experiência. Seus dados permanecem privados e não são compartilhados.",
+    "accept": "Aceitar",
+    "decline": "Recusar"
   },
   "errors": {
     "urlRequired": "A URL é obrigatória",

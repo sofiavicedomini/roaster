@@ -1,0 +1,64 @@
+---
+const gtmId = import.meta.env.GTAG_ID || ""
+const cookiebotId = import.meta.env.COOKIEBOT_ID || ""
+const hasGtm = gtmId.length > 0
+const hasCookiebot = cookiebotId.length > 0
+---
+
+{hasCookiebot && (
+  <!-- Cookiebot Consent Banner -->
+  <script
+    id="Cookiebot"
+    src="https://consent.cookiebot.com/uc.js"
+    data-cbid={cookiebotId}
+    data-blockingmode="auto"
+    type="text/javascript"
+  ></script>
+)}
+
+{hasGtm && (
+  <>
+    <!-- Google Tag Manager with Consent Mode v2 -->
+    <script is:inline define:vars={{ gtmId }}>
+      // Default consent - denied until Cookiebot grants permission
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+
+      gtag('consent', 'default', {
+        'ad_storage': 'denied',
+        'ad_user_data': 'denied',
+        'ad_personalization': 'denied',
+        'analytics_storage': 'denied',
+        'wait_for_update': 500
+      });
+
+      // Listen for Cookiebot consent events
+      window.addEventListener('CookiebotOnAccept', function() {
+        if (window.Cookiebot?.consent?.statistics) {
+          gtag('consent', 'update', {
+            'analytics_storage': 'granted',
+            'ad_storage': 'granted'
+          });
+        }
+        if (window.Cookiebot?.consent?.marketing) {
+          gtag('consent', 'update', {
+            'ad_user_data': 'granted',
+            'ad_personalization': 'granted'
+          });
+        }
+      }, false);
+    </script>
+    <script is:inline>
+      (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+      new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+      j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+      'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+      })(window,document,'script','dataLayer','{gtmId}');
+    </script>
+    <noscript>
+      <iframe src={`https://www.googletagmanager.com/ns.html?id=${gtmId}`}
+        height="0" width="0" style="display:none;visibility:hidden">
+      </iframe>
+    </noscript>
+  </>
+)}

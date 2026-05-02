@@ -2,6 +2,8 @@
   "site": {
     "title": "Roast Me 🔥",
     "description": "Get an honest, no-BS critique of any website",
+    "seoDescription": "Get a brutal, honest critique of any website with Roast Me. AI-powered analysis of design, performance, SEO, UX, accessibility, security and more. Discover what's wrong with your site.",
+    "keywords": "website roast, site critique, web analysis, SEO checker, performance audit, UX review, website grader, AI website analysis",
     "footer": "A project by <span class=\"font-semibold\">Vicedomini Softworks</span>"
   },
   "chatbot": {
@@ -61,6 +63,11 @@
       "Testing API discovery...",
       "Checking OAuth endpoints..."
     ]
+  },
+  "privacy": {
+    "message": "We use cookies to analyze site traffic and improve your experience. Your data stays private and is not shared.",
+    "accept": "Accept",
+    "decline": "Decline"
   },
   "errors": {
     "urlRequired": "URL is required",

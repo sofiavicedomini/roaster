@@ -1,0 +1,91 @@
+---
+import { locales, type Locale, useTranslations } from "@/i18n/utils"
+
+interface Props {
+  locale: Locale
+  title?: string
+  description?: string
+  image?: string
+  noindex?: boolean
+}
+
+const { locale, title, description, image = "/og-image.jpg", noindex = false } = Astro.props
+
+const currentPath = Astro.url.pathname
+const baseUrl = Astro.site?.toString() || `${Astro.url.protocol}//${Astro.url.host}`
+const canonicalURL = new URL(currentPath, baseUrl).toString()
+
+const { t } = useTranslations(locale)
+const seoTitle = title || t("site.title")
+const seoDescription = description || t("site.seoDescription")
+const keywords = t("site.keywords")
+---
+
+<!-- Primary Meta Tags -->
+<title>{seoTitle}</title>
+<meta name="title" content={seoTitle} />
+<meta name="description" content={seoDescription} />
+<meta name="keywords" content={keywords} />
+<link rel="canonical" href={canonicalURL} />
+
+<!-- Robots -->
+{noindex ? (
+  <meta name="robots" content="noindex, nofollow" />
+) : (
+  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+)}
+
+<!-- Open Graph / Facebook -->
+<meta property="og:type" content="website" />
+<meta property="og:url" content={canonicalURL} />
+<meta property="og:title" content={seoTitle} />
+<meta property="og:description" content={seoDescription} />
+<meta property="og:image" content={new URL(image, baseUrl).toString()} />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta property="og:locale" content={locale} />
+<meta property="og:site_name" content={t("site.title")} />
+
+<!-- Twitter -->
+<meta property="twitter:card" content="summary_large_image" />
+<meta property="twitter:url" content={canonicalURL} />
+<meta property="twitter:title" content={seoTitle} />
+<meta property="twitter:description" content={seoDescription} />
+<meta property="twitter:image" content={new URL(image, baseUrl).toString()} />
+
+<!-- Alternate language versions (hreflang) -->
+{locales.map((lang) => (
+  <link
+    rel="alternate"
+    hreflang={lang}
+    href={new URL(`/${lang}`, baseUrl).toString()}
+  />
+))}
+<link rel="alternate" hreflang="x-default" href={new URL("/en", baseUrl).toString()} />
+
+<!-- Structured Data (JSON-LD) -->
+<script is:inline type="application/ld+json" set:html={JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": seoTitle,
+  "description": seoDescription,
+  "url": canonicalURL,
+  "applicationCategory": "DeveloperApplication",
+  "operatingSystem": "Any",
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "USD"
+  },
+  "inLanguage": locale,
+  "author": {
+    "@type": "Organization",
+    "name": "Vicedomini Softworks",
+    "url": "https://vicedominisoftworks.com"
+  }
+})} />
+
+<!-- Additional SEO -->
+<meta name="theme-color" content="#000000" />
+<meta name="msapplication-TileColor" content="#000000" />
+<link rel="manifest" href="/manifest.json" />

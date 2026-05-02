@@ -2,6 +2,8 @@
   "site": {
     "title": "Stroncami 🔥",
     "description": "Ottieni una critica onesta e senza filtri per qualsiasi sito web",
+    "seoDescription": "Ottieni una stroncatura brutale e onesta di qualsiasi sito web con Stroncami. Analisi AI di design, performance, SEO, UX, accessibilità, sicurezza e altro. Scopri cosa non va nel tuo sito.",
+    "keywords": "stroncatura sito web, critica sito, analisi web, controllo SEO, audit performance, recensione UX, valutazione sito, analisi AI siti web",
     "footer": "Un progetto di <span class=\"font-semibold\">Vicedomini Softworks</span>"
   },
   "chatbot": {
@@ -61,6 +63,11 @@
       "Testando l'API discovery...",
       "Controllando gli endpoint OAuth..."
     ]
+  },
+  "privacy": {
+    "message": "Utilizziamo i cookie per analizzare il traffico del sito e migliorare la tua esperienza. I tuoi dati rimangono privati e non vengono condivisi.",
+    "accept": "Accetta",
+    "decline": "Rifiuta"
   },
   "errors": {
     "urlRequired": "L'URL è obbligatorio",

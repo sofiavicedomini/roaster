@@ -2,6 +2,8 @@
   "site": {
     "title": "Röst mich 🔥",
     "description": "Erhalte eine ehrliche, schonungslose Kritik jeder Webseite",
+    "seoDescription": "Erhalte eine brutale, ehrliche Kritik jeder Webseite mit Röst mich. KI-gestützte Analyse von Design, Performance, SEO, UX, Barrierefreiheit, Sicherheit und mehr. Finde heraus, was mit deiner Seite nicht stimmt.",
+    "keywords": "Webseite Kritik, Seitenanalyse, SEO Checker, Performance Audit, UX Bewertung, Webseiten Bewertung, KI Webseiten Analyse, Webseite rösten",
     "footer": "Ein Projekt von <span class=\"font-semibold\">Vicedomini Softworks</span>"
   },
   "chatbot": {
@@ -61,6 +63,11 @@
       "API Discovery testen...",
       "OAuth-Endpunkte prüfen..."
     ]
+  },
+  "privacy": {
+    "message": "Wir verwenden Cookies, um den Site-Traffic zu analysieren und Ihre Erfahrung zu verbessern. Ihre Daten bleiben privat und werden nicht geteilt.",
+    "accept": "Akzeptieren",
+    "decline": "Ablehnen"
   },
   "errors": {
     "urlRequired": "URL ist erforderlich",

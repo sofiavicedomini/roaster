@@ -2,6 +2,8 @@
   "site": {
     "title": "Grille-moi 🔥",
     "description": "Obtenez une critique honnête et sans filtre de n'importe quel site web",
+    "seoDescription": "Obtenez une critique brutale et honnête de n'importe quel site web avec Grille-moi. Analyse par IA du design, des performances, du SEO, de l'UX, de l'accessibilité, de la sécurité et plus encore. Découvrez ce qui ne va pas avec votre site.",
+    "keywords": "critique site web, analyse site web, vérificateur SEO, audit performance, avis UX, notation site web, analyse IA sites web, griller site",
     "footer": "Un projet de <span class=\"font-semibold\">Vicedomini Softworks</span>"
   },
   "chatbot": {
@@ -61,6 +63,11 @@
       "Test de l'API discovery...",
       "Vérification des endpoints OAuth..."
     ]
+  },
+  "privacy": {
+    "message": "Nous utilisons des cookies pour analyser le trafic du site et améliorer votre expérience. Vos données restent privées et ne sont pas partagées.",
+    "accept": "Accepter",
+    "decline": "Refuser"
   },
   "errors": {
     "urlRequired": "L'URL est requise",

@@ -2,6 +2,8 @@
   "site": {
     "title": "Róastrame 🔥",
     "description": "Obtén una crítica honesta y sin rodeos de cualquier sitio web",
+    "seoDescription": "Obtén una crítica brutal y honesta de cualquier sitio web con Róastrame. Análisis impulsado por IA de diseño, rendimiento, SEO, UX, accesibilidad, seguridad y más. Descubre qué está mal en tu sitio.",
+    "keywords": "crítica web, análisis sitio web, verificador SEO, auditoría rendimiento, revisión UX, calificador web, análisis IA sitios web, roast sitio",
     "footer": "Un proyecto de <span class=\"font-semibold\">Vicedomini Softworks</span>"
   },
   "chatbot": {
@@ -61,6 +63,11 @@
       "Probando API discovery...",
       "Comprobando endpoints OAuth..."
     ]
+  },
+  "privacy": {
+    "message": "Utilizamos cookies para analizar el tráfico del sitio y mejorar tu experiencia. Tus datos permanecen privados y no se comparten.",
+    "accept": "Aceptar",
+    "decline": "Rechazar"
   },
   "errors": {
     "urlRequired": "La URL es obligatoria",

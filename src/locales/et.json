@@ -2,6 +2,8 @@
   "site": {
     "title": "Prae mind 🔥",
     "description": "Saa aus ehtne, järeleandmatu kriitika ükskõik millise veebisaidi kohta",
+    "seoDescription": "Saa julm, aus kriitika ükskõik millise veebisaidi kohta saidiga Prae mind. AI-toega analüüs disaini, jõudluse, SEO, UX, juurdepääsetavuse, turvalisuse ja muu kohta. Avasta, mis sinu saidiga valesti on.",
+    "keywords": "veebisaidi kriitika, saidi analüüs, SEO kontroll, jõudluse audit, UX ülevaade, veebisaidi hindamine, AI veebisaidi analüüs, saiti praadima",
     "footer": "Projekt: <span class=\"font-semibold\">Vicedomini Softworks</span>"
   },
   "chatbot": {
@@ -61,6 +63,11 @@
       "API Discovery testimine...",
       "OAuth-i lõpp-punktide kontrollimine..."
     ]
+  },
+  "privacy": {
+    "message": "Kasutame küpsiseid, et analüüsida saida liiklust ja parandada sinu kogemust. Sinu andmed jäävad privaatseks ja neid ei jagata.",
+    "accept": "Nõustu",
+    "decline": "Lükka tagasi"
   },
   "errors": {
     "urlRequired": "URL on kohustuslik",
