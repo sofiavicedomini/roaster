@@ -117,28 +117,38 @@ async function fetchUrl(url: string): Promise<string | null> {
 }
 
 async function checkAgentReadiness(baseUrl: string) {
-  const results: Record<string, { status: string; detail: string }> = {};
+  const results: Record<string, { status: string; detail: string; score: number }> = {};
   const urlObj = new URL(baseUrl);
   const origin = urlObj.origin;
 
   const checks = [
-    { key: "robots", url: `${origin}/robots.txt`, label: "robots.txt" },
-    { key: "sitemap", url: `${origin}/sitemap.xml`, label: "sitemap.xml" },
-    { key: "llms", url: `${origin}/llms.txt`, label: "llms.txt" },
-    { key: "mcp", url: `${origin}/.well-known/mcp`, label: "MCP well-known" },
-    { key: "oauth", url: `${origin}/.well-known/oauth-authorization-server`, label: "OAuth discovery" },
-    { key: "agent-card", url: `${origin}/.well-known/agent.json`, label: "Agent Card" },
-    { key: "a2a", url: `${origin}/.well-known/a2a.json`, label: "A2A Agent Card" },
+    { key: "robots", url: `${origin}/robots.txt`, label: "robots.txt", score: 2 },
+    { key: "sitemap", url: `${origin}/sitemap.xml`, label: "sitemap.xml", score: 1 },
+    { key: "llms", url: `${origin}/llms.txt`, label: "llms.txt", score: 3 },
+    { key: "llmsfull", url: `${origin}/llms-full.txt`, label: "llms-full.txt", score: 1 },
+    { key: "mcp", url: `${origin}/.well-known/mcp`, label: "MCP well-known", score: 3 },
+    { key: "oauth", url: `${origin}/.well-known/oauth-authorization-server`, label: "OAuth discovery", score: 2 },
+    { key: "oauth-protected", url: `${origin}/.well-known/oauth-protected-resource`, label: "OAuth protected resource", score: 1 },
+    { key: "agent-card", url: `${origin}/.well-known/agent.json`, label: "Agent Card", score: 2 },
+    { key: "a2a", url: `${origin}/.well-known/a2a.json`, label: "A2A Agent Card", score: 2 },
+    { key: "api-catalog", url: `${origin}/.well-known/api-catalog`, label: "API Catalog", score: 1 },
+    { key: "webmcp", url: `${origin}/.well-known/webmcp`, label: "WebMCP", score: 1 },
+    { key: "agentskills", url: `${origin}/.agentskills`, label: "Agent Skills", score: 1 },
   ];
+
+  let totalScore = 0;
+  let maxScore = 0;
 
   for (const check of checks) {
     const content = await fetchUrl(check.url);
     results[check.key] = content
-      ? { status: "found", detail: `${check.label} exists (${content.length} chars)` }
-      : { status: "not found", detail: `${check.label} not found at ${check.url}` };
+      ? { status: "found", detail: `${check.label} exists (${content.length} chars)`, score: check.score }
+      : { status: "not found", detail: `${check.label} not found at ${check.url}`, score: 0 };
+    if (content) totalScore += check.score;
+    maxScore += check.score;
   }
 
-  const headersToCheck = ["link", "x-robots-tag", "content-type"];
+  const headersToCheck = ["link", "x-robots-tag", "content-type", "x-content-signals"];
   try {
     const res = await fetch(baseUrl, { headers: { "User-Agent": "Mozilla/5.0 Agent-Readiness-Checker" } });
     const headers: string[] = [];
@@ -147,11 +157,20 @@ async function checkAgentReadiness(baseUrl: string) {
       if (val) headers.push(`${h}: ${val}`);
     }
     results["headers"] = headers.length > 0
-      ? { status: "found", detail: headers.join("; ") }
-      : { status: "not found", detail: "No relevant headers found" };
+      ? { status: "found", detail: headers.join("; "), score: 1 }
+      : { status: "not found", detail: "No relevant headers found", score: 0 };
+    if (headers.length > 0) totalScore += 1;
+    maxScore += 1;
   } catch {
-    results["headers"] = { status: "error", detail: "Could not fetch homepage" };
+    results["headers"] = { status: "error", detail: "Could not fetch homepage", score: 0 };
+    maxScore += 1;
   }
+
+  results["_summary"] = {
+    status: `${totalScore}/${maxScore} checks passed`,
+    detail: `Agent Readiness Score: ${Math.round((totalScore / maxScore) * 10)}/10`,
+    score: Math.round((totalScore / maxScore) * 10),
+  };
 
   console.log("[Agent Readiness] Check results:", results);
   return results;

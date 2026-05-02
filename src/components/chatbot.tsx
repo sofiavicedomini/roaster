@@ -9,6 +9,7 @@ interface RoastResult {
     category: string;
     emoji: string;
     critique: string;
+    fix_prompt?: string;
   }>;
 }
 
@@ -220,12 +221,20 @@ export function Chatbot() {
           <div className="flex flex-col gap-4 pt-4 border-t">
             <h3 className="font-medium text-lg">Detailed Roasts</h3>
             {result.roasts.map((roast, i) => (
-              <div key={i} className="flex gap-3 p-3 rounded-lg bg-muted/50">
-                <span className="text-2xl">{roast.emoji}</span>
-                <div>
-                  <h4 className="font-medium capitalize">{roast.category}</h4>
-                  <p className="text-sm text-muted-foreground mt-1">{roast.critique}</p>
+              <div key={i} className="flex flex-col gap-2 p-3 rounded-lg bg-muted/50">
+                <div className="flex gap-3">
+                  <span className="text-2xl">{roast.emoji}</span>
+                  <div className="flex-1">
+                    <h4 className="font-medium capitalize">{roast.category}</h4>
+                    <p className="text-sm text-muted-foreground mt-1">{roast.critique}</p>
+                  </div>
                 </div>
+                {roast.fix_prompt && (
+                  <div className="ml-10 mt-2 p-3 rounded-md bg-background border border-orange-500/20">
+                    <p className="text-xs text-muted-foreground mb-1">Fix prompt for AI agent:</p>
+                    <code className="text-xs text-orange-400 break-all">{roast.fix_prompt}</code>
+                  </div>
+                )}
               </div>
             ))}
           </div>

@@ -9,6 +9,8 @@ For the AI agent readiness categories, check for:
 - **api-discovery**: API catalog availability, OAuth discovery endpoints (.well-known/oauth-authorization-server), OAuth protected resource metadata, and A2A Agent Cards.
 - **bot-auth**: Web Bot Auth implementation, Content Signals, and authentication mechanisms for AI bots.
 
+CRITICAL: For agent-readiness categories, you MUST use the "Agent Readiness Check Results" provided in the prompt below. Do NOT guess, hallucinate, or make up issues. If the check results show "found" status, give a high score (8-10). If "not found", explain what's missing and give a lower score. Never invent problems that don't exist in the check results.
+
 Write like you're talking to a developer friend over Slack. Skip buzzwords like "leverage", "comprehensive", "robust", "actionable", "seamlessly", "it's worth noting". Don't say things like "Overall, this website..." or "In terms of accessibility...". Just get to the point. Use specific observations. Be direct. You can be funny but the goal is genuinely useful feedback, not just dunking on them.
 
 Respond ONLY with a JSON object (no markdown, no preamble) in exactly this format:
@@ -32,7 +34,8 @@ Respond ONLY with a JSON object (no markdown, no preamble) in exactly this forma
     {
       "category": "<category name>",
       "emoji": "<relevant emoji>",
-      "critique": "<2-4 sentences. Lead with the actual problem, not a preamble. Be specific. End with one concrete thing to fix — not vague advice like 'improve your UX', but something real like 'your CTA button is below the fold on mobile and nobody's going to scroll for it'.>"
+      "critique": "<2-4 sentences. Lead with the actual problem, not a preamble. Be specific. End with one concrete thing to fix — not vague advice like 'improve your UX', but something real like 'your CTA button is below the fold on mobile and nobody's going to scroll for it'.>",
+      "fix_prompt": "<A concise prompt for an AI agent to fix this specific issue. Include the URL and be specific about what needs to be done. Example: 'Add a robots.txt to https://example.com that allows AI bots (GPTBot, ClaudeBot) and links to sitemap.xml'>"
     }
   ]
 }
