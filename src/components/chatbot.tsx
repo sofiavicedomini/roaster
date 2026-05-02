@@ -86,6 +86,7 @@ export function Chatbot({ locale = "en" }: ChatbotProps) {
   const [cacheInfo, setCacheInfo] = useState<{ cachedAt: string; cacheKey: string; translated?: boolean } | null>(null);
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
   const [isTurnstileExpired, setIsTurnstileExpired] = useState(false);
+  const [isTurnstileLoading, setIsTurnstileLoading] = useState(true);
   const turnstileRef = useRef<HTMLDivElement>(null);
   const widgetIdRef = useRef<string | null>(null);
   const turnstileSiteKey = typeof import.meta !== "undefined" && import.meta.env?.PUBLIC_TURNSTILE_SITE_KEY
@@ -123,16 +124,19 @@ export function Chatbot({ locale = "en" }: ChatbotProps) {
         widgetIdRef.current = null;
       }
 
+      setIsTurnstileLoading(true);
       widgetIdRef.current = window.turnstile.render(turnstileRef.current, {
         sitekey: turnstileSiteKey,
         callback: (token: string) => {
           setTurnstileToken(token);
           setIsTurnstileExpired(false);
+          setIsTurnstileLoading(false);
           console.log("[Turnstile] Token received - will be invalidated after use");
         },
         "expired-callback": () => {
           setTurnstileToken(null);
           setIsTurnstileExpired(true);
+          setIsTurnstileLoading(false);
           console.warn("[Turnstile] Token expired, renewing immediately...");
           resetTurnstile();
         },
@@ -143,6 +147,7 @@ export function Chatbot({ locale = "en" }: ChatbotProps) {
             console.error("[Turnstile] Error 300030 - Check site key and domain in Cloudflare dashboard");
           }
           setIsTurnstileExpired(true);
+          setIsTurnstileLoading(false);
         },
         theme: "dark",
         appearance: "interaction-only",
