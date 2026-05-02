@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
+import { Copy } from "lucide-react";
 import { getTranslations, type Locale } from "@/i18n/utils";
 
 // Type declarations for Cloudflare Turnstile
@@ -234,6 +235,13 @@ export function Chatbot({ locale = "en" }: ChatbotProps) {
     return "text-red-500";
   };
 
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text).then(() => {
+      // Could add toast here in future
+      console.log("Prompt copied to clipboard");
+    });
+  };
+
   return (
     <div className="flex flex-col gap-6 max-w-2xl mx-auto w-full">
       <form onSubmit={handleSubmit} className="flex flex-col gap-4 rounded-lg border p-4 bg-card inferno-card">
@@ -360,9 +368,16 @@ export function Chatbot({ locale = "en" }: ChatbotProps) {
                   </div>
                 </div>
                 {roast.fix_prompt && (
-                  <div className="ml-10 mt-2 p-3 rounded-md bg-background border border-orange-500/20">
-                    <p className="text-xs text-muted-foreground mb-1">{t.chatbot.fixPrompt}</p>
-                    <code className="text-xs text-orange-400 break-all">{roast.fix_prompt}</code>
+                  <div className="ml-10 mt-2 p-3 rounded-md bg-background border border-orange-500/20 relative group">
+                    <button
+                      onClick={() => copyToClipboard(roast.fix_prompt!)}
+                      className="absolute top-2 right-2 p-1.5 text-orange-400/70 hover:text-orange-400 opacity-0 group-hover:opacity-100 transition-all"
+                      title="Copia prompt"
+                    >
+                      <Copy className="w-3.5 h-3.5" />
+                    </button>
+                    <p className="text-xs text-muted-foreground mb-1 pr-6">{t.chatbot.fixPrompt}</p>
+                    <code className="text-xs text-orange-400 break-all block whitespace-pre-wrap font-mono">{roast.fix_prompt}</code>
                   </div>
                 )}
               </div>
