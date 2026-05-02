@@ -21,14 +21,19 @@ export const onRequest = defineMiddleware(async (_, next) => {
     "form-action 'self'",
   ]
 
-  // Add Google Tag Manager + AdSense domains
+  // Add Google Tag Manager + AdSense + Cookiebot domains
   if (gtmId || adsenseId) {
+    const gtmDomains = " https://www.googletagmanager.com https://tagmanager.google.com https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net https://www.googletagservices.com https://tpc.googlesyndication.com https://fundingchoicesmessages.google.com https://www.gstatic.com"
+    const cookiebotDomains = " https://*.cookiebot.com https://cookiebot.com https://*.cookiebot.eu https://cookiebot.eu"
+    
     // script-src (index 1)
-    cspDirectives[1] += " https://www.googletagmanager.com https://tagmanager.google.com https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net https://www.googletagservices.com https://tpc.googlesyndication.com https://fundingchoicesmessages.google.com https://www.gstatic.com"
+    cspDirectives[1] += gtmDomains + cookiebotDomains
     // script-src-elem (index 2)
-    cspDirectives[2] += " https://www.googletagmanager.com https://tagmanager.google.com https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net https://www.googletagservices.com https://tpc.googlesyndication.com https://fundingchoicesmessages.google.com https://www.gstatic.com"
+    cspDirectives[2] += gtmDomains + cookiebotDomains
     // frame-src (index 7)
     cspDirectives[7] += " https://www.googletagmanager.com"
+    // connect-src (index 5) - Cookiebot API calls
+    cspDirectives[5] += " https://*.cookiebot.com https://cookiebot.com https://*.cookiebot.eu https://cookiebot.eu"
   }
 
   // Build CSP header value
