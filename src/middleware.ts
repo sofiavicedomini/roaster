@@ -6,11 +6,11 @@ export const onRequest = defineMiddleware(async (_, next) => {
   const adsenseId = import.meta.env.ADSENSE_ACCOUNT_ID || ""
   const gtmId = import.meta.env.GTAG_ID || ""
 
-  // Base CSP directives (AdSense/Google privacy iframe compatible)
+  // Base CSP directives (AdSense privacy iframe compatible)
   const cspDirectives = [
     "default-src 'self'",
-    "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://challenges.cloudflare.com blob: data: 'sha256-eJGI0Ik4oYe/PKLDOt4wcN76wYs8h+Ew05pMzdY6xG8='",
-    "script-src-elem 'self' 'unsafe-inline' 'unsafe-eval' https://challenges.cloudflare.com blob: data: 'sha256-eJGI0Ik4oYe/PKLDOt4wcN76wYs8h+Ew05pMzdY6xG8='",
+    "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://challenges.cloudflare.com blob: data:",
+    "script-src-elem 'self' 'unsafe-inline' 'unsafe-eval' https://challenges.cloudflare.com blob: data:",
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' data: https: blob:",
     "font-src 'self' data: https:",
