@@ -2,12 +2,16 @@
 export const prerender = false;
 import Layout from "@/layouts/main.astro";
 import { getRanking } from "@/lib/redis";
+import { locales, type Locale } from "@/i18n/utils";
 
-const { uuid } = Astro.params;
-if (!uuid) return Astro.redirect("/rankings");
+const { lang, uuid } = Astro.params;
+if (!lang || !locales.includes(lang as Locale)) {
+  return Astro.redirect("/it/rankings");
+}
+if (!uuid) return Astro.redirect(`/${lang}/rankings`);
 
 const ranking = await getRanking(uuid);
-if (!ranking) return Astro.redirect("/rankings");
+if (!ranking) return Astro.redirect(`/${lang}/rankings`);
 
 const result = ranking.result as {
   overall_score: number;
@@ -28,7 +32,7 @@ function scoreColor(score: number | null) {
   <div class="flex min-h-svh flex-col items-center p-6 pt-20 pb-20 md:pt-10 md:pb-10">
     <div class="w-full max-w-2xl">
       <a
-        href="/rankings"
+        href={`/${lang}/rankings`}
         class="text-sm text-orange-400/60 hover:text-orange-300 mb-6 inline-flex items-center gap-1 transition-colors"
       >
         ← Tutti i ranking
@@ -40,7 +44,7 @@ function scoreColor(score: number | null) {
         <div>
           <h1 class="text-lg font-bold break-all leading-snug">{ranking.normUrl || ranking.url}</h1>
           <div class="text-xs text-muted-foreground/60 mt-1.5 flex gap-2 flex-wrap">
-            <span>Analizzato il {new Date(ranking.completedAt).toLocaleString("it-IT", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}</span>
+            <span>Analizzato il {new Date(ranking.completedAt).toLocaleString(undefined, { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}</span>
             <span>·</span>
             <span class="uppercase">{ranking.locale}</span>
             <span>·</span>
@@ -100,7 +104,7 @@ function scoreColor(score: number | null) {
         <!-- Footer CTA -->
         <div class="border-t border-border/50 pt-4 text-center">
           <a
-            href="/"
+            href={`/${lang}`}
             class="inline-block text-sm text-orange-400 hover:text-orange-300 transition-colors"
           >
             🔥 Vuoi roastare il tuo sito? →
