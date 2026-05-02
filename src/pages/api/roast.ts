@@ -4,6 +4,20 @@ import type { APIRoute } from "astro";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { getTranslations, type Locale } from "@/i18n/utils";
+import {
+  jobDb,
+  normalizeUrl,
+  cacheKey,
+  getCached,
+  setCached,
+  jobIdKey,
+  getJobId,
+  setJobId,
+  createJob,
+  updateJob,
+  getJob,
+  generateJobId,
+} from "@/lib/redis";
 
 const locales: string[] = ["en", "it", "fr", "es", "pt", "de", "nl", "ru", "et"];
 
@@ -38,12 +52,10 @@ export const POST: APIRoute = async ({ request }) => {
       if (!turnstileData.success) {
         const errorCodes = turnstileData["error-codes"] || [];
         console.warn("[Roast API] Turnstile verification failed:", turnstileData);
-
         let errorMsg = "CAPTCHA verification failed";
         if (errorCodes.includes("timeout-or-duplicate") || errorCodes.includes("invalid-input-response")) {
           errorMsg = "Il captcha è scaduto. Riprova.";
         }
-
         return new Response(JSON.stringify({ error: errorMsg }), {
           status: 403,
           headers: { "Content-Type": "application/json" },
@@ -57,21 +69,103 @@ export const POST: APIRoute = async ({ request }) => {
       });
     }
 
-    console.log("[Roast API] Running initial agent readiness check");
-    const checks = await checkAgentReadiness(url);
+    const normUrl = normalizeUrl(url);
+    const cats = Array.isArray(categories) ? [...categories].sort() : [];
+    const catsKey = cats.join(",");
 
-    const prompt = await buildPrompt(url, categories, safeLocale, checks);
+    // Check cache
+    const cached = await getCached(normUrl);
+    if (cached) {
+      const hasAllCats = cats.every((c) => cached.cats.includes(c));
 
-    const apiBase = import.meta.env.OPENAI_API_BASE || "http://localhost:11434/v1";
-    const apiKey = import.meta.env.OPENAI_API_KEY || "dummy";
-    const model = import.meta.env.OPENAI_MODEL || "llama3";
+      if (hasAllCats && cached.lang === safeLocale) {
+        const stripped = stripCats(cached.result, cats);
+        return new Response(
+          JSON.stringify({ ...stripped, cached: true, cachedAt: cached.cachedAt, cacheKey: cacheKey(normUrl) }),
+          { status: 200, headers: { "Content-Type": "application/json" } },
+        );
+      }
 
-    console.log("[Roast API] Starting iterative ReAct agent for", url);
+      if (!hasAllCats && cached.lang === safeLocale) {
+        const mergedCats = [...new Set([...cached.cats, ...cats])].sort();
+        const jobId = generateJobId();
+        await setJobId(normUrl, safeLocale, jobId);
+        await createJob(jobId, {
+          status: "pending",
+          progress: "Starting with merged categories",
+          normUrl,
+          locale: safeLocale,
+          cats: mergedCats.join(","),
+        });
+        processRoast(jobId, url, mergedCats, safeLocale).catch((e) => {
+          console.error("[Roast BG] Error:", e);
+          updateJob(jobId, { status: "failed", error: e instanceof Error ? e.message : "Unknown error" }).catch(() => {});
+        });
+        return new Response(JSON.stringify({ jobId, status: "pending", cached: false }), {
+          status: 202,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
 
-    const result = await runAgentLoop(prompt, url, categories, checks, apiBase, apiKey, model);
+      if (cached.lang !== safeLocale) {
+        const trans = cached.translations?.[safeLocale];
+        if (trans) {
+          const stripped = stripCats(trans.result, cats);
+          return new Response(
+            JSON.stringify({ ...stripped, cached: true, cachedAt: trans.translatedAt, translated: true, cacheKey: cacheKey(normUrl) }),
+            { status: 200, headers: { "Content-Type": "application/json" } },
+          );
+        }
+        const jobId = generateJobId();
+        await setJobId(normUrl, safeLocale, jobId);
+        await createJob(jobId, {
+          status: "pending",
+          progress: "Translating",
+          normUrl,
+          locale: safeLocale,
+          cats: catsKey,
+        });
+        translateRoast(jobId, cached, safeLocale).catch((e) => {
+          console.error("[Translate BG] Error:", e);
+          updateJob(jobId, { status: "failed", error: e instanceof Error ? e.message : "Unknown error" }).catch(() => {});
+        });
+        return new Response(JSON.stringify({ jobId, status: "pending", cached: false }), {
+          status: 202,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+    }
 
-    return new Response(JSON.stringify(result), {
-      status: 200,
+    // No cache - check dedup
+    const existingJobId = await getJobId(normUrl, safeLocale);
+    if (existingJobId) {
+      const job = await getJob(existingJobId);
+      if (job && ["pending", "processing"].includes(job.status)) {
+        return new Response(JSON.stringify({ jobId: existingJobId, status: job.status, cached: false }), {
+          status: 202,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+    }
+
+    // New job
+    const jobId = generateJobId();
+    await setJobId(normUrl, safeLocale, jobId);
+    await createJob(jobId, {
+      status: "pending",
+      progress: "Starting",
+      normUrl,
+      locale: safeLocale,
+      cats: catsKey,
+    });
+
+    processRoast(jobId, url, cats, safeLocale).catch((e) => {
+      console.error("[Roast BG] Error:", e);
+      updateJob(jobId, { status: "failed", error: e instanceof Error ? e.message : "Unknown error" }).catch(() => {});
+    });
+
+    return new Response(JSON.stringify({ jobId, status: "pending", cached: false }), {
+      status: 202,
       headers: { "Content-Type": "application/json" },
     });
   } catch (err) {
@@ -79,10 +173,133 @@ export const POST: APIRoute = async ({ request }) => {
     const errorMsg = t ? t.errors.unknown : "Unknown error";
     return new Response(
       JSON.stringify({ error: err instanceof Error ? err.message : errorMsg }),
-      { status: 500, headers: { "Content-Type": "application/json" } }
+      { status: 500, headers: { "Content-Type": "application/json" } },
     );
   }
 };
+
+export const GET: APIRoute = async ({ request }) => {
+  const url = new URL(request.url);
+  const jobId = url.searchParams.get("jobId");
+  if (!jobId) {
+    return new Response(JSON.stringify({ error: "jobId required" }), {
+      status: 400,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+  const job = await getJob(jobId);
+  if (!job) {
+    return new Response(JSON.stringify({ error: "Job not found" }), {
+      status: 404,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+  return new Response(
+    JSON.stringify({
+      status: job.status,
+      progress: job.progress || "",
+      result: job.result ? JSON.parse(job.result) : null,
+      error: job.error || null,
+    }),
+    { status: 200, headers: { "Content-Type": "application/json" } },
+  );
+};
+
+function stripCats(result: Record<string, unknown>, cats: string[]): Record<string, unknown> {
+  const r = { ...result };
+  if (Array.isArray(r.roasts)) {
+    r.roasts = (r.roasts as Array<Record<string, unknown>>).filter((roast) => cats.includes(roast.category as string));
+  }
+  if (r.scores && typeof r.scores === "object") {
+    const s = { ...(r.scores as Record<string, number>) };
+    for (const k of Object.keys(s)) {
+      if (!cats.includes(k)) delete s[k];
+    }
+    r.scores = s;
+  }
+  return r;
+}
+
+async function processRoast(
+  jobId: string,
+  url: string,
+  cats: string[],
+  locale: string,
+) {
+  await updateJob(jobId, { status: "processing", progress: "Initial checks" });
+
+  const checks = await checkAgentReadiness(url);
+  await updateJob(jobId, { progress: "Building prompt" });
+
+  const prompt = await buildPrompt(url, cats, locale, checks);
+  await updateJob(jobId, { progress: "Calling LLM" });
+
+  const apiBase = import.meta.env.OPENAI_API_BASE || "http://localhost:11434/v1";
+  const apiKey = import.meta.env.OPENAI_API_KEY || "dummy";
+  const model = import.meta.env.OPENAI_MODEL || "llama3";
+
+  const result = await runAgentLoop(prompt, url, cats, checks, apiBase, apiKey, model, async (iter, action) => {
+    await updateJob(jobId, { progress: `Iteration ${iter}/6: ${action}` });
+  });
+
+  const normUrl = normalizeUrl(url);
+  const cachedAt = new Date().toISOString();
+  const cacheData = {
+    site: normUrl,
+    cats,
+    lang: locale,
+    result,
+    cachedAt,
+    cacheKey: cacheKey(normUrl),
+    translations: { [locale]: { result, translatedAt: cachedAt } as { result: Record<string, unknown>; translatedAt: string } } as Record<string, { result: Record<string, unknown>; translatedAt: string }>,
+  };
+  await setCached(normUrl, cacheData);
+
+  await updateJob(jobId, {
+    status: "completed",
+    progress: "Done",
+    result: JSON.stringify({ ...result, cached: false, cacheKey: cacheKey(normUrl) }),
+  });
+
+    await jobDb.del(jobIdKey(normUrl, locale));
+}
+
+async function translateRoast(jobId: string, cached: Record<string, unknown>, locale: string) {
+  await updateJob(jobId, { status: "processing", progress: "Translating" });
+
+  const apiBase = import.meta.env.OPENAI_API_BASE || "http://localhost:11434/v1";
+  const apiKey = import.meta.env.OPENAI_API_KEY || "dummy";
+  const model = import.meta.env.OPENAI_MODEL || "llama3";
+
+  const langName = locale === "it" ? "Italian" : locale === "en" ? "English" : locale.toUpperCase();
+  const transPrompt = `Translate this roast result to ${langName}. Keep JSON structure identical. Roast: ${JSON.stringify(cached.result)}`;
+
+  const response = await fetch(`${apiBase}/chat/completions`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
+    body: JSON.stringify({
+      model,
+      messages: [{ role: "system", content: transPrompt }],
+      temperature: 0.3,
+      response_format: { type: "json_object" },
+    }),
+  });
+
+  if (!response.ok) throw new Error(`Translation LLM error: ${response.status}`);
+
+  const data = await response.json();
+  const translated = JSON.parse(data.choices?.[0]?.message?.content || "{}");
+
+  const normUrl = normalizeUrl(cached.site as string);
+  const cacheEntry = await getCached(normUrl);
+  if (cacheEntry) {
+    if (!cacheEntry.translations) cacheEntry.translations = {};
+    cacheEntry.translations[locale] = { result: translated, translatedAt: new Date().toISOString() };
+    await setCached(normUrl, cacheEntry);
+  }
+
+    await jobDb.del(jobIdKey(normUrl, locale));
+}
 
 async function fetchUrl(url: string): Promise<string | null> {
   try {
@@ -122,21 +339,11 @@ async function checkAgentReadiness(baseUrl: string) {
   for (const check of checks) {
     const content = await fetchUrl(check.url);
     if (content) {
-      const snippet = content.length > 300 
-        ? content.substring(0, 297) + "..." 
-        : content;
-      results[check.key] = { 
-        status: "found", 
-        detail: `${check.label} found (${content.length} chars). Content: ${snippet.replace(/\n/g, ' ')}`, 
-        score: check.score 
-      };
+      const snippet = content.length > 300 ? content.substring(0, 297) + "..." : content;
+      results[check.key] = { status: "found", detail: `${check.label} found (${content.length} chars). Content: ${snippet.replace(/\n/g, " ")}`, score: check.score };
       totalScore += check.score;
     } else {
-      results[check.key] = { 
-        status: "not found", 
-        detail: `${check.label} not found at ${check.url}`, 
-        score: 0 
-      };
+      results[check.key] = { status: "not found", detail: `${check.label} not found at ${check.url}`, score: 0 };
     }
     maxScore += check.score;
   }
@@ -199,29 +406,30 @@ async function buildPrompt(url: string, categories: string[], locale: string, ch
 async function callLLM(messages: Array<{role: string; content: string}>, apiBase: string, apiKey: string, model: string) {
   const response = await fetch(`${apiBase}/chat/completions`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${apiKey}`,
-    },
-    body: JSON.stringify({
-      model,
-      messages,
-      temperature: 0.3,
-      response_format: { type: "json_object" },
-    }),
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
+    body: JSON.stringify({ model, messages, temperature: 0.3, response_format: { type: "json_object" } }),
   });
 
-  if (!response.ok) {
-    throw new Error(`LLM error: ${response.status}`);
-  }
+  if (!response.ok) throw new Error(`LLM error: ${response.status}`);
 
   const data = await response.json();
   const content = data.choices?.[0]?.message?.content || "{}";
   return content;
 }
 
-async function runAgentLoop(systemPrompt: string, url: string, categories: string[], _initialChecks: Record<string, unknown>, apiBase: string, apiKey: string, model: string) {
-  const messages = [{ role: "system", content: systemPrompt }];
+type MessageRole = "system" | "user" | "assistant";
+
+async function runAgentLoop(
+  systemPrompt: string,
+  url: string,
+  categories: string[],
+  _initialChecks: Record<string, unknown>,
+  apiBase: string,
+  apiKey: string,
+  model: string,
+  onProgress?: (iter: number, action: string) => void,
+) {
+  const messages: Array<{role: MessageRole; content: string}> = [{ role: "system", content: systemPrompt }];
   let iteration = 0;
   const maxIterations = 6;
   let currentObservation = `Initial data loaded with real checks for ${url}. Begin iterative analysis focusing on thorough scraping for agentReadiness.`;
@@ -229,6 +437,7 @@ async function runAgentLoop(systemPrompt: string, url: string, categories: strin
   while (iteration < maxIterations) {
     iteration++;
     console.log(`[Roast API] Agent iteration ${iteration}/${maxIterations}`);
+      if (onProgress) onProgress(iteration, "thinking");
 
     messages.push({ role: "user", content: currentObservation });
 
@@ -245,6 +454,7 @@ async function runAgentLoop(systemPrompt: string, url: string, categories: strin
     try {
       agentOutput = JSON.parse(content.trim());
       console.log("[Roast API] Agent action:", agentOutput.action, "thought:", agentOutput.thought?.substring(0, 60));
+       if (onProgress) onProgress(iteration, agentOutput.action || "unknown");
     } catch {
       console.error("[Roast API] JSON parse failed:", content.substring(0, 100));
       currentObservation = "Output was not valid JSON. Must output exact JSON with thought, action, action_input, final_roast fields. Try again.";
@@ -287,7 +497,7 @@ async function runAgentLoop(systemPrompt: string, url: string, categories: strin
   }
 
   console.log("[Roast API] Max iterations reached, forcing final output");
-  const finalMessages = [...messages, { role: "user", content: "Max iterations reached. Output FINAL roast JSON now using all gathered real data. Do not hallucinate." }];
+  const finalMessages = [...messages, { role: "user" as MessageRole, content: "Max iterations reached. Output FINAL roast JSON now using all gathered real data. Do not hallucinate." }];
   try {
     const finalContent = await callLLM(finalMessages, apiBase, apiKey, model);
     const finalOutput = JSON.parse(finalContent.trim());
@@ -299,12 +509,7 @@ async function runAgentLoop(systemPrompt: string, url: string, categories: strin
       overall_score: 5,
       verdict: "Agent loop completed but final parsing failed. Site has basic readiness.",
       scores: categories.reduce((acc: Record<string, number>, cat: string) => { acc[cat] = 5; return acc; }, {} as Record<string, number>),
-      roasts: [{
-        category: "agentReadiness",
-        emoji: "🤖",
-        critique: "The iterative agent ran but encountered parsing issues on final output. Real checks were performed.",
-        fix_prompt: `Improve JSON output consistency for https://example.com`
-      }]
+      roasts: [{ category: "agentReadiness", emoji: "🤖", critique: "The iterative agent ran but encountered parsing issues on final output. Real checks were performed.", fix_prompt: `Improve JSON output consistency for https://example.com` }],
     };
   }
 }

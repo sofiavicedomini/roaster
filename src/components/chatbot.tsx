@@ -35,6 +35,10 @@ interface RoastResult {
     critique: string;
     fix_prompt?: string;
   }>;
+  cached?: boolean;
+  cachedAt?: string;
+  cacheKey?: string;
+  translated?: boolean;
 }
 
 interface ChatbotProps {
@@ -65,11 +69,7 @@ export function Chatbot({ locale = "en" }: ChatbotProps) {
   const t = getTranslations(locale);
   const [url, setUrl] = useState("");
   const [selectedCategories, setSelectedCategories] = useState<string[]>([
-    "design",
-    "performance",
-    "ux",
-    "seo",
-    "agentReadiness",
+    "design", "performance", "ux", "seo", "agentReadiness",
   ]);
 
   const groups = CATEGORIES.reduce((acc, cat) => {
@@ -77,13 +77,15 @@ export function Chatbot({ locale = "en" }: ChatbotProps) {
     acc[cat.group].push(cat);
     return acc;
   }, {} as Record<string, typeof CATEGORIES>);
+
   const [isLoading, setIsLoading] = useState(false);
   const [loadingMsgIdx, setLoadingMsgIdx] = useState(0);
   const [result, setResult] = useState<RoastResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [jobId, setJobId] = useState<string | null>(null);
+  const [cacheInfo, setCacheInfo] = useState<{ cachedAt: string; cacheKey: string; translated?: boolean } | null>(null);
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
   const [isTurnstileExpired, setIsTurnstileExpired] = useState(false);
-  const [showCopied, setShowCopied] = useState(false);
   const turnstileRef = useRef<HTMLDivElement>(null);
   const widgetIdRef = useRef<string | null>(null);
   const turnstileSiteKey = typeof import.meta !== "undefined" && import.meta.env?.PUBLIC_TURNSTILE_SITE_KEY
@@ -112,7 +114,6 @@ export function Chatbot({ locale = "en" }: ChatbotProps) {
     const renderTurnstile = () => {
       if (!turnstileRef.current || !window.turnstile) return;
 
-      // Clean up old widget if exists
       if (widgetIdRef.current) {
         try {
           window.turnstile.remove(widgetIdRef.current);
@@ -150,7 +151,6 @@ export function Chatbot({ locale = "en" }: ChatbotProps) {
     };
 
     if (document.getElementById(scriptId)) {
-      // Script already loaded
       setTimeout(renderTurnstile, 100);
       return;
     }
@@ -192,6 +192,43 @@ export function Chatbot({ locale = "en" }: ChatbotProps) {
     return () => clearInterval(interval);
   }, [isLoading, t.chatbot.loadingMessages.length]);
 
+  // Poll job status
+  useEffect(() => {
+    if (!jobId || !isLoading) return;
+    const timer = setInterval(async () => {
+      try {
+        const res = await fetch(`/api/roast?jobId=${jobId}`);
+        const data = await res.json();
+        if (data.status === "completed") {
+          setResult(data.result);
+          setCacheInfo(data.result.cached ? { cachedAt: data.result.cachedAt, cacheKey: data.result.cacheKey, translated: data.result.translated } : null);
+          setIsLoading(false);
+          setJobId(null);
+          clearInterval(timer);
+        } else if (data.status === "failed") {
+          setError(data.error || "Processing failed");
+          setIsLoading(false);
+          setJobId(null);
+          clearInterval(timer);
+        }
+      } catch {
+        console.error("[Poll] Error");
+      }
+    }, 2000);
+    return () => clearInterval(timer);
+  }, [jobId, isLoading]);
+
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    if (!cacheInfo) return;
+    const t = setInterval(() => setNow(Date.now()), 60000);
+    return () => clearInterval(t);
+  }, [cacheInfo]);
+
+  const cacheAgeMin = cacheInfo ? Math.round((now - new Date(cacheInfo.cachedAt).getTime()) / 60000) : 0;
+  const cacheClearInMin = cacheInfo ? Math.ceil(30 - (now - new Date(cacheInfo.cachedAt).getTime()) / 60000) : 0;
+  const isCacheOld = cacheInfo ? now - new Date(cacheInfo.cachedAt).getTime() >= 30 * 60 * 1000 : false;
+
   const toggleCategory = (id: string) => {
     setSelectedCategories((prev) =>
       prev.includes(id) ? prev.filter((c) => c !== id) : [...prev, id]
@@ -206,6 +243,8 @@ export function Chatbot({ locale = "en" }: ChatbotProps) {
     setLoadingMsgIdx(0);
     setError(null);
     setResult(null);
+    setCacheInfo(null);
+    setJobId(null);
 
     try {
       const response = await fetch("/api/roast", {
@@ -214,7 +253,6 @@ export function Chatbot({ locale = "en" }: ChatbotProps) {
         body: JSON.stringify({ url, categories: selectedCategories, locale, turnstileToken }),
       });
 
-      // Invalidate token immediately after use
       if (turnstileToken && window.turnstile && widgetIdRef.current) {
         try {
           window.turnstile.reset(widgetIdRef.current);
@@ -230,14 +268,51 @@ export function Chatbot({ locale = "en" }: ChatbotProps) {
         throw new Error(data.error || "Failed to get roast");
       }
 
-      setResult(data);
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : t.errors.unknown;
-      setError(errorMessage.includes("CAPTCHA") || errorMessage.includes("captcha") 
-        ? "Captcha non valido. Rinnova e riprova." 
+      if (data.jobId) {
+        setJobId(data.jobId);
+      } else if (data.overall_score !== undefined) {
+        setResult(data);
+        if (data.cached) setCacheInfo({ cachedAt: data.cachedAt, cacheKey: data.cacheKey, translated: data.translated });
+        setIsLoading(false);
+      }
+    } catch {
+      const errorMessage = "An error occurred";
+      setError(errorMessage.includes("CAPTCHA") || errorMessage.includes("captcha")
+        ? "Captcha non valido. Rinnova e riprova."
         : errorMessage);
-    } finally {
       setIsLoading(false);
+    }
+  };
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard
+      .writeText(text)
+      .then(() => {
+        const temp = document.createElement("div");
+        temp.textContent = "Copied!";
+        temp.className = "fixed top-4 right-4 bg-emerald-600 text-white text-sm px-4 py-2.5 rounded-xl shadow-xl border border-emerald-500/50 z-50";
+        document.body.appendChild(temp);
+        setTimeout(() => temp.remove(), 2000);
+      })
+      .catch((err) => {
+        console.error("Failed to copy:", err);
+        alert("Failed to copy prompt");
+      });
+  };
+
+  const clearCache = async () => {
+    if (!cacheInfo) return;
+    try {
+      const res = await fetch(`/api/roast/cache/${encodeURIComponent(cacheInfo.cacheKey)}`, { method: "DELETE" });
+      const data = await res.json();
+      if (res.ok) {
+        setCacheInfo(null);
+        setResult(null);
+      } else {
+        alert(data.error || "Failed to clear cache");
+      }
+    } catch {
+      alert("Failed to clear cache");
     }
   };
 
@@ -246,19 +321,6 @@ export function Chatbot({ locale = "en" }: ChatbotProps) {
     if (score >= 8) return "text-green-500";
     if (score >= 5) return "text-yellow-500";
     return "text-red-500";
-  };
-
-  const copyToClipboard = (text: string) => {
-    navigator.clipboard
-      .writeText(text)
-      .then(() => {
-        setShowCopied(true);
-        setTimeout(() => setShowCopied(false), 2000);
-      })
-      .catch((err) => {
-        console.error("Failed to copy:", err);
-        alert("Failed to copy prompt");
-      });
   };
 
   return (
@@ -301,12 +363,12 @@ export function Chatbot({ locale = "en" }: ChatbotProps) {
                     <span className="text-sm">
                       {t.chatbot.categories[cat.id as keyof typeof t.chatbot.categories] || cat.id}
                     </span>
-                    <Check 
+                    <Check
                       className={`w-4 h-4 transition-colors ${
-                        selectedCategories.includes(cat.id) 
-                          ? "text-primary" 
+                        selectedCategories.includes(cat.id)
+                          ? "text-primary"
                           : "text-muted-foreground/40"
-                      }`} 
+                      }`}
                     />
                   </button>
                 ))}
@@ -322,13 +384,6 @@ export function Chatbot({ locale = "en" }: ChatbotProps) {
         {isTurnstileExpired && (
           <div className="text-center text-xs text-amber-400 bg-amber-500/10 border border-amber-500/30 rounded p-2">
             Il captcha è scaduto. Lo sto rinnovando automaticamente...
-          </div>
-        )}
-
-        {showCopied && (
-          <div className="fixed top-4 right-4 bg-emerald-600 text-white text-sm px-4 py-2.5 rounded-xl shadow-xl border border-emerald-500/50 flex items-center gap-2 z-50 animate-in fade-in slide-in-from-top-2">
-            <span>Copied to clipboard</span>
-            <span className="text-xs opacity-75">✓</span>
           </div>
         )}
 
@@ -354,6 +409,24 @@ export function Chatbot({ locale = "en" }: ChatbotProps) {
 
       {result && (
         <div className="flex flex-col gap-4 rounded-lg border bg-card p-6 inferno-card">
+          {cacheInfo && (
+            <div className="text-xs text-muted-foreground border-b pb-2 mb-2 flex items-center justify-between">
+              <span>
+                {cacheInfo.translated ? "Translated" : "Cached"} result
+                {" "}from {new Date(cacheInfo.cachedAt).toLocaleString()}
+                {" "}({cacheAgeMin} min ago)
+              </span>
+              {isCacheOld ? (
+                <button onClick={clearCache} className="text-xs text-orange-400 hover:text-orange-300 underline">
+                  Clear cache
+                </button>
+              ) : (
+                <span className="text-xs text-amber-400/70">
+                  Wait {cacheClearInMin} min to clear
+                </span>
+              )}
+            </div>
+          )}
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-2xl font-bold">
