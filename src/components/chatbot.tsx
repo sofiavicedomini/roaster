@@ -399,7 +399,6 @@ export function Chatbot({ locale = "en" }: ChatbotProps) {
           </div>
         </div>
       )}
-      <Toaster position="top-right" richColors closeButton />
     </div>
   );
 }

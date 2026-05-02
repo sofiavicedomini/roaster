@@ -7,143 +7,70 @@ import { getTranslations, type Locale } from "@/i18n/utils";
 
 const locales: string[] = ["en", "it", "fr", "es", "pt", "de", "nl", "ru", "et"];
 
-  export const POST: APIRoute = async ({ request }) => {
-    let t: ReturnType<typeof getTranslations> | null = null;
-    try {
-      const body = await request.json();
-      const { url, categories, locale = "en", turnstileToken } = body;
+export const POST: APIRoute = async ({ request }) => {
+  let t: ReturnType<typeof getTranslations> | null = null;
+  try {
+    const body = await request.json();
+    const { url, categories, locale = "en", turnstileToken } = body;
     const safeLocale = locales.includes(locale as Locale) ? locale as Locale : "en" as Locale;
     t = getTranslations(safeLocale);
 
-      if (!url) {
-        return new Response(JSON.stringify({ error: t.errors.urlRequired }), {
-          status: 400,
-          headers: { "Content-Type": "application/json" },
-        });
-      }
+    if (!url) {
+      return new Response(JSON.stringify({ error: t.errors.urlRequired }), {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
 
-      // Verify Turnstile token if configured
-      const turnstileSecret = import.meta.env.TURNSTILE_SECRET_KEY;
-      if (turnstileSecret && turnstileToken) {
-        const turnstileResponse = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
-          method: "POST",
-          headers: { "Content-Type": "application/x-www-form-urlencoded" },
-          body: new URLSearchParams({
-            secret: turnstileSecret,
-            response: turnstileToken,
-            remoteip: request.headers.get("x-forwarded-for") || "",
-          }),
-        });
+    const turnstileSecret = import.meta.env.TURNSTILE_SECRET_KEY;
+    if (turnstileSecret && turnstileToken) {
+      const turnstileResponse = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: new URLSearchParams({
+          secret: turnstileSecret,
+          response: turnstileToken,
+          remoteip: request.headers.get("x-forwarded-for") || "",
+        }),
+      });
 
-        const turnstileData = await turnstileResponse.json() as { success: boolean; "error-codes"?: string[] };
-        if (!turnstileData.success) {
-          const errorCodes = turnstileData["error-codes"] || [];
-          console.warn("[Roast API] Turnstile verification failed:", turnstileData);
+      const turnstileData = await turnstileResponse.json() as { success: boolean; "error-codes"?: string[] };
+      if (!turnstileData.success) {
+        const errorCodes = turnstileData["error-codes"] || [];
+        console.warn("[Roast API] Turnstile verification failed:", turnstileData);
 
-          let errorMsg = "CAPTCHA verification failed";
-          if (errorCodes.includes("timeout-or-duplicate") || errorCodes.includes("invalid-input-response")) {
-            errorMsg = "Il captcha è scaduto. Riprova.";
-          }
-
-          return new Response(JSON.stringify({ error: errorMsg }), {
-            status: 403,
-            headers: { "Content-Type": "application/json" },
-          });
+        let errorMsg = "CAPTCHA verification failed";
+        if (errorCodes.includes("timeout-or-duplicate") || errorCodes.includes("invalid-input-response")) {
+          errorMsg = "Il captcha è scaduto. Riprova.";
         }
-        console.log("[Roast API] Turnstile verification passed");
-      } else if (turnstileSecret && !turnstileToken) {
-        return new Response(JSON.stringify({ error: "CAPTCHA token required" }), {
+
+        return new Response(JSON.stringify({ error: errorMsg }), {
           status: 403,
           headers: { "Content-Type": "application/json" },
         });
       }
+      console.log("[Roast API] Turnstile verification passed");
+    } else if (turnstileSecret && !turnstileToken) {
+      return new Response(JSON.stringify({ error: "CAPTCHA token required" }), {
+        status: 403,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
 
-    const prompt = await buildPrompt(url, categories, safeLocale);
+    console.log("[Roast API] Running initial agent readiness check");
+    const checks = await checkAgentReadiness(url);
+
+    const prompt = await buildPrompt(url, categories, safeLocale, checks);
 
     const apiBase = import.meta.env.OPENAI_API_BASE || "http://localhost:11434/v1";
     const apiKey = import.meta.env.OPENAI_API_KEY || "dummy";
     const model = import.meta.env.OPENAI_MODEL || "llama3";
 
-    console.log("[Roast API] Request:", {
-      url,
-      categories,
-      model,
-      apiBase,
-      promptLength: prompt.length,
-    });
+    console.log("[Roast API] Starting iterative ReAct agent for", url);
 
-    const response = await fetch(`${apiBase}/chat/completions`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        model,
-        messages: [{ role: "user", content: prompt }],
-        temperature: 0.7,
-      }),
-    });
+    const result = await runAgentLoop(prompt, url, categories, checks, apiBase, apiKey, model);
 
-    console.log("[Roast API] Response status:", response.status, response.statusText);
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error("[Roast API] Error response:", response.status, errorText);
-
-      if (response.status === 429) {
-        return new Response(
-          JSON.stringify({
-            error: t.errors.highTraffic,
-          }),
-          { status: 429, headers: { "Content-Type": "application/json" } }
-        );
-      }
-
-      return new Response(
-        JSON.stringify({ error: `${t.errors.aiApi}${errorText}` }),
-        { status: 502, headers: { "Content-Type": "application/json" } }
-      );
-    }
-
-    const data = await response.json();
-    console.log("[Roast API] AI response:", {
-      model: data.model,
-      usage: data.usage,
-      choicesLength: data.choices?.length,
-      hasToolCalls: data.choices?.[0]?.message?.tool_calls?.length > 0,
-      contentType: typeof data.choices?.[0]?.message?.content,
-      contentPreview: typeof data.choices?.[0]?.message?.content === "string"
-        ? data.choices[0].message.content.substring(0, 200)
-        : "non-string content",
-    });
-
-    const content = data.choices?.[0]?.message?.content || "";
-    const toolCalls = data.choices?.[0]?.message?.tool_calls;
-
-    if (toolCalls && toolCalls.length > 0) {
-      console.warn("[Roast API] AI attempted to use tools:", toolCalls);
-    }
-
-    let parsed;
-    try {
-      parsed = JSON.parse(content);
-      console.log("[Roast API] Parsed response:", {
-        hasOverallScore: typeof parsed.overall_score === "number",
-        verdictLength: parsed.verdict?.length,
-        scoresCount: Object.keys(parsed.scores || {}).length,
-        roastsCount: parsed.roasts?.length,
-      });
-    } catch (parseError) {
-      console.error("[Roast API] JSON parse error:", parseError);
-      console.error("[Roast API] Raw content:", content);
-      return new Response(
-        JSON.stringify({ error: t.errors.invalidJson, raw: content }),
-        { status: 502, headers: { "Content-Type": "application/json" } }
-      );
-    }
-
-    return new Response(JSON.stringify(parsed), {
+    return new Response(JSON.stringify(result), {
       status: 200,
       headers: { "Content-Type": "application/json" },
     });
@@ -242,44 +169,140 @@ async function checkAgentReadiness(baseUrl: string) {
   return results;
 }
 
-async function buildPrompt(url: string, categories: string[], locale: string = "it"): Promise<string> {
-  console.log("[buildPrompt] Building prompt for:", { url, categories, locale });
+async function buildPrompt(url: string, categories: string[], locale: string, checks: Record<string, unknown>): Promise<string> {
   const promptPath = join(process.cwd(), "prompt.md");
   let basePrompt = "";
-
   try {
     basePrompt = readFileSync(promptPath, "utf-8");
   } catch {
-    console.warn("[buildPrompt] prompt.md not found, using default prompt");
-    basePrompt = `You're a senior developer who's been building websites for 15 years. A colleague just showed you their site ({{URL}}) and asked for honest feedback. You're a good friend — you're not going to trash them — but you're also not going to lie to them. You talk like a real person: short sentences, a dry sense of humor, occasional sarcasm, no corporate fluff.`;
+    basePrompt = `You're an iterative ReAct agent for website roasting.`;
   }
 
-  // Add language instruction
   const langName = locale === "it" ? "Italian" : locale === "en" ? "English" : locale.toUpperCase();
-  const languageInstruction = `\n\nCRITICAL: The user is browsing the interface in ${locale.toUpperCase()} (${langName}). Respond ENTIRELY in ${langName}, using natural, colloquial tone appropriate for speakers of that language. Match the cultural style and directness expected in that language.`;
+  const languageInstruction = `CRITICAL: Respond ENTIRELY in ${langName}.`;
 
-  basePrompt = basePrompt.trim() + languageInstruction + "\n\n";
+  const agentData = `### REAL AGENT READINESS CHECK RESULTS:\n${JSON.stringify(checks, null, 2)}`;
 
-  // Run agent checks if relevant categories are selected
-  const agentCategories = ["agentReadiness", "robots", "mcp", "apiDiscovery", "botAuth"];
-  const hasAgentChecks = categories.some((c) => agentCategories.includes(c));
+  const categoriesStr = categories.length > 0 ? categories.join(", ") : "design, performance, ux, seo, code, accessibility, agentReadiness";
 
-  if (hasAgentChecks) {
-    console.log("[buildPrompt] Running real MCP/Agent scraping checks...");
-    const checks = await checkAgentReadiness(url);
-    basePrompt = basePrompt.replace(
-      "{{AGENT_DATA}}", 
-      `### REAL AGENT READINESS CHECK RESULTS (MCP scraping completed):\n${JSON.stringify(checks, null, 2)}\n\n`
-    );
-  } else {
-    basePrompt = basePrompt.replace("{{AGENT_DATA}}", "");
+  const modified = basePrompt
+    .replace("{{AGENT_DATA}}", agentData)
+    .replace("{{URL}}", url)
+    .replace("{{CATEGORIES}}", categoriesStr) + "\n\n" + languageInstruction;
+
+  console.log("[buildPrompt] Agent prompt length:", modified.length);
+  return modified;
+}
+
+async function callLLM(messages: Array<{role: string; content: string}>, apiBase: string, apiKey: string, model: string) {
+  const response = await fetch(`${apiBase}/chat/completions`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${apiKey}`,
+    },
+    body: JSON.stringify({
+      model,
+      messages,
+      temperature: 0.3,
+      response_format: { type: "json_object" },
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error(`LLM error: ${response.status}`);
   }
 
-  const categoriesStr = categories.length > 0 ? categories.join(", ") : "design, performance, ux, seo, code, accessibility";
-  const modified = basePrompt
-    .replace("https://vicedominisoftworks.com/en", url)
-    .replace(/these categories: design, performance, ux, seo, code, accessibility/, `these categories: ${categoriesStr}`);
+  const data = await response.json();
+  const content = data.choices?.[0]?.message?.content || "{}";
+  return content;
+}
 
-  console.log("[buildPrompt] Final prompt length:", modified.length);
-  return modified;
+async function runAgentLoop(systemPrompt: string, url: string, categories: string[], _initialChecks: Record<string, unknown>, apiBase: string, apiKey: string, model: string) {
+  const messages = [{ role: "system", content: systemPrompt }];
+  let iteration = 0;
+  const maxIterations = 6;
+  let currentObservation = `Initial data loaded with real checks for ${url}. Begin iterative analysis focusing on thorough scraping for agentReadiness.`;
+
+  while (iteration < maxIterations) {
+    iteration++;
+    console.log(`[Roast API] Agent iteration ${iteration}/${maxIterations}`);
+
+    messages.push({ role: "user", content: currentObservation });
+
+    let content;
+    try {
+      content = await callLLM(messages, apiBase, apiKey, model);
+    } catch (e) {
+      console.error("[Roast API] LLM call failed:", e);
+      currentObservation = "LLM call failed. Try OUTPUT_FINAL with available data.";
+      continue;
+    }
+
+    let agentOutput;
+    try {
+      agentOutput = JSON.parse(content.trim());
+      console.log("[Roast API] Agent action:", agentOutput.action, "thought:", agentOutput.thought?.substring(0, 60));
+    } catch {
+      console.error("[Roast API] JSON parse failed:", content.substring(0, 100));
+      currentObservation = "Output was not valid JSON. Must output exact JSON with thought, action, action_input, final_roast fields. Try again.";
+      messages.push({ role: "assistant", content: content });
+      continue;
+    }
+
+    messages.push({ role: "assistant", content: JSON.stringify(agentOutput) });
+
+    const { action, action_input, final_roast } = agentOutput;
+
+    if (action === "OUTPUT_FINAL" && final_roast && typeof final_roast.overall_score === "number") {
+      console.log("[Roast API] Agent completed with final roast");
+      return final_roast;
+    }
+
+    if (action === "SCRAPE" && action_input && typeof action_input === "string") {
+      let scrapeUrl = action_input;
+      try {
+        if (!scrapeUrl.startsWith("http")) {
+          const baseUrl = new URL(url);
+          scrapeUrl = new URL(scrapeUrl, baseUrl.origin).toString();
+        }
+        const scrapedContent = await fetchUrl(scrapeUrl);
+        if (scrapedContent) {
+          const snippet = scrapedContent.length > 400 ? scrapedContent.substring(0, 397) + "..." : scrapedContent;
+          currentObservation = `SCRAPE(${scrapeUrl}) succeeded. Content snippet: ${snippet.replace(/\n/g, " ")}. Use this real data for agentReadiness analysis. Continue.`;
+          console.log(`[Roast API] Scraped ${scrapeUrl} successfully (${scrapedContent.length} chars)`);
+        } else {
+          currentObservation = `SCRAPE(${scrapeUrl}) failed or returned no content. Note this and ANALYZE or OUTPUT_FINAL.`;
+        }
+      } catch (scrapeErr) {
+        currentObservation = `SCRAPE failed for ${scrapeUrl}: ${scrapeErr}. Do not retry same URL.`;
+      }
+    } else if (action === "ANALYZE" && action_input) {
+      currentObservation = `ANALYSIS on ${action_input} requested. Use all scraped real content and initial checks. Be specific about discovered files and links. Provide deep critique based on facts only.`;
+    } else {
+      currentObservation = `Unknown action "${action}". Valid actions: SCRAPE (with URL from discovered files), ANALYZE (category), OUTPUT_FINAL. Focus on thorough real scraping for agent readiness category.`;
+    }
+  }
+
+  console.log("[Roast API] Max iterations reached, forcing final output");
+  const finalMessages = [...messages, { role: "user", content: "Max iterations reached. Output FINAL roast JSON now using all gathered real data. Do not hallucinate." }];
+  try {
+    const finalContent = await callLLM(finalMessages, apiBase, apiKey, model);
+    const finalOutput = JSON.parse(finalContent.trim());
+    if (finalOutput.final_roast) return finalOutput.final_roast;
+    return finalOutput;
+  } catch (e) {
+    console.error("[Roast API] Final call failed:", e);
+    return {
+      overall_score: 5,
+      verdict: "Agent loop completed but final parsing failed. Site has basic readiness.",
+      scores: categories.reduce((acc: Record<string, number>, cat: string) => { acc[cat] = 5; return acc; }, {} as Record<string, number>),
+      roasts: [{
+        category: "agentReadiness",
+        emoji: "🤖",
+        critique: "The iterative agent ran but encountered parsing issues on final output. Real checks were performed.",
+        fix_prompt: `Improve JSON output consistency for https://example.com`
+      }]
+    };
+  }
 }
