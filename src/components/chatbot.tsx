@@ -132,9 +132,8 @@ export function Chatbot({ locale = "en" }: ChatbotProps) {
         "expired-callback": () => {
           setTurnstileToken(null);
           setIsTurnstileExpired(true);
-          console.warn("[Turnstile] Token expired - will auto-renew on next submit");
-          // Auto-renew after a short delay
-          setTimeout(resetTurnstile, 800);
+          console.warn("[Turnstile] Token expired, renewing immediately...");
+          resetTurnstile();
         },
         "error-callback": (error?: unknown) => {
           console.error("[Turnstile] Error:", error);
@@ -223,7 +222,10 @@ export function Chatbot({ locale = "en" }: ChatbotProps) {
 
       setResult(data);
     } catch (err) {
-      setError(err instanceof Error ? err.message : t.errors.unknown);
+      const errorMessage = err instanceof Error ? err.message : t.errors.unknown;
+      setError(errorMessage.includes("CAPTCHA") || errorMessage.includes("captcha") 
+        ? "Captcha non valido. Rinnova e riprova." 
+        : errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -322,7 +324,7 @@ export function Chatbot({ locale = "en" }: ChatbotProps) {
 
         <Button
           type="submit"
-          disabled={isLoading || !url || selectedCategories.length === 0}
+          disabled={isLoading || !url || selectedCategories.length === 0 || (turnstileSiteKey && !turnstileToken)}
         >
           {isLoading ? t.chatbot.buttonLoading : t.chatbot.buttonRoast}
         </Button>
