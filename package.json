@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",
+    "start": "node dist/server/entry.mjs",
     "preview": "astro preview",
     "astro": "astro",
     "lint": "eslint .",
@@ -14,8 +15,8 @@
   },
   "dependencies": {
     "@astrojs/check": "^0.9.9",
+    "@astrojs/node": "^10.0.6",
     "@astrojs/react": "^5.0.4",
-    "@astrojs/vercel": "^10.0.6",
     "@fontsource-variable/figtree": "^5.2.10",
     "@hugeicons/core-free-icons": "^4.1.1",
     "@hugeicons/react": "^1.1.6",
