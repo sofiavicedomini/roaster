@@ -348,8 +348,8 @@ async function processRoast(
   const apiKey = import.meta.env.OPENAI_API_KEY || "dummy";
   const model = import.meta.env.OPENAI_MODEL || "llama3";
 
-  const result = await runAgentLoop(prompt, url, cats, checks, apiBase, apiKey, model, locale, async (iter, action) => {
-    await updateJob(jobId, { progress: `Iteration ${iter}/6: ${action}` });
+  const result = await runAgentLoop(prompt, url, cats, checks, apiBase, apiKey, model, locale, async (_iter, thinking) => {
+    await updateJob(jobId, { progress: thinking });
     await incrementIteration(jobId);
   }, isResume);
 
@@ -856,7 +856,6 @@ async function runAgentLoop(
   while (iteration < maxSteps) {
     iteration++;
     console.log(`[Roast API] Agent step ${iteration}/${maxSteps}`);
-    onProgress?.(iteration, "thinking");
 
     let response: { content: string | null; tool_calls?: ToolCall[] };
     try {
@@ -868,6 +867,19 @@ async function runAgentLoop(
     }
 
     messages.push({ role: "assistant", content: response.content, tool_calls: response.tool_calls });
+
+    // Build the thinking text: prefer the model's own content, fall back to tool call description
+    const thinkingText = response.content?.trim()
+      || response.tool_calls?.map((c) => {
+          if (c.function.name === "scrape_url") {
+            try { return `Fetching ${(JSON.parse(c.function.arguments) as { url: string }).url}`; }
+            catch { return "Fetching URL..."; }
+          }
+          if (c.function.name === "submit_roast") return "Writing final analysis...";
+          return c.function.name;
+        }).join(" · ")
+      || `Step ${iteration}`;
+    onProgress?.(iteration, thinkingText);
 
     if (!response.tool_calls || response.tool_calls.length === 0) {
       // No tool call — try to salvage inline JSON, then ask for submit_roast
@@ -885,7 +897,6 @@ async function runAgentLoop(
 
     for (const call of response.tool_calls) {
       if (call.function.name === "submit_roast") {
-        onProgress?.(iteration, "OUTPUT_FINAL");
         try {
           const args = JSON.parse(call.function.arguments) as Record<string, unknown>;
           const v = validateFinalRoast(args, categories);
@@ -905,7 +916,6 @@ async function runAgentLoop(
           messages.push({ role: "tool", tool_call_id: call.id, content: `Argument parse error: ${e}. Retry submit_roast.` });
         }
       } else if (call.function.name === "scrape_url") {
-        onProgress?.(iteration, "SCRAPE");
         try {
           const { url: scrapeUrl } = JSON.parse(call.function.arguments) as { url: string };
           const resolved = scrapeUrl.startsWith("http") ? scrapeUrl : new URL(scrapeUrl, new URL(url).origin).toString();

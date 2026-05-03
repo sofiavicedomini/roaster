@@ -262,8 +262,6 @@ export function Chatbot({ locale = "en" }: ChatbotProps) {
   }, [isLoading, t.chatbot.loadingMessages.length]);
 
   const [jobStatus, setJobStatus] = useState<string>("");
-  const [currentIteration, setCurrentIteration] = useState<number>(0);
-  const [currentAction, setCurrentAction] = useState<string>("");
   const [thoughtHistory, setThoughtHistory] = useState<string[]>([]);
 
   useEffect(() => {
@@ -286,12 +284,6 @@ export function Chatbot({ locale = "en" }: ChatbotProps) {
         } else {
           setJobStatus(data.status);
           if (data.progress) {
-            const iterationMatch = data.progress.match(/Iteration (\d+)/);
-            if (iterationMatch) {
-              setCurrentIteration(parseInt(iterationMatch[1], 10));
-            }
-            const action = data.progress.split(": ").slice(1).join(": ") || data.progress;
-            setCurrentAction(action);
             setThoughtHistory((prev) => {
               if (prev[prev.length - 1] === data.progress) return prev;
               return [...prev, data.progress];
@@ -333,8 +325,6 @@ export function Chatbot({ locale = "en" }: ChatbotProps) {
     setCacheInfo(null);
     setJobId(null);
     setThoughtHistory([]);
-    setCurrentIteration(0);
-    setCurrentAction("");
 
     try {
       const response = await fetch("/api/roast", {
