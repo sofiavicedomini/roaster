@@ -55,7 +55,24 @@ const { t } = useTranslations(locale)
         {t("nav.howItWorks")}
       </a>
     </div>
-    <LanguageSwitcher />
+    <div class="fixed top-4 right-4 z-50 flex items-center gap-1.5">
+      <button
+        id="theme-toggle"
+        aria-label="Toggle theme"
+        class="p-1.5 rounded-md bg-zinc-900/90 border border-orange-500/20 hover:border-orange-400/50 text-orange-400/80 hover:text-orange-300 transition-colors backdrop-blur-sm text-sm leading-none"
+      >
+        <span id="theme-icon">☀️</span>
+      </button>
+      <button
+        id="fire-toggle"
+        aria-label="Disable background animation"
+        class="p-1.5 rounded-md bg-zinc-900/90 border border-orange-500/20 hover:border-orange-400/50 text-orange-400/80 hover:text-orange-300 transition-colors backdrop-blur-sm text-sm leading-none"
+        title="Toggle background animation"
+      >
+        <span id="fire-icon">🔥</span>
+      </button>
+      <LanguageSwitcher />
+    </div>
     <GoogleAnalytics />
     <slot />
     <div class="fixed bottom-4 right-4 z-50 max-w-xs">
@@ -66,23 +83,6 @@ const { t } = useTranslations(locale)
         class="block rounded-lg bg-zinc-900/90 backdrop-blur-sm border border-orange-500/30 px-4 py-3 text-sm text-orange-400/90 shadow-lg hover:bg-zinc-800/90 hover:border-orange-400/50 transition-all duration-200 leading-snug"
         set:html={t("site.footer")}
       />
-    </div>
-    <div class="fixed bottom-4 left-4 z-50 flex items-center gap-2">
-      <button
-        id="theme-toggle"
-        aria-label="Toggle theme"
-        class="p-2 rounded-md bg-zinc-900/90 border border-orange-500/20 hover:border-orange-400/50 text-orange-400/80 hover:text-orange-300 transition-colors backdrop-blur-sm text-base"
-      >
-        <span id="theme-icon">☀️</span>
-      </button>
-      <button
-        id="fire-toggle"
-        aria-label="Disable background animation"
-        class="p-2 rounded-md bg-zinc-900/90 border border-orange-500/20 hover:border-orange-400/50 text-orange-400/80 hover:text-orange-300 transition-colors backdrop-blur-sm text-base"
-        title="Toggle background animation"
-      >
-        <span id="fire-icon">🔥</span>
-      </button>
     </div>
     <script is:inline>
       (function() {
