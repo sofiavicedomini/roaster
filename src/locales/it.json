@@ -9,6 +9,7 @@
   "chatbot": {
     "urlLabel": "URL del sito",
     "urlPlaceholder": "https://esempio.it",
+    "urlHint": "Inserisci un URL completo includendo https://",
     "categoriesLabel": "Categorie da analizzare",
     "buttonRoast": "Stroncami questo sito",
     "buttonLoading": "Il Roaster sta pensando...",

@@ -1,0 +1,93 @@
+---
+import { useTranslations } from "@/i18n/utils";
+import type { Locale } from "@/i18n/utils";
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+const t = useTranslations(locale).t;
+
+// Server-side fetch of company info (will be cached by Redis for 7 days)
+let companyInfo: {
+  name: string;
+  fullAddress: string;
+  piva: string;
+  rea: string;
+  website: string;
+} | null = null;
+
+try {
+  const response = await fetch("https://stroncami.it/api/company-info");
+  if (response.ok) {
+    const data = await response.json();
+    companyInfo = data.company;
+  }
+} catch (err) {
+  console.warn("[Footer] Failed to fetch company info:", err);
+}
+
+// Fallback if fetch fails
+const fallbackCompany = {
+  name: "Vicedomini Softworks srl",
+  fullAddress: "Circonvallazione Clodia 163/167, 00195 Roma",
+  piva: "IT 18432801001",
+  rea: "RM-1784316",
+  website: "https://vicedominisoftworks.com"
+};
+
+const displayCompany = companyInfo || fallbackCompany;
+---
+
+<footer class="mt-16 border-t border-border py-8">
+  <div class="max-w-2xl mx-auto px-4">
+    <div class="flex flex-col items-center text-center gap-4">
+      <!-- Company Info -->
+      <div class="text-xs text-muted-foreground/70 leading-relaxed max-w-md">
+        <p class="font-medium text-foreground/80">{displayCompany.name}</p>
+        <p class="mt-1.5">{displayCompany.fullAddress}</p>
+        <p class="mt-0.5">P.IVA {displayCompany.piva} · REA {displayCompany.rea}</p>
+      </div>
+
+      <!-- Links -->
+      <div class="flex flex-wrap items-center justify-center gap-4 text-xs">
+        <a
+          href={`/${locale}/about`}
+          class="text-muted-foreground/60 hover:text-foreground transition-colors"
+        >
+          {t("nav.about")}
+        </a>
+        <a
+          href={`/${locale}/how-it-works`}
+          class="text-muted-foreground/60 hover:text-foreground transition-colors"
+        >
+          {t("nav.howItWorks")}
+        </a>
+        <a
+          href={displayCompany.website}
+          target="_blank"
+          rel="noopener noreferrer"
+          class="text-muted-foreground/60 hover:text-foreground transition-colors"
+        >
+          {displayCompany.name}
+        </a>
+      </div>
+
+      <!-- CTA -->
+      <a
+        href="https://vicedominisoftworks.com"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="mt-2 inline-flex items-center gap-2 text-xs font-medium text-orange-400/90 hover:text-orange-300 transition-colors"
+      >
+        Need a Web App, Site or Software? Contact Vicedomini Softworks →
+      </a>
+
+      <!-- Copyright -->
+      <p class="text-xs text-muted-foreground/40 mt-3">
+        © {new Date().getFullYear()} {displayCompany.name}. All rights reserved. · Founded {companyInfo?.founded || "2026"}
+      </p>
+    </div>
+  </div>
+</footer>

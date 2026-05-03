@@ -4,6 +4,7 @@ import { getLocaleFromURL, useTranslations, locales } from "@/i18n/utils"
 import LanguageSwitcher from "@/components/LanguageSwitcher.astro"
 import SEO from "@/components/SEO.astro"
 import GoogleAnalytics from "@/components/GoogleAnalytics.astro"
+import Footer from "@/components/Footer.astro"
 
 interface Props {
   title?: string
@@ -141,16 +142,8 @@ function getLocalizedPath(loc: string) {
     <GoogleAnalytics />
     <slot />
 
-    <!-- Footer CTA -->
-    <div class="fixed bottom-4 right-4 z-30 max-w-xs">
-      <a
-        href="https://vicedominisoftworks.com"
-        target="_blank"
-        rel="noopener noreferrer"
-        class="block rounded-lg bg-zinc-900/90 backdrop-blur-sm border border-orange-500/30 px-4 py-3 text-sm text-orange-400/90 shadow-lg hover:bg-zinc-800/90 hover:border-orange-400/50 transition-all duration-200 leading-snug"
-        set:html={t("site.footer")}
-      />
-    </div>
+    <!-- Footer with company legal info -->
+    <Footer locale={locale} />
 
     <script is:inline>
       (function () {

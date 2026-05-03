@@ -60,12 +60,12 @@
     --card-foreground: oklch(0.987 0.002 197.1);
     --popover: oklch(0.218 0.008 223.9);
     --popover-foreground: oklch(0.987 0.002 197.1);
-    --primary: oklch(0.444 0.177 26.899);
+    --primary: oklch(0.544 0.177 26.899);
     --primary-foreground: oklch(0.971 0.013 17.38);
     --secondary: oklch(0.274 0.006 286.033);
     --secondary-foreground: oklch(0.985 0 0);
     --muted: oklch(0.275 0.011 216.9);
-    --muted-foreground: oklch(0.723 0.014 214.4);
+    --muted-foreground: oklch(0.783 0.014 214.4);
     --accent: oklch(0.275 0.011 216.9);
     --accent-foreground: oklch(0.987 0.002 197.1);
     --destructive: oklch(0.704 0.191 22.216);
@@ -191,10 +191,20 @@ input:focus, textarea:focus, select:focus {
 /* Keyboard focus indicator — visible only for keyboard navigation */
 a:focus-visible,
 button:focus-visible,
-[role="option"]:focus-visible {
-  outline: 2px solid oklch(0.837 0.128 66.29 / 0.9);
-  outline-offset: 2px;
+[role="option"]:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[role="button"]:focus-visible {
+  outline: 2px solid oklch(0.837 0.128 66.29 / 0.95);
+  outline-offset: 3px;
   border-radius: 4px;
+}
+
+/* Enhanced focus for category buttons */
+button:focus-visible {
+  outline-width: 3px;
+  box-shadow: 0 0 0 3px oklch(0.837 0.128 66.29 / 0.4);
 }
 
 /* Fire button hover effect */
@@ -394,12 +404,12 @@ body::after {
     --card-foreground: oklch(0.987 0.002 197.1);
     --popover: oklch(0.218 0.008 223.9);
     --popover-foreground: oklch(0.987 0.002 197.1);
-    --primary: oklch(0.444 0.177 26.899);
+    --primary: oklch(0.544 0.177 26.899);
     --primary-foreground: oklch(0.971 0.013 17.38);
     --secondary: oklch(0.274 0.006 286.033);
     --secondary-foreground: oklch(0.985 0 0);
     --muted: oklch(0.275 0.011 216.9);
-    --muted-foreground: oklch(0.723 0.014 214.4);
+    --muted-foreground: oklch(0.783 0.014 214.4);
     --accent: oklch(0.275 0.011 216.9);
     --accent-foreground: oklch(0.987 0.002 197.1);
     --destructive: oklch(0.704 0.191 22.216);

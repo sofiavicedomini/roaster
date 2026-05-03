@@ -21,23 +21,44 @@ const result = ranking.result as {
   roasts: Array<{ category: string; emoji: string; critique: string; fix_prompt?: string }>;
 };
 
-// Content negotiation — serve JSON or Markdown to bots/agents
+Astro.response.headers.set("Link", 
+  '</.well-known/mcp.json>; rel="mcp", </.well-known/agent.json>; rel="agent-card", </.well-known/openapi.json>; rel="service-desc", </.well-known/api-catalog>; rel="api-catalog"'
+);
+Astro.response.headers.set("X-Content-Signals", "agent-readable=true");
+Astro.response.headers.set("X-MCP-Endpoint", "https://stroncami.it/api/mcp");
+
 const accept = Astro.request.headers.get("accept") || "";
-if (accept.includes("application/json")) {
+const isAgentRequest = accept.includes("application/json") || 
+                       accept.includes("application/vnd.api+json") ||
+                       accept.includes("text/markdown") ||
+                       accept.includes("text/plain") ||
+                       Astro.request.headers.get("x-agent") === "true" ||
+                       Astro.request.headers.get("user-agent")?.includes("GPTBot") ||
+                       Astro.request.headers.get("user-agent")?.includes("CCBot") ||
+                       Astro.request.headers.get("user-agent")?.includes("Google-Extended");
+
+if (isAgentRequest && (accept.includes("application/json") || accept.includes("application/vnd.api+json"))) {
+  Astro.response.headers.set("Content-Type", "application/json; charset=utf-8");
   return new Response(JSON.stringify({
     uuid: ranking.uuid, url: ranking.url, normUrl: ranking.normUrl,
     score: result.overall_score, verdict: result.verdict,
     scores: result.scores, roasts: result.roasts,
     completedAt: ranking.completedAt, locale: ranking.locale,
-  }), { headers: { "Content-Type": "application/json; charset=utf-8", "Vary": "Accept" } });
+    agentMetadata: {
+      version: "1.0.0",
+      format: "roast-me/v1",
+      mcpEndpoint: "https://stroncami.it/api/mcp",
+      documentation: "https://stroncami.it/.well-known/openapi.json"
+    }
+  }), { headers: { "Vary": "Accept, X-Agent, User-Agent" } });
 }
-if (accept.includes("text/markdown") || (accept.includes("text/plain") && !accept.includes("text/html"))) {
+if (isAgentRequest && (accept.includes("text/markdown") || (accept.includes("text/plain") && !accept.includes("text/html")))) {
   const fires = "🔥".repeat(Math.ceil(result.overall_score / 2));
   const roastLines = (result.roasts || []).map((r) =>
     `### ${r.emoji} ${r.category}\n${r.critique}${r.fix_prompt ? `\n\n**Fix prompt:**\n\`\`\`\n${r.fix_prompt}\n\`\`\`` : ""}`
   ).join("\n\n");
   const md = `# ${ranking.normUrl || ranking.url}\n\n**Score:** ${result.overall_score}/10 ${fires}\n\n**Verdict:** ${result.verdict}\n\n---\n\n${roastLines}`;
-  return new Response(md, { headers: { "Content-Type": "text/markdown; charset=utf-8", "Vary": "Accept" } });
+  return new Response(md, { headers: { "Content-Type": "text/markdown; charset=utf-8", "Vary": "Accept, X-Agent, User-Agent" } });
 }
 
 function scoreColor(score: number | null) {

@@ -1,0 +1,122 @@
+{
+  "name": "Roast Me",
+  "version": "1.0.0",
+  "description": "AI-powered website critique service. Get brutal, honest analysis of design, performance, SEO, UX, accessibility, security, and AI agent compatibility.",
+  "instructions": "Use this service to analyze any website and receive a detailed, honest critique with scores and actionable fixes.",
+  "skills": [
+    {
+      "id": "analyze-website",
+      "name": "Analyze Website",
+      "description": "Analyze any public website for design, performance, SEO, UX, accessibility, security, and AI agent readiness",
+      "endpoint": "/api/mcp",
+      "method": "POST"
+    },
+    {
+      "id": "get-roast-results",
+      "name": "Get Roast Results",
+      "description": "Retrieve detailed roast results by job ID or ranking UUID",
+      "endpoint": "/api/mcp",
+      "method": "POST"
+    },
+    {
+      "id": "list-recent-roasts",
+      "name": "List Recent Roasts",
+      "description": "Get the list of recently analyzed websites with scores",
+      "endpoint": "/api/mcp",
+      "method": "POST"
+    },
+    {
+      "id": "get-summary",
+      "name": "Get Roast Summary",
+      "description": "Get a summary of all roast statistics including averages, distributions, and top/lowest rated sites",
+      "endpoint": "/api/summary",
+      "method": "GET"
+    },
+    {
+      "id": "get-info",
+      "name": "Get Service Info",
+      "description": "Get company information (including legal data), how the service works, and available analysis categories",
+      "endpoint": "/api/info",
+      "method": "GET"
+    },
+    {
+      "id": "get-company-legal-info",
+      "name": "Get Company Legal Info",
+      "description": "Get legal information about Vicedomini Softworks srl (P.IVA, REA, address, capital)",
+      "endpoint": "/api/company-info",
+      "method": "GET"
+    }
+  ],
+  "endpoints": [
+    {
+      "url": "https://stroncami.it/api/mcp",
+      "protocol": "mcp/1.0",
+      "transport": "sse"
+    },
+    {
+      "url": "https://stroncami.it/api/summary",
+      "protocol": "rest/1.0",
+      "transport": "http"
+    },
+    {
+      "url": "https://stroncami.it/api/info",
+      "protocol": "rest/1.0",
+      "transport": "http"
+    },
+    {
+      "url": "https://stroncami.it/api/company-info",
+      "protocol": "rest/1.0",
+      "transport": "http"
+    }
+  ],
+  "capabilities": [
+    "website-analysis",
+    "scoring",
+    "critique-generation",
+    "fix-recommendations",
+    "statistics-aggregation"
+  ],
+  "documentation": "https://stroncami.it/en/how-it-works",
+  "contact": {
+    "name": "Vicedomini Softworks",
+    "url": "https://vicedominisoftworks.com"
+  },
+  "about": {
+    "company": "Vicedomini Softworks",
+    "legalName": "Vicedomini Softworks srl",
+    "mission": "Brutal honesty delivered with AI precision. No fluff. No sugar-coating. Just the truth about your site.",
+    "location": "Italy",
+    "address": "Circonvallazione Clodia 163/167",
+    "postalCode": "00195",
+    "city": "Roma",
+    "country": "Italia",
+    "piva": "IT 18432801001",
+    "rea": "RM-1784316",
+    "capital": "€ 100,00 i.v.",
+    "fullLegalAddress": "Vicedomini Softworks srl · Circonvallazione Clodia 163/167, 00195 Roma · P.IVA IT 18432801001 · REA RM-1784316 · Cap. soc. € 100,00 i.v.",
+    "services": "Web apps, sites, and custom software for clients who aren't afraid of the truth",
+    "contactUrl": "https://vicedominisoftworks.com"
+  },
+  "howItWorks": [
+    {
+      "step": 1,
+      "title": "Enter your URL",
+      "description": "Paste any public website address. If it's your own site, brace yourself."
+    },
+    {
+      "step": 2,
+      "title": "AI Scrapes & Analyzes",
+      "description": "Our AI fetches your site's content, checks robots.txt, sitemap, performance, agent compatibility, and everything it can find."
+    },
+    {
+      "step": 3,
+      "title": "The Roast",
+      "description": "Each selected category gets a score from 1 to 10, a brutal critique, and a prompt you can give an AI agent to actually fix it."
+    },
+    {
+      "step": 4,
+      "title": "Your Score",
+      "description": "Get your overall score, share the result, or quietly fix your site in the dark."
+    }
+  ]
+}

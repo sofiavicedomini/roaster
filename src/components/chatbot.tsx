@@ -427,23 +427,38 @@ export function Chatbot({ locale = "en" }: ChatbotProps) {
 
   return (
     <div className="flex flex-col gap-6 max-w-2xl mx-auto w-full">
-      <form onSubmit={handleSubmit} aria-label={t.chatbot.urlLabel} className="flex flex-col gap-4 rounded-lg border p-4 bg-card inferno-card">
-        <div className="flex flex-col gap-2">
-          <label htmlFor="url" className="text-sm font-medium">
-            {t.chatbot.urlLabel}
-          </label>
-          <input
-            id="url"
-            ref={inputRef}
-            type="url"
-            value={url}
-            onChange={(e) => setUrl(e.target.value)}
-            onFocus={() => setTimeout(() => inputRef.current?.scrollIntoView({ behavior: "smooth", block: "center" }), 300)}
-            placeholder={t.chatbot.urlPlaceholder}
-            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            required
-          />
-        </div>
+      <form onSubmit={handleSubmit} aria-label={t.chatbot.urlLabel} className="flex flex-col gap-4 rounded-lg border p-4 bg-card inferno-card" aria-busy={isLoading}>
+              <fieldset className="flex flex-col gap-2">
+                <legend className="text-xs font-semibold text-foreground uppercase tracking-wider">
+                  {t.chatbot.groups[group as keyof typeof t.chatbot.groups] || group}
+                </legend>
+                <div className="flex flex-wrap gap-2">
+                  {cats.map((cat) => (
+                    <button
+                      key={cat.id}
+                      type="button"
+                      onClick={() => toggleCategory(cat.id)}
+                      aria-pressed={selectedCategories.includes(cat.id)}
+                      className={`flex items-center gap-2 px-3 py-1.5 rounded-md border cursor-pointer transition-colors ${
+                        selectedCategories.includes(cat.id)
+                          ? "border-primary bg-primary/20 text-foreground"
+                          : "border-input bg-background text-muted-foreground hover:text-foreground hover:border-orange-500/40"
+                      }`}
+                    >
+                      <span className="text-sm font-medium">
+                        {t.chatbot.categories[cat.id as keyof typeof t.chatbot.categories] || cat.id}
+                      </span>
+                      <Check
+                        className={`w-4 h-4 transition-colors shrink-0 ${
+                          selectedCategories.includes(cat.id)
+                            ? "text-primary"
+                            : "text-muted-foreground/50"
+                        }`}
+                      />
+                    </button>
+                  ))}
+                </div>
+              </fieldset>
 
         <div className="flex flex-col gap-3">
           <label className="text-sm font-medium">{t.chatbot.categoriesLabel}</label>
@@ -487,13 +502,13 @@ export function Chatbot({ locale = "en" }: ChatbotProps) {
         )}
 
         {turnstileSiteKey && !turnstileToken && isTurnstileLoading && !isTurnstileExpired && (
-          <div className="text-center text-xs text-amber-400/70">
-            {t.chatbot.verifyingRobot}
+          <div className="text-center text-xs text-amber-300/90 font-medium" role="status" aria-live="polite">
+            ↻ {t.chatbot.verifyingRobot}
           </div>
         )}
 
         {isTurnstileExpired && (
-          <div className="text-center text-xs text-amber-400 bg-amber-500/10 border border-amber-500/30 rounded p-2">
+          <div className="text-center text-xs text-amber-300 bg-amber-500/15 border border-amber-500/50 rounded p-2 font-medium" role="alert" aria-live="assertive">
             ↻ {t.errors.captchaExpired}
           </div>
         )}
@@ -501,39 +516,44 @@ export function Chatbot({ locale = "en" }: ChatbotProps) {
         <Button
           type="submit"
           disabled={isLoading || !url || selectedCategories.length === 0 || (turnstileSiteKey && !turnstileToken)}
+          aria-disabled={isLoading || !url || selectedCategories.length === 0 || (turnstileSiteKey && !turnstileToken)}
         >
           {isLoading ? t.chatbot.buttonLoading : t.chatbot.buttonRoast}
         </Button>
 
         {isLoading && (
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-2" aria-live="polite" aria-atomic="true">
             <ThinkingPanel thoughts={thoughtHistory} isLoading={isLoading} />
-            <div className="text-center text-sm text-orange-400/80 animate-pulse">
+            <div className="text-center text-sm text-orange-300/90 font-medium">
               {t.chatbot.loadingMessages[loadingMsgIdx]}
             </div>
             {jobStatus === "resuming" && (
-              <div className="text-center text-xs text-amber-400/80">
-                Resuming stuck analysis...
+              <div className="text-center text-xs text-amber-300/90 font-medium" role="status">
+                ↻ Resuming stuck analysis...
               </div>
             )}
           </div>
         )}
       </form>
 
-      {error && (
-        <div className={`p-4 rounded-lg border text-sm inferno-card ${
-          isTurnstileLoading
-            ? "bg-amber-500/10 border-amber-500/40 text-amber-300"
-            : "bg-destructive/10 border-destructive text-destructive"
-        }`}>
-          <p>{error}</p>
-          {isTurnstileLoading && (
-            <p className="mt-1.5 text-xs text-amber-400/70 animate-pulse">
-              ↻ {t.errors.captchaExpired}
-            </p>
-          )}
-        </div>
-      )}
+        {error && (
+          <div
+            className={`p-4 rounded-lg border text-sm inferno-card ${
+              isTurnstileLoading
+                ? "bg-amber-500/15 border-amber-500/50 text-amber-300"
+                : "bg-destructive/15 border-destructive text-destructive-foreground"
+            }`}
+            role="alert"
+            aria-live="assertive"
+          >
+            <p className="font-medium">{error}</p>
+            {isTurnstileLoading && (
+              <p className="mt-1.5 text-xs text-amber-300/90 font-medium">
+                ↻ {t.errors.captchaExpired}
+              </p>
+            )}
+          </div>
+        )}
 
       {result && (
         <div className="flex flex-col gap-4 rounded-lg border bg-card p-6 inferno-card">
