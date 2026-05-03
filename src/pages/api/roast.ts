@@ -637,7 +637,7 @@ async function buildPrompt(url: string, categories: string[], locale: string, ch
   try {
     basePrompt = readFileSync(promptPath, "utf-8");
   } catch {
-    basePrompt = `You're an iterative ReAct agent for website roasting.`;
+    basePrompt = `You are a brutal website roast agent. Scrape the site and call submit_roast with your analysis.`;
   }
 
   const langName = LOCALE_TO_LANGUAGE[locale] ?? locale.toUpperCase();
@@ -654,7 +654,7 @@ async function buildPrompt(url: string, categories: string[], locale: string, ch
   return modified;
 }
 
-async function callLLM(messages: Array<{role: string; content: string}>, apiBase: string, apiKey: string, model: string) {
+async function callLLM(messages: Array<Record<string, unknown>>, apiBase: string, apiKey: string, model: string) {
   const response = await fetch(`${apiBase}/chat/completions`, {
     method: "POST",
     headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
@@ -664,11 +664,86 @@ async function callLLM(messages: Array<{role: string; content: string}>, apiBase
   if (!response.ok) throw new Error(`LLM error: ${response.status}`);
 
   const data = await response.json();
-  const content = data.choices?.[0]?.message?.content || "{}";
-  return content;
+  return (data.choices?.[0]?.message?.content as string) || "{}";
 }
 
-type MessageRole = "system" | "user" | "assistant";
+type ToolCall = { id: string; type: "function"; function: { name: string; arguments: string } };
+type AgentMessage =
+  | { role: "system"; content: string }
+  | { role: "user"; content: string }
+  | { role: "assistant"; content: string | null; tool_calls?: ToolCall[] }
+  | { role: "tool"; tool_call_id: string; content: string };
+
+async function callLLMWithTools(
+  messages: AgentMessage[],
+  tools: unknown[],
+  apiBase: string,
+  apiKey: string,
+  model: string,
+): Promise<{ content: string | null; tool_calls?: ToolCall[] }> {
+  const response = await fetch(`${apiBase}/chat/completions`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
+    body: JSON.stringify({ model, messages, tools, tool_choice: "auto", temperature: 0.3 }),
+  });
+
+  if (!response.ok) throw new Error(`LLM error: ${response.status}`);
+
+  const data = await response.json();
+  const msg = data.choices?.[0]?.message;
+  return { content: (msg?.content as string | null) ?? null, tool_calls: msg?.tool_calls as ToolCall[] | undefined };
+}
+
+const AGENT_TOOLS = [
+  {
+    type: "function",
+    function: {
+      name: "scrape_url",
+      description: "Fetch the content of a URL to gather real evidence: homepage HTML, robots.txt, sitemap.xml, llms.txt, CSS, JS, etc. Returns raw content (truncated if large). Call this multiple times to build evidence.",
+      parameters: {
+        type: "object",
+        properties: {
+          url: { type: "string", description: "Absolute URL to fetch" },
+        },
+        required: ["url"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "submit_roast",
+      description: "Submit the complete roast analysis. Call when you have gathered enough evidence for ALL requested categories. All text must be in the user's language.",
+      parameters: {
+        type: "object",
+        properties: {
+          overall_score: { type: "number", description: "Honest average score 1-10 (integer or .5)" },
+          verdict: { type: "string", description: "One brutal, punchy sentence summarizing the site. In the user's language." },
+          scores: {
+            type: "object",
+            description: "Numeric score 1-10 for EVERY requested category. No nulls.",
+            additionalProperties: { type: "number" },
+          },
+          roasts: {
+            type: "array",
+            description: "Exactly one entry per requested category.",
+            items: {
+              type: "object",
+              properties: {
+                category: { type: "string", description: "Exact category name as requested" },
+                emoji: { type: "string", description: "Relevant emoji" },
+                critique: { type: "string", description: "3-5 sentences. Brutal, specific, evidence-based. Cite real things you observed." },
+                fix_prompt: { type: "string", description: "Self-contained AI-agent prompt: what to fix, which file/URL, correct implementation, success criteria. Min 2 sentences." },
+              },
+              required: ["category", "emoji", "critique", "fix_prompt"],
+            },
+          },
+        },
+        required: ["overall_score", "verdict", "scores", "roasts"],
+      },
+    },
+  },
+];
 
 function validateFinalRoast(final_roast: unknown, categories: string[]): { valid: boolean; errors: string[] } {
   const errors: string[] = [];
@@ -745,6 +820,15 @@ function validateFinalRoast(final_roast: unknown, categories: string[]): { valid
   return { valid: errors.length === 0, errors };
 }
 
+function extractRoastFromContent(content: string): Record<string, unknown> | null {
+  try {
+    const p = JSON.parse(content.trim()) as Record<string, unknown>;
+    return (p.final_roast as Record<string, unknown>) ?? (p.overall_score !== undefined ? p : null);
+  } catch {
+    return null;
+  }
+}
+
 async function runAgentLoop(
   systemPrompt: string,
   url: string,
@@ -757,131 +841,124 @@ async function runAgentLoop(
   onProgress?: (iter: number, action: string) => void,
   isResume = false,
 ) {
-  const messages: Array<{role: MessageRole; content: string}> = [{ role: "system", content: systemPrompt }];
+  const messages: AgentMessage[] = [{ role: "system", content: systemPrompt }];
+  messages.push({
+    role: "user",
+    content: isResume
+      ? `Resume the analysis of ${url}. Previous run got stuck. Scrape key pages then call submit_roast covering ALL of: ${categories.join(", ")}.`
+      : `Analyze ${url}. Required categories: ${categories.join(", ")}. Scrape the homepage and key files for evidence, then call submit_roast with your brutal, honest assessment.`,
+  });
+
   let iteration = 0;
-  const maxIterations = isResume ? 3 : 6;
-  let currentObservation = isResume 
-    ? `Resuming analysis for ${url}. Previous iterations may have been stuck. Focus on completing ALL categories: ${categories.join(", ")}.`
-    : `Initial data loaded with real checks for ${url}. Begin iterative analysis focusing on thorough scraping for agentReadiness.`;
+  const maxSteps = isResume ? 6 : 12;
+  let bestPartial: Record<string, unknown> | null = null;
 
-  while (iteration < maxIterations) {
+  while (iteration < maxSteps) {
     iteration++;
-    console.log(`[Roast API] Agent iteration ${iteration}/${maxIterations}`);
-      if (onProgress) onProgress(iteration, "thinking");
+    console.log(`[Roast API] Agent step ${iteration}/${maxSteps}`);
+    onProgress?.(iteration, "thinking");
 
-    messages.push({ role: "user", content: currentObservation });
-
-    let content;
+    let response: { content: string | null; tool_calls?: ToolCall[] };
     try {
-      content = await callLLM(messages, apiBase, apiKey, model);
+      response = await callLLMWithTools(messages, AGENT_TOOLS, apiBase, apiKey, model);
     } catch (e) {
       console.error("[Roast API] LLM call failed:", e);
-      currentObservation = "LLM call failed. Try OUTPUT_FINAL with available data.";
+      messages.push({ role: "user", content: "LLM error. Proceed with available data and call submit_roast now." });
       continue;
     }
 
-    let agentOutput;
-    try {
-      agentOutput = JSON.parse(content.trim());
-      console.log("[Roast API] Agent action:", agentOutput.action, "thought:", agentOutput.thought?.substring(0, 60));
-       if (onProgress) onProgress(iteration, agentOutput.action || "unknown");
-    } catch {
-      console.error("[Roast API] JSON parse failed:", content.substring(0, 100));
-      currentObservation = "Output was not valid JSON. Must output exact JSON with thought, action, action_input, final_roast fields. Try again.";
-      messages.push({ role: "assistant", content: content });
+    messages.push({ role: "assistant", content: response.content, tool_calls: response.tool_calls });
+
+    if (!response.tool_calls || response.tool_calls.length === 0) {
+      // No tool call — try to salvage inline JSON, then ask for submit_roast
+      if (response.content) {
+        const parsed = extractRoastFromContent(response.content);
+        if (parsed) {
+          const v = validateFinalRoast(parsed, categories);
+          if (v.valid) return parsed;
+          bestPartial = parsed;
+        }
+      }
+      messages.push({ role: "user", content: `Call submit_roast now with your full analysis of ${url}. Required categories: ${categories.join(", ")}.` });
       continue;
     }
 
-    messages.push({ role: "assistant", content: JSON.stringify(agentOutput) });
-
-    const { action, action_input, final_roast } = agentOutput;
-
-    if (action === "OUTPUT_FINAL" && final_roast) {
-      const validation = validateFinalRoast(final_roast, categories);
-      if (validation.valid) {
-        console.log("[Roast API] Agent completed with valid final roast");
-        return final_roast;
+    for (const call of response.tool_calls) {
+      if (call.function.name === "submit_roast") {
+        onProgress?.(iteration, "OUTPUT_FINAL");
+        try {
+          const args = JSON.parse(call.function.arguments) as Record<string, unknown>;
+          const v = validateFinalRoast(args, categories);
+          if (v.valid) {
+            console.log("[Roast API] submit_roast valid — done");
+            return args;
+          }
+          console.log("[Roast API] submit_roast validation failed:", v.errors);
+          bestPartial = args;
+          const missing = categories.filter((c) => !(args.scores as Record<string, unknown>)?.[c]);
+          messages.push({
+            role: "tool",
+            tool_call_id: call.id,
+            content: `Rejected. Fix these errors: ${v.errors.join("; ")}${missing.length ? `. Missing categories: ${missing.join(", ")}` : ""}. Call submit_roast again.`,
+          });
+        } catch (e) {
+          messages.push({ role: "tool", tool_call_id: call.id, content: `Argument parse error: ${e}. Retry submit_roast.` });
+        }
+      } else if (call.function.name === "scrape_url") {
+        onProgress?.(iteration, "SCRAPE");
+        try {
+          const { url: scrapeUrl } = JSON.parse(call.function.arguments) as { url: string };
+          const resolved = scrapeUrl.startsWith("http") ? scrapeUrl : new URL(scrapeUrl, new URL(url).origin).toString();
+          const content = await fetchUrl(resolved);
+          console.log(`[Roast API] Scraped ${resolved}: ${content ? content.length + " chars" : "not found"}`);
+          const result = content
+            ? (content.length > 600 ? content.substring(0, 597) + "..." : content)
+            : `Not found at ${resolved}`;
+          messages.push({ role: "tool", tool_call_id: call.id, content: result });
+        } catch (e) {
+          messages.push({ role: "tool", tool_call_id: call.id, content: `Fetch error: ${e}` });
+        }
       } else {
-        console.log("[Roast API] Validation failed:", validation.errors);
-        currentObservation = `VALIDATION FAILED — your output was rejected. Errors: ${validation.errors.join("; ")}. Fix ALL of these issues and re-emit OUTPUT_FINAL. Requirements: (1) numeric score for every category in [${categories.join(", ")}], (2) one roast entry per category with non-empty critique AND non-empty fix_prompt, (3) all text in the user's language. Do not skip any category.`;
+        messages.push({ role: "tool", tool_call_id: call.id, content: `Unknown tool "${call.function.name}". Use scrape_url or submit_roast.` });
       }
-    }
-
-    if (action === "SCRAPE" && action_input && typeof action_input === "string") {
-      let scrapeUrl = action_input;
-      try {
-        if (!scrapeUrl.startsWith("http")) {
-          const baseUrl = new URL(url);
-          scrapeUrl = new URL(scrapeUrl, baseUrl.origin).toString();
-        }
-        const scrapedContent = await fetchUrl(scrapeUrl);
-        if (scrapedContent) {
-          const snippet = scrapedContent.length > 400 ? scrapedContent.substring(0, 397) + "..." : scrapedContent;
-          currentObservation = `SCRAPE(${scrapeUrl}) succeeded. Content snippet: ${snippet.replace(/\n/g, " ")}. Use this real data for agentReadiness analysis. Continue.`;
-          console.log(`[Roast API] Scraped ${scrapeUrl} successfully (${scrapedContent.length} chars)`);
-        } else {
-          currentObservation = `SCRAPE(${scrapeUrl}) failed or returned no content. Note this and ANALYZE or OUTPUT_FINAL.`;
-        }
-      } catch (scrapeErr) {
-        currentObservation = `SCRAPE failed for ${scrapeUrl}: ${scrapeErr}. Do not retry same URL.`;
-      }
-    } else if (action === "ANALYZE" && action_input) {
-      currentObservation = `ANALYSIS on ${action_input} requested. Use all scraped real content and initial check results. Be brutal and specific — cite actual page elements, missing files, broken patterns you observed. No vague statements. Base everything on evidence. Remember: every category needs both a numeric score AND a fix_prompt.`;
-    } else {
-      currentObservation = `Unknown action "${action}". Valid actions: SCRAPE (with URL from discovered files), ANALYZE (category), OUTPUT_FINAL. Focus on thorough real scraping for agent readiness category.`;
     }
   }
 
-  console.log("[Roast API] Max iterations reached, forcing final output");
-  const forcedPrompt = `Max iterations reached. OUTPUT_FINAL now. Use all data gathered. REQUIRED for EVERY category in [${categories.join(", ")}]: numeric score 1-10, specific critique citing real evidence, specific fix_prompt describing actual code/config changes. All text in the user's language. No placeholders.`;
-  const finalMessages = [...messages, { role: "user" as MessageRole, content: forcedPrompt }];
+  // Max steps reached — force JSON output via regular call
+  console.log("[Roast API] Max steps reached, forcing final JSON output");
+  const langName = LOCALE_TO_LANGUAGE[locale] ?? locale.toUpperCase();
+  const forcedMsg = `Max steps reached. Output ONLY a valid JSON object (no wrapper, no markdown) with: overall_score (number 1-10), verdict (string in ${langName}), scores (object with number for each of: ${categories.join(", ")}), roasts (array with one entry per category: category, emoji, critique, fix_prompt — all in ${langName}). Use evidence gathered. No placeholders.`;
 
-  const tryParse = (raw: string) => {
-    try {
-      const p = JSON.parse(raw.trim());
-      return p.final_roast ?? (p.overall_score !== undefined ? p : null);
-    } catch {
-      return null;
-    }
-  };
-
-  let bestPartial: Record<string, unknown> | null = null;
+  // Use simple text messages for the forced call (strip tool messages to avoid format issues)
+  const simpleHistory = messages
+    .filter((m) => m.role === "system" || m.role === "user" || (m.role === "assistant" && !m.tool_calls))
+    .slice(0, 6) as Array<Record<string, unknown>>;
+  simpleHistory.push({ role: "user", content: forcedMsg });
 
   try {
-    const finalContent = await callLLM(finalMessages, apiBase, apiKey, model);
-    const parsed = tryParse(finalContent);
+    const finalContent = await callLLM(simpleHistory, apiBase, apiKey, model);
+    const parsed = extractRoastFromContent(finalContent);
     if (parsed) {
       const v = validateFinalRoast(parsed, categories);
-      if (v.valid) {
-        console.log("[Roast API] Forced final output valid");
-        return parsed;
-      }
-      console.log("[Roast API] Forced final validation failed, trying recovery:", v.errors);
-      bestPartial = parsed;
+      if (v.valid) { console.log("[Roast API] Forced final valid"); return parsed; }
+      if (!bestPartial) bestPartial = parsed;
 
-      // Recovery call — target the specific failures
       const recoveryContent = await callLLM([
-        ...finalMessages,
-        { role: "assistant" as MessageRole, content: finalContent },
-        { role: "user" as MessageRole, content: `VALIDATION ERRORS: ${v.errors.join("; ")}. Fix ONLY the listed issues and re-emit OUTPUT_FINAL. For any missing fix_prompt: write a concrete, file-level fix instruction specific to ${url} based on what you observed (not a generic placeholder). For any missing score: assign a number 1-10.` },
+        ...simpleHistory,
+        { role: "assistant", content: finalContent },
+        { role: "user", content: `ERRORS: ${v.errors.join("; ")}. Fix only these and re-output the complete JSON.` },
       ], apiBase, apiKey, model);
-
-      const recovered = tryParse(recoveryContent);
+      const recovered = extractRoastFromContent(recoveryContent);
       if (recovered) {
         const rv = validateFinalRoast(recovered, categories);
-        if (rv.valid) {
-          console.log("[Roast API] Recovery output valid");
-          return recovered;
-        }
-        console.log("[Roast API] Recovery also failed:", rv.errors);
+        if (rv.valid) { console.log("[Roast API] Recovery valid"); return recovered; }
         bestPartial = recovered;
       }
     }
   } catch (e) {
-    console.error("[Roast API] Final/recovery LLM call failed:", e);
+    console.error("[Roast API] Forced final call failed:", e);
   }
 
-  // Last resort: patch the best partial result we have
   return patchResult(bestPartial, categories, url, locale);
 }
 
