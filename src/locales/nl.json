@@ -92,6 +92,7 @@
     "highTraffic": "We hebben momenteel veel verkeer. Probeer het over een paar momenten opnieuw.",
     "invalidJson": "Ongeldige JSON-reactie van AI",
     "unknown": "Onbekende fout",
-    "aiApi": "AI-API-fout: "
+    "aiApi": "AI-API-fout: ",
+    "captchaExpired": "De CAPTCHA is verlopen of al gebruikt. Er wordt een nieuwe geladen — probeer het over een moment opnieuw."
   }
 }

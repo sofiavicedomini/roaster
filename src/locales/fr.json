@@ -92,6 +92,7 @@
     "highTraffic": "Nous subissons une forte affluence. Veuillez réessayer dans quelques instants.",
     "invalidJson": "Réponse JSON invalide de l'IA",
     "unknown": "Erreur inconnue",
-    "aiApi": "Erreur API IA : "
+    "aiApi": "Erreur API IA : ",
+    "captchaExpired": "Le CAPTCHA a expiré ou a déjà été utilisé. Un nouveau est en cours de chargement — réessayez dans un instant."
   }
 }

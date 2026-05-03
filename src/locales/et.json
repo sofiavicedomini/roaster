@@ -92,6 +92,7 @@
     "highTraffic": "Hetkel on liiklus väga suur. Palun proovi mõne hetke pärast uuesti.",
     "invalidJson": "Vigane JSON-vastus AI-lt",
     "unknown": "Tundmatu viga",
-    "aiApi": "AI API viga: "
+    "aiApi": "AI API viga: ",
+    "captchaExpired": "CAPTCHA aegus või on juba kasutatud. Laaditakse uus — proovi hetke pärast uuesti."
   }
 }

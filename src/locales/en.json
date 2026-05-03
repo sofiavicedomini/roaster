@@ -111,6 +111,7 @@
     "highTraffic": "We're experiencing high traffic right now. Please try again in a few moments.",
     "invalidJson": "Invalid JSON response from AI",
     "unknown": "Unknown error",
-    "aiApi": "AI API error: "
+    "aiApi": "AI API error: ",
+    "captchaExpired": "CAPTCHA expired or already used. A new one is loading — please try again in a moment."
   }
 }

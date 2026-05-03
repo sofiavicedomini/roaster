@@ -154,6 +154,7 @@ export function Chatbot({ locale = "en" }: ChatbotProps) {
   const [isTurnstileLoading, setIsTurnstileLoading] = useState(true);
   const turnstileRef = useRef<HTMLDivElement>(null);
   const widgetIdRef = useRef<string | null>(null);
+  const renderTurnstileRef = useRef<(() => void) | null>(null);
   const turnstileSiteKey = typeof import.meta !== "undefined" && import.meta.env?.PUBLIC_TURNSTILE_SITE_KEY
     ? import.meta.env.PUBLIC_TURNSTILE_SITE_KEY
     : "";
@@ -219,6 +220,8 @@ export function Chatbot({ locale = "en" }: ChatbotProps) {
         size: "normal",
       });
     };
+
+    renderTurnstileRef.current = renderTurnstile;
 
     if (document.getElementById(scriptId)) {
       setTimeout(renderTurnstile, 100);
@@ -334,33 +337,39 @@ export function Chatbot({ locale = "en" }: ChatbotProps) {
         body: JSON.stringify({ url, categories: selectedCategories, locale, turnstileToken }),
       });
 
+      const data = await response.json() as Record<string, unknown>;
+
+      if (!response.ok) {
+        // On any 403 (captcha error), invalidate token and force a fresh widget
+        if (response.status === 403) {
+          setTurnstileToken(null);
+          setIsTurnstileLoading(true);
+          setIsTurnstileExpired(false);
+          setTimeout(() => renderTurnstileRef.current?.(), 150);
+        }
+        throw new Error((data.error as string) || "Request failed");
+      }
+
+      // Token was consumed — reset widget to get a fresh one for the next roast
       if (turnstileToken && window.turnstile && widgetIdRef.current) {
         try {
           window.turnstile.reset(widgetIdRef.current);
           setTurnstileToken(null);
+          setIsTurnstileLoading(true);
         } catch (resetErr) {
           console.warn("[Turnstile] Reset after use failed:", resetErr);
         }
       }
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to get roast");
-      }
-
       if (data.jobId) {
-        setJobId(data.jobId);
+        setJobId(data.jobId as string);
       } else if (data.overall_score !== undefined) {
-        setResult(data);
-        if (data.cached) setCacheInfo({ cachedAt: data.cachedAt, cacheKey: data.cacheKey, translated: data.translated });
+        setResult(data as unknown as RoastResult);
+        if (data.cached) setCacheInfo({ cachedAt: data.cachedAt as string, cacheKey: data.cacheKey as string, translated: data.translated as boolean | undefined });
         setIsLoading(false);
       }
-    } catch {
-      const errorMessage = "An error occurred";
-      setError(errorMessage.includes("CAPTCHA") || errorMessage.includes("captcha")
-        ? "Captcha non valido. Rinnova e riprova."
-        : errorMessage);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "An error occurred");
       setIsLoading(false);
     }
   };
@@ -462,15 +471,15 @@ export function Chatbot({ locale = "en" }: ChatbotProps) {
           <div ref={turnstileRef} className="flex justify-center min-h-[70px]"></div>
         )}
 
-        {turnstileSiteKey && !turnstileToken && !isTurnstileExpired && (
+        {turnstileSiteKey && !turnstileToken && isTurnstileLoading && !isTurnstileExpired && (
           <div className="text-center text-xs text-amber-400/70">
-            {(t as any).verifyingRobot}
+            {t.chatbot.verifyingRobot}
           </div>
         )}
 
         {isTurnstileExpired && (
           <div className="text-center text-xs text-amber-400 bg-amber-500/10 border border-amber-500/30 rounded p-2">
-            Il captcha è scaduto. Lo sto rinnovando automaticamente...
+            ↻ {t.errors.captchaExpired}
           </div>
         )}
 
@@ -497,8 +506,17 @@ export function Chatbot({ locale = "en" }: ChatbotProps) {
       </form>
 
       {error && (
-        <div className="p-4 rounded-lg bg-destructive/10 border border-destructive text-destructive text-sm inferno-card">
-          {error}
+        <div className={`p-4 rounded-lg border text-sm inferno-card ${
+          isTurnstileLoading
+            ? "bg-amber-500/10 border-amber-500/40 text-amber-300"
+            : "bg-destructive/10 border-destructive text-destructive"
+        }`}>
+          <p>{error}</p>
+          {isTurnstileLoading && (
+            <p className="mt-1.5 text-xs text-amber-400/70 animate-pulse">
+              ↻ CAPTCHA in aggiornamento, attendi...
+            </p>
+          )}
         </div>
       )}
 

@@ -55,11 +55,11 @@ export const POST: APIRoute = async ({ request }) => {
       if (!turnstileData.success) {
         const errorCodes = turnstileData["error-codes"] || [];
         console.warn("[Roast API] Turnstile verification failed:", turnstileData);
-        let errorMsg = "CAPTCHA verification failed";
-        if (errorCodes.includes("timeout-or-duplicate") || errorCodes.includes("invalid-input-response")) {
-          errorMsg = "Il captcha è scaduto. Riprova.";
-        }
-        return new Response(JSON.stringify({ error: errorMsg }), {
+        const isExpiredOrDuplicate = errorCodes.includes("timeout-or-duplicate") || errorCodes.includes("invalid-input-response");
+        const errorMsg = isExpiredOrDuplicate
+          ? (t ? t.errors.captchaExpired : "CAPTCHA expired. Please try again.")
+          : "CAPTCHA verification failed";
+        return new Response(JSON.stringify({ error: errorMsg, captchaError: true }), {
           status: 403,
           headers: { "Content-Type": "application/json" },
         });

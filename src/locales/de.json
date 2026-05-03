@@ -92,6 +92,7 @@
     "highTraffic": "Wir haben derzeit sehr viel Verkehr. Bitte versuchen Sie es in einigen Augenblicken erneut.",
     "invalidJson": "Ungültige JSON-Antwort von der KI",
     "unknown": "Unbekannter Fehler",
-    "aiApi": "KI-API-Fehler: "
+    "aiApi": "KI-API-Fehler: ",
+    "captchaExpired": "Das CAPTCHA ist abgelaufen oder wurde bereits verwendet. Ein neues wird geladen — bitte in einem Moment erneut versuchen."
   }
 }
