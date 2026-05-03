@@ -5,38 +5,92 @@ import LanguageSwitcher from "@/components/LanguageSwitcher.astro"
 import SEO from "@/components/SEO.astro"
 import GoogleAnalytics from "@/components/GoogleAnalytics.astro"
 
+interface Props {
+  title?: string
+  description?: string
+}
+
+const { title, description } = Astro.props
 const locale = getLocaleFromURL(Astro.url, Astro.request)
 const { t } = useTranslations(locale)
 ---
 
-<html lang={locale} class="dark">
+<html lang={locale}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <SEO locale={locale} />
+    <SEO locale={locale} title={title} description={description} />
+    <script is:inline>
+      try {
+        const theme = localStorage.getItem('theme') || 'dark';
+        document.documentElement.classList.add(theme);
+      } catch (e) {
+        document.documentElement.classList.add('dark');
+      }
+    </script>
   </head>
   <body>
     <div class="heat-distortion fire"></div>
-    <div class="fixed top-4 left-4 z-50">
+    <div class="fixed top-4 left-4 z-50 flex items-center gap-2">
       <a
         href={`/${locale}/rankings`}
         class="px-2.5 py-1 text-xs rounded-md bg-zinc-900/90 text-orange-400/80 border border-orange-500/20 hover:border-orange-400/50 hover:text-orange-300 transition-colors backdrop-blur-sm"
       >
         {t("rankings.navLink")}
       </a>
+      <a
+        href={`/${locale}/about`}
+        class="px-2.5 py-1 text-xs rounded-md bg-zinc-900/90 text-orange-400/80 border border-orange-500/20 hover:border-orange-400/50 hover:text-orange-300 transition-colors backdrop-blur-sm"
+      >
+        {t("nav.about")}
+      </a>
+      <a
+        href={`/${locale}/how-it-works`}
+        class="px-2.5 py-1 text-xs rounded-md bg-zinc-900/90 text-orange-400/80 border border-orange-500/20 hover:border-orange-400/50 hover:text-orange-300 transition-colors backdrop-blur-sm"
+      >
+        {t("nav.howItWorks")}
+      </a>
     </div>
     <LanguageSwitcher />
     <GoogleAnalytics />
     <slot />
-    <div class="fixed bottom-4 right-4 z-50">
+    <div class="fixed bottom-4 right-4 z-50 max-w-xs">
       <a
         href="https://vicedominisoftworks.com"
         target="_blank"
         rel="noopener noreferrer"
-        class="block rounded-lg bg-zinc-900/90 backdrop-blur-sm border border-orange-500/30 px-4 py-2 text-sm text-orange-400/90 shadow-lg hover:bg-zinc-800/90 hover:border-orange-400/50 transition-all duration-200"
+        class="block rounded-lg bg-zinc-900/90 backdrop-blur-sm border border-orange-500/30 px-4 py-3 text-sm text-orange-400/90 shadow-lg hover:bg-zinc-800/90 hover:border-orange-400/50 transition-all duration-200 leading-snug"
         set:html={t("site.footer")}
       />
     </div>
+    <button
+      id="theme-toggle"
+      aria-label="Toggle theme"
+      class="fixed bottom-4 left-4 z-50 p-2 rounded-md bg-zinc-900/90 border border-orange-500/20 hover:border-orange-400/50 text-orange-400/80 hover:text-orange-300 transition-colors backdrop-blur-sm text-base"
+    >
+      <span id="theme-icon">☀️</span>
+    </button>
+    <script is:inline>
+      (function() {
+        var btn = document.getElementById('theme-toggle');
+        var icon = document.getElementById('theme-icon');
+        function updateIcon() {
+          var isDark = document.documentElement.classList.contains('dark');
+          if (icon) icon.textContent = isDark ? '☀️' : '🌙';
+        }
+        updateIcon();
+        if (btn) {
+          btn.addEventListener('click', function() {
+            var isDark = document.documentElement.classList.contains('dark');
+            var next = isDark ? 'light' : 'dark';
+            document.documentElement.classList.remove('dark', 'light');
+            document.documentElement.classList.add(next);
+            try { localStorage.setItem('theme', next); } catch(e) {}
+            updateIcon();
+          });
+        }
+      })();
+    </script>
   </body>
 </html>

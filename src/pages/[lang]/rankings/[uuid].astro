@@ -36,7 +36,7 @@ function catLabel(cat: string): string {
 }
 ---
 
-<Layout>
+<Layout title={`${ranking.normUrl || ranking.url} — ${result.overall_score}/10`} description={result.verdict}>
   <div class="flex min-h-svh flex-col items-center p-6 pt-20 pb-20 md:pt-10 md:pb-10">
     <div class="w-full max-w-2xl">
       <a

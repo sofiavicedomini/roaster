@@ -4,7 +4,7 @@
     "description": "Obtén una crítica honesta y sin rodeos de cualquier sitio web",
     "seoDescription": "Obtén una crítica brutal y honesta de cualquier sitio web con Róastrame. Análisis impulsado por IA de diseño, rendimiento, SEO, UX, accesibilidad, seguridad y más. Descubre qué está mal en tu sitio.",
     "keywords": "crítica web, análisis sitio web, verificador SEO, auditoría rendimiento, revisión UX, calificador web, análisis IA sitios web, roast sitio",
-    "footer": "Un proyecto de <span class=\"font-semibold\">Vicedomini Softworks</span>"
+    "footer": "¿Necesitas una app Web, Sitio o Software? <span class=\"font-semibold\">Contacta Vicedomini Softworks →</span>"
   },
   "chatbot": {
     "urlLabel": "URL del sitio",
@@ -83,13 +83,49 @@
     "scoresTitle": "Puntuaciones por categoría",
     "roastsTitle": "Roast detallado",
     "fixPromptLabel": "Prompt de corrección para agente IA:",
-    "roastYourSiteCta": "¿Quieres destrozar tu sitio? →"
+    "roastYourSiteCta": "¿Quieres destrozar tu sitio? →",
+    "homeLink": "Analizar un sitio",
+    "shareRoast": "🔗 Compartir este roast"
   },
   "errors": {
     "urlRequired": "La URL es obligatoria",
     "highTraffic": "Estamos experimentando mucho tráfico. Por favor, inténtalo de nuevo en unos momentos.",
     "invalidJson": "Respuesta JSON no válida de la IA",
     "unknown": "Error desconocido",
-    "aiApi": "Error de API de IA: "
+    "aiApi": "Error de API de IA: ",
+    "captchaExpired": "El CAPTCHA expiró o ya fue utilizado. Se está cargando uno nuevo — inténtalo de nuevo en un momento."
+  },
+  "nav": {
+    "about": "Sobre nosotros",
+    "howItWorks": "Cómo funciona"
+  },
+  "home": {
+    "recentRoasts": "Roasts Recientes"
+  },
+  "history": {
+    "title": "Tus análisis recientes",
+    "clearAll": "Borrar"
+  },
+  "about": {
+    "title": "Quiénes somos",
+    "subtitle": "Los humanos detrás de las llamas",
+    "intro": "Somos Vicedomini Softworks — una empresa italiana de software que construye cosas que la gente realmente usa. Creamos esta herramienta porque internet está lleno de sitios web terribles, y la mayoría nunca lo sabrán.",
+    "mission": "Nuestra misión: honestidad brutal con precisión de IA. Sin relleno. Sin edulcoración. Solo la verdad sobre tu sitio, lo quieras escuchar o no.",
+    "team": "Con sede en Italia. Impulsados por curiosidad, café fuerte y un profundo desprecio por la mala UX. Construimos aplicaciones web, sitios y software personalizado para clientes que no temen a la verdad.",
+    "cta": "¿Necesitas algo bien construido? Contáctanos →"
+  },
+  "howItWorks": {
+    "title": "Cómo Funciona",
+    "subtitle": "La verdad brutal, paso a paso",
+    "intro": "Nuestra IA no endulza nada. Esto es exactamente lo que ocurre cuando envías una URL.",
+    "step1Title": "Introduce tu URL",
+    "step1Desc": "Pega cualquier dirección de sitio web público. Si es el tuyo, prepárate.",
+    "step2Title": "La IA analiza",
+    "step2Desc": "Nuestra IA obtiene el contenido de tu sitio, comprueba robots.txt, sitemap, rendimiento, compatibilidad con agentes y todo lo que puede encontrar. Lee todo. Juzga todo.",
+    "step3Title": "El Roast",
+    "step3Desc": "Cada categoría seleccionada recibe una puntuación del 1 al 10, una crítica brutal y un prompt que puedes dar a un agente de IA para corregirlo de verdad.",
+    "step4Title": "Tu puntuación",
+    "step4Desc": "Obtén tu puntuación global, comparte el resultado, o corrige tu sitio en silencio. No juzgamos. (En realidad sí. Eso es exactamente lo que hemos construido.)",
+    "cta": "Pruébalo ahora →"
   }
 }

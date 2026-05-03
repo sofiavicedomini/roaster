@@ -39,6 +39,7 @@ interface RoastResult {
   cachedAt?: string;
   cacheKey?: string;
   translated?: boolean;
+  rankingId?: string;
 }
 
 interface ChatbotProps {
@@ -142,6 +143,7 @@ export function Chatbot({ locale = "en" }: ChatbotProps) {
     return acc;
   }, {} as Record<string, typeof CATEGORIES>);
 
+  const inputRef = useRef<HTMLInputElement>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [loadingMsgIdx, setLoadingMsgIdx] = useState(0);
   const [result, setResult] = useState<RoastResult | null>(null);
@@ -153,6 +155,7 @@ export function Chatbot({ locale = "en" }: ChatbotProps) {
   const [isTurnstileLoading, setIsTurnstileLoading] = useState(true);
   const turnstileRef = useRef<HTMLDivElement>(null);
   const widgetIdRef = useRef<string | null>(null);
+  const renderTurnstileRef = useRef<(() => void) | null>(null);
   const turnstileSiteKey = typeof import.meta !== "undefined" && import.meta.env?.PUBLIC_TURNSTILE_SITE_KEY
     ? import.meta.env.PUBLIC_TURNSTILE_SITE_KEY
     : "";
@@ -219,6 +222,8 @@ export function Chatbot({ locale = "en" }: ChatbotProps) {
       });
     };
 
+    renderTurnstileRef.current = renderTurnstile;
+
     if (document.getElementById(scriptId)) {
       setTimeout(renderTurnstile, 100);
       return;
@@ -271,8 +276,16 @@ export function Chatbot({ locale = "en" }: ChatbotProps) {
         const res = await fetch(`/api/roast?jobId=${jobId}`);
         const data = await res.json();
         if (data.status === "completed") {
-          setResult(data.result);
-          setCacheInfo(data.result.cached ? { cachedAt: data.result.cachedAt, cacheKey: data.result.cacheKey, translated: data.result.translated } : null);
+          const r = data.result as RoastResult;
+          setResult(r);
+          setCacheInfo(r.cached ? { cachedAt: r.cachedAt!, cacheKey: r.cacheKey!, translated: r.translated } : null);
+          if (r.rankingId && !r.cached) {
+            try {
+              const history = JSON.parse(localStorage.getItem("roastHistory") || "[]");
+              history.unshift({ url: url, score: r.overall_score, verdict: r.verdict, rankingId: r.rankingId, date: new Date().toISOString() });
+              localStorage.setItem("roastHistory", JSON.stringify(history.slice(0, 5)));
+            } catch { /* localStorage unavailable */ }
+          }
           setIsLoading(false);
           setJobId(null);
           clearInterval(timer);
@@ -333,33 +346,39 @@ export function Chatbot({ locale = "en" }: ChatbotProps) {
         body: JSON.stringify({ url, categories: selectedCategories, locale, turnstileToken }),
       });
 
+      const data = await response.json() as Record<string, unknown>;
+
+      if (!response.ok) {
+        // On any 403 (captcha error), invalidate token and force a fresh widget
+        if (response.status === 403) {
+          setTurnstileToken(null);
+          setIsTurnstileLoading(true);
+          setIsTurnstileExpired(false);
+          setTimeout(() => renderTurnstileRef.current?.(), 150);
+        }
+        throw new Error((data.error as string) || "Request failed");
+      }
+
+      // Token was consumed — reset widget to get a fresh one for the next roast
       if (turnstileToken && window.turnstile && widgetIdRef.current) {
         try {
           window.turnstile.reset(widgetIdRef.current);
           setTurnstileToken(null);
+          setIsTurnstileLoading(true);
         } catch (resetErr) {
           console.warn("[Turnstile] Reset after use failed:", resetErr);
         }
       }
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to get roast");
-      }
-
       if (data.jobId) {
-        setJobId(data.jobId);
+        setJobId(data.jobId as string);
       } else if (data.overall_score !== undefined) {
-        setResult(data);
-        if (data.cached) setCacheInfo({ cachedAt: data.cachedAt, cacheKey: data.cacheKey, translated: data.translated });
+        setResult(data as unknown as RoastResult);
+        if (data.cached) setCacheInfo({ cachedAt: data.cachedAt as string, cacheKey: data.cacheKey as string, translated: data.translated as boolean | undefined });
         setIsLoading(false);
       }
-    } catch {
-      const errorMessage = "An error occurred";
-      setError(errorMessage.includes("CAPTCHA") || errorMessage.includes("captcha")
-        ? "Captcha non valido. Rinnova e riprova."
-        : errorMessage);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "An error occurred");
       setIsLoading(false);
     }
   };
@@ -383,7 +402,7 @@ export function Chatbot({ locale = "en" }: ChatbotProps) {
   const clearCache = async () => {
     if (!cacheInfo) return;
     try {
-      const res = await fetch(`/api/roast/cache/${encodeURIComponent(cacheInfo.cacheKey)}`, { method: "DELETE" });
+      const res = await fetch(`/api/roast/cache?key=${encodeURIComponent(cacheInfo.cacheKey)}`, { method: "DELETE" });
       const data = await res.json();
       if (res.ok) {
         setCacheInfo(null);
@@ -412,9 +431,11 @@ export function Chatbot({ locale = "en" }: ChatbotProps) {
           </label>
           <input
             id="url"
+            ref={inputRef}
             type="url"
             value={url}
             onChange={(e) => setUrl(e.target.value)}
+            onFocus={() => setTimeout(() => inputRef.current?.scrollIntoView({ behavior: "smooth", block: "center" }), 300)}
             placeholder={t.chatbot.urlPlaceholder}
             className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             required
@@ -461,15 +482,15 @@ export function Chatbot({ locale = "en" }: ChatbotProps) {
           <div ref={turnstileRef} className="flex justify-center min-h-[70px]"></div>
         )}
 
-        {turnstileSiteKey && !turnstileToken && !isTurnstileExpired && (
+        {turnstileSiteKey && !turnstileToken && isTurnstileLoading && !isTurnstileExpired && (
           <div className="text-center text-xs text-amber-400/70">
-            {(t as any).verifyingRobot}
+            {t.chatbot.verifyingRobot}
           </div>
         )}
 
         {isTurnstileExpired && (
           <div className="text-center text-xs text-amber-400 bg-amber-500/10 border border-amber-500/30 rounded p-2">
-            Il captcha è scaduto. Lo sto rinnovando automaticamente...
+            ↻ {t.errors.captchaExpired}
           </div>
         )}
 
@@ -496,8 +517,17 @@ export function Chatbot({ locale = "en" }: ChatbotProps) {
       </form>
 
       {error && (
-        <div className="p-4 rounded-lg bg-destructive/10 border border-destructive text-destructive text-sm inferno-card">
-          {error}
+        <div className={`p-4 rounded-lg border text-sm inferno-card ${
+          isTurnstileLoading
+            ? "bg-amber-500/10 border-amber-500/40 text-amber-300"
+            : "bg-destructive/10 border-destructive text-destructive"
+        }`}>
+          <p>{error}</p>
+          {isTurnstileLoading && (
+            <p className="mt-1.5 text-xs text-amber-400/70 animate-pulse">
+              ↻ {t.errors.captchaExpired}
+            </p>
+          )}
         </div>
       )}
 
@@ -522,14 +552,36 @@ export function Chatbot({ locale = "en" }: ChatbotProps) {
             </div>
           )}
           <div className="flex items-center justify-between">
-            <div>
+            <div className="flex-1 min-w-0">
               <h2 className="text-2xl font-bold">
                 {t.chatbot.overallScore.replace("{score}", String(result.overall_score))}
               </h2>
               <p className="text-muted-foreground mt-1">{result.verdict}</p>
             </div>
-            <div className="flex gap-1 text-3xl">
-              {"🔥".repeat(Math.ceil(result.overall_score / 2))}
+            <div className="flex flex-col items-end gap-2 shrink-0 ml-4">
+              <div className="flex gap-1 text-3xl">
+                {"🔥".repeat(Math.ceil(result.overall_score / 2))}
+              </div>
+              {result.rankingId && (() => {
+                const rankingUrl = `${typeof window !== "undefined" ? window.location.origin : ""}/${locale}/rankings/${result.rankingId}`;
+                const shareText = encodeURIComponent(`${url} got ${result.overall_score}/10 🔥 ${result.verdict}`);
+                const shareUrl = encodeURIComponent(rankingUrl);
+                return (
+                  <div className="flex flex-col items-end gap-1.5">
+                    <a
+                      href={`/${locale}/rankings/${result.rankingId}`}
+                      className="flex items-center gap-1.5 text-xs text-orange-400/70 hover:text-orange-300 transition-colors border border-orange-500/20 hover:border-orange-400/40 rounded-md px-2.5 py-1"
+                    >
+                      {t.rankings.shareRoast}
+                    </a>
+                    <div className="flex gap-1.5">
+                      <a href={`https://twitter.com/intent/tweet?url=${shareUrl}&text=${shareText}`} target="_blank" rel="noopener noreferrer" className="text-xs px-2 py-0.5 rounded border border-orange-500/15 text-muted-foreground hover:text-orange-300 hover:border-orange-400/30 transition-colors" title="Share on X / Twitter">𝕏</a>
+                      <a href={`https://wa.me/?text=${shareText}%20${shareUrl}`} target="_blank" rel="noopener noreferrer" className="text-xs px-2 py-0.5 rounded border border-orange-500/15 text-muted-foreground hover:text-orange-300 hover:border-orange-400/30 transition-colors" title="Share on WhatsApp">WA</a>
+                      <a href={`https://www.linkedin.com/sharing/share-offsite/?url=${shareUrl}`} target="_blank" rel="noopener noreferrer" className="text-xs px-2 py-0.5 rounded border border-orange-500/15 text-muted-foreground hover:text-orange-300 hover:border-orange-400/30 transition-colors" title="Share on LinkedIn">in</a>
+                    </div>
+                  </div>
+                );
+              })()}
             </div>
           </div>
 

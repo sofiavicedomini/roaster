@@ -4,7 +4,7 @@
     "description": "Krijg een eerlijke, botte kritiek op elke website",
     "seoDescription": "Krijg een brutale, eerlijke kritiek op elke website met Röst mij. AI-gestuurde analyse van design, prestaties, SEO, UX, toegankelijkheid, beveiliging en meer. Ontdek wat er mis is met je site.",
     "keywords": "website kritiek, site analyse, SEO checker, prestatie audit, UX beoordeling, website beoordeling, AI website analyse, website rösten",
-    "footer": "Een project van <span class=\"font-semibold\">Vicedomini Softworks</span>"
+    "footer": "Wil je een web-app, site of software laten bouwen? <span class=\"font-semibold\">Neem contact op met Vicedomini Softworks →</span>"
   },
   "chatbot": {
     "urlLabel": "Website URL",
@@ -83,13 +83,49 @@
     "scoresTitle": "Scores per categorie",
     "roastsTitle": "Gedetailleerde roast",
     "fixPromptLabel": "Correctieprompt voor AI-agent:",
-    "roastYourSiteCta": "Wil je jouw site roosteren? →"
+    "roastYourSiteCta": "Wil je jouw site roosteren? →",
+    "homeLink": "Analyseer een site",
+    "shareRoast": "🔗 Deel deze roast"
   },
   "errors": {
     "urlRequired": "URL is verplicht",
     "highTraffic": "We hebben momenteel veel verkeer. Probeer het over een paar momenten opnieuw.",
     "invalidJson": "Ongeldige JSON-reactie van AI",
     "unknown": "Onbekende fout",
-    "aiApi": "AI-API-fout: "
+    "aiApi": "AI-API-fout: ",
+    "captchaExpired": "De CAPTCHA is verlopen of al gebruikt. Er wordt een nieuwe geladen — probeer het over een moment opnieuw."
+  },
+  "nav": {
+    "about": "Over ons",
+    "howItWorks": "Hoe het werkt"
+  },
+  "home": {
+    "recentRoasts": "Recente Roasts"
+  },
+  "history": {
+    "title": "Jouw recente analyses",
+    "clearAll": "Wissen"
+  },
+  "about": {
+    "title": "Over ons",
+    "subtitle": "De mensen achter de vlammen",
+    "intro": "Wij zijn Vicedomini Softworks — een Italiaans softwarebedrijf dat dingen bouwt die mensen echt gebruiken. We bouwden deze tool omdat het internet vol zit met verschrikkelijke websites, en de meeste ervan zullen dat nooit weten.",
+    "mission": "Onze missie: brute eerlijkheid met AI-precisie. Geen opvulling. Geen zoet praten. Alleen de waarheid over jouw site, of je het nu wilt horen of niet.",
+    "team": "Gevestigd in Italië. Aangedreven door nieuwsgierigheid, sterke koffie en een diep misprijzen voor slechte UX. We bouwen webapps, sites en maatwerksoftware voor klanten die de waarheid niet vrezen.",
+    "cta": "Wil je iets goed gebouwd hebben? Neem contact op →"
+  },
+  "howItWorks": {
+    "title": "Hoe het werkt",
+    "subtitle": "De brutale waarheid, stap voor stap",
+    "intro": "Onze AI maakt er geen doekjes om. Hier is precies wat er gebeurt als je een URL indient.",
+    "step1Title": "Voer je URL in",
+    "step1Desc": "Plak een willekeurig openbaar websiteadres. Als het jouw eigen site is, bereid je dan voor.",
+    "step2Title": "AI analyseert",
+    "step2Desc": "Onze AI haalt de inhoud van je site op, controleert robots.txt, sitemap, prestaties, agentcompatibiliteit en alles wat ze kan vinden. Ze leest alles. Ze beoordeelt alles.",
+    "step3Title": "De Roast",
+    "step3Desc": "Elke geselecteerde categorie krijgt een score van 1 tot 10, een brute kritiek en een prompt die je aan een AI-agent kunt geven om het daadwerkelijk op te lossen.",
+    "step4Title": "Jouw score",
+    "step4Desc": "Krijg je totaalscore, deel het resultaat of verbeter je site stilletjes in het donker. We oordelen niet. (Eigenlijk wel. Dat is het hele punt.)",
+    "cta": "Probeer het nu →"
   }
 }

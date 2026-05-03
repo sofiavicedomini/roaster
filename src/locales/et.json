@@ -4,7 +4,7 @@
     "description": "Saa aus ehtne, järeleandmatu kriitika ükskõik millise veebisaidi kohta",
     "seoDescription": "Saa julm, aus kriitika ükskõik millise veebisaidi kohta saidiga Prae mind. AI-toega analüüs disaini, jõudluse, SEO, UX, juurdepääsetavuse, turvalisuse ja muu kohta. Avasta, mis sinu saidiga valesti on.",
     "keywords": "veebisaidi kriitika, saidi analüüs, SEO kontroll, jõudluse audit, UX ülevaade, veebisaidi hindamine, AI veebisaidi analüüs, saiti praadima",
-    "footer": "Projekt: <span class=\"font-semibold\">Vicedomini Softworks</span>"
+    "footer": "Vajad veebirakendust, saiti või tarkvara? <span class=\"font-semibold\">Võta ühendust Vicedomini Softworksiga →</span>"
   },
   "chatbot": {
     "urlLabel": "Veebisaidi URL",
@@ -83,13 +83,49 @@
     "scoresTitle": "Skoorid kategooriate kaupa",
     "roastsTitle": "Üksikasjalik roast",
     "fixPromptLabel": "Parandusprompt AI-agendile:",
-    "roastYourSiteCta": "Soovid oma saiti röstida? →"
+    "roastYourSiteCta": "Soovid oma saiti röstida? →",
+    "homeLink": "Analüüsi saiti",
+    "shareRoast": "🔗 Jaga seda roasti"
   },
   "errors": {
     "urlRequired": "URL on kohustuslik",
     "highTraffic": "Hetkel on liiklus väga suur. Palun proovi mõne hetke pärast uuesti.",
     "invalidJson": "Vigane JSON-vastus AI-lt",
     "unknown": "Tundmatu viga",
-    "aiApi": "AI API viga: "
+    "aiApi": "AI API viga: ",
+    "captchaExpired": "CAPTCHA aegus või on juba kasutatud. Laaditakse uus — proovi hetke pärast uuesti."
+  },
+  "nav": {
+    "about": "Meist",
+    "howItWorks": "Kuidas see töötab"
+  },
+  "home": {
+    "recentRoasts": "Viimased roastid"
+  },
+  "history": {
+    "title": "Sinu viimased analüüsid",
+    "clearAll": "Kustuta"
+  },
+  "about": {
+    "title": "Meist",
+    "subtitle": "Inimesed leekide taga",
+    "intro": "Me oleme Vicedomini Softworks — Itaalia tarkvarafirma, mis ehitab asju, mida inimesed päriselt kasutavad. Lõime selle tööriista, sest internet on täis kohutavaid veebisaite, ja enamik neist ei saa sellest kunagi teada.",
+    "mission": "Meie missioon: brutaalne ausus tehisintellekti täpsusega. Ei jura. Ei ilustamist. Ainult tõde teie saidi kohta, kas soovite seda kuulda või mitte.",
+    "team": "Asume Itaalias. Töötame uudishimu, tugeva kohvi ja sügava põlguse toel halva UX vastu. Ehitame veebirakendusi, saite ja kohandatud tarkvara klientidele, kes ei karda tõde.",
+    "cta": "Vajad midagi hästi ehitatut? Võta meiega ühendust →"
+  },
+  "howItWorks": {
+    "title": "Kuidas see töötab",
+    "subtitle": "Toores tõde, samm-sammult",
+    "intro": "Meie tehisintellekt ei ilusta. Siin on täpselt see, mis juhtub, kui esitate URL-i.",
+    "step1Title": "Sisesta URL",
+    "step1Desc": "Kleebi mis tahes avaliku veebisaidi aadress. Kui see on sinu oma sait, valmistuge.",
+    "step2Title": "AI analüüsib",
+    "step2Desc": "Meie AI hangib teie saidi sisu, kontrollib robots.txt-i, saidikaardi, jõudluse, agentide ühilduvuse ja kõike muud, mida suudab leida. Loeb kõike. Hindab kõike.",
+    "step3Title": "Roastimine",
+    "step3Desc": "Iga valitud kategooria saab hinde 1–10, brutaalse kriitika ja viiba, mille saad anda AI-agendile tegeliku paranduse jaoks.",
+    "step4Title": "Sinu skoor",
+    "step4Desc": "Saa üldhinne, jaga tulemust või paranda sait vaikselt pimedas. Me ei mõista kohut. (Tegelikult mõistame. See ongi kogu mõte.)",
+    "cta": "Proovi kohe →"
   }
 }

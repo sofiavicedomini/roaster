@@ -1,7 +1,9 @@
 ---
 import Layout from "@/layouts/main.astro"
 import { Chatbot } from "@/components/chatbot"
+import { RoastHistory } from "@/components/RoastHistory"
 import { useTranslations, locales, type Locale } from "@/i18n/utils"
+import { getRankings } from "@/lib/redis"
 
 const langParam = Astro.params.lang as string
 const locale: Locale = locales.includes(langParam as Locale) ? langParam as Locale : "en"
@@ -11,10 +13,18 @@ if (!locales.includes(langParam as Locale)) {
 }
 
 const { t } = useTranslations(locale)
+const recentRaw = await getRankings(5)
+const recentRoasts = recentRaw.filter(Boolean) as NonNullable<typeof recentRaw[number]>[]
+
+function scoreColor(score: number) {
+  if (score >= 8) return "text-green-500"
+  if (score >= 5) return "text-yellow-500"
+  return "text-red-500"
+}
 ---
 
-  <Layout>
-    <div class="flex min-h-svh flex-col items-center justify-center p-6 pt-20 pb-20 md:pt-6 md:pb-6">
+<Layout>
+  <div class="flex min-h-svh flex-col items-center justify-center p-6 pt-20 pb-24 md:pt-6 md:pb-16">
     <div class="w-full max-w-2xl">
       <div class="mb-8 text-center">
         <h1 class="text-6xl font-bold inferno-text">
@@ -22,7 +32,30 @@ const { t } = useTranslations(locale)
         </h1>
         <p class="text-orange-400/90 mt-3 text-lg animate-pulse">🔥 {t("site.description")} 🔥</p>
       </div>
-      <Chatbot client:only="react" locale={locale} />
+      <Chatbot client:visible locale={locale} />
+
+      {recentRoasts.length > 0 && (
+        <div class="mt-10">
+          <h2 class="text-sm font-semibold text-orange-400/60 uppercase tracking-wider mb-3">{t("home.recentRoasts")}</h2>
+          <div class="flex flex-col gap-2">
+            {recentRoasts.map((r) => (
+              <a
+                href={`/${locale}/rankings/${r.uuid}`}
+                class="flex items-center gap-3 p-3 rounded-lg border border-orange-500/10 bg-card/50 hover:bg-muted/10 hover:border-orange-500/30 transition-colors no-underline"
+              >
+                <span class={`text-lg font-bold tabular-nums shrink-0 ${scoreColor(r.score)}`}>{r.score}<span class="text-xs font-normal opacity-60">/10</span></span>
+                <div class="flex-1 min-w-0">
+                  <div class="text-xs font-medium text-foreground/80 truncate">{r.normUrl || r.url}</div>
+                  <div class="text-xs text-muted-foreground/60 truncate mt-0.5">{r.verdict}</div>
+                </div>
+                <span class="text-xs text-muted-foreground/40 shrink-0">{new Date(r.completedAt).toLocaleDateString(locale, { day: "2-digit", month: "short" })}</span>
+              </a>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <RoastHistory client:only="react" locale={locale} />
     </div>
   </div>
 </Layout>

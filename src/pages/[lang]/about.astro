@@ -1,0 +1,51 @@
+---
+export const prerender = false;
+import Layout from "@/layouts/main.astro";
+import { locales, useTranslations, type Locale } from "@/i18n/utils";
+
+const { lang } = Astro.params;
+if (!lang || !locales.includes(lang as Locale)) {
+  return Astro.redirect("/it/about");
+}
+
+const { t } = useTranslations(lang as Locale);
+---
+
+<Layout title={t("about.title")} description={t("about.intro")}>
+  <div class="flex min-h-svh flex-col items-center p-6 pt-20 pb-20 md:pt-10 md:pb-10">
+    <div class="w-full max-w-2xl">
+      <div class="mb-8">
+        <a
+          href={`/${lang}`}
+          class="inline-flex items-center gap-1 text-sm text-orange-400/60 hover:text-orange-300 transition-colors mb-4"
+        >
+          ← {t("rankings.homeLink")}
+        </a>
+        <h1 class="text-4xl font-bold inferno-text">{t("about.title")}</h1>
+        <p class="text-orange-400/80 mt-2 text-base">{t("about.subtitle")}</p>
+      </div>
+
+      <div class="flex flex-col gap-6 rounded-lg border bg-card p-6 inferno-card">
+        <div>
+          <p class="text-foreground/90 leading-relaxed">{t("about.intro")}</p>
+        </div>
+        <div class="border-t border-border/50 pt-5">
+          <p class="text-foreground/80 leading-relaxed">{t("about.mission")}</p>
+        </div>
+        <div class="border-t border-border/50 pt-5">
+          <p class="text-muted-foreground leading-relaxed">{t("about.team")}</p>
+        </div>
+        <div class="border-t border-border/50 pt-5">
+          <a
+            href="https://vicedominisoftworks.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-orange-500/10 border border-orange-500/30 text-orange-400 hover:bg-orange-500/20 hover:border-orange-400/50 transition-colors font-medium"
+          >
+            {t("about.cta")}
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</Layout>
