@@ -52,6 +52,7 @@ function scoreFlames(score: number) {
           {rankings.map((r) => (
             <a
               href={`/${lang}/rankings/${r.uuid}`}
+              aria-label={`View roast for ${r.normUrl || r.url}, score ${r.score}/10`}
               class="group rounded-lg border bg-card p-4 hover:bg-muted/10 transition-colors inferno-card flex items-start gap-4 no-underline"
             >
               <div class={`text-2xl font-bold tabular-nums shrink-0 leading-none mt-0.5 ${scoreColor(r.score)}`}>

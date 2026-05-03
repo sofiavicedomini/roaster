@@ -188,6 +188,15 @@ input:focus, textarea:focus, select:focus {
   border-color: oklch(0.837 0.128 66.29 / 0.8) !important;
 }
 
+/* Keyboard focus indicator — visible only for keyboard navigation */
+a:focus-visible,
+button:focus-visible,
+[role="option"]:focus-visible {
+  outline: 2px solid oklch(0.837 0.128 66.29 / 0.9);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
 /* Fire button hover effect */
 button:not(:disabled):hover, [role="button"]:not(:disabled):hover {
   box-shadow: 0 0 20px oklch(0.837 0.128 66.29 / 0.7), 0 0 40px oklch(0.705 0.213 47.604 / 0.5) !important;

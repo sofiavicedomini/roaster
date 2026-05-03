@@ -71,15 +71,36 @@ function getLocalizedPath(locale: string) {
 
     btn.addEventListener("click", function (e) {
       e.stopPropagation();
-      menu.classList.contains("hidden") ? open() : close();
+      if (menu.classList.contains("hidden")) {
+        open();
+        var first = menu.querySelector("a");
+        if (first) first.focus();
+      } else {
+        close();
+        btn.focus();
+      }
     });
 
-    document.addEventListener("click", function () {
-      close();
-    });
+    document.addEventListener("click", function () { close(); });
 
     document.addEventListener("keydown", function (e) {
-      if (e.key === "Escape") close();
+      if (e.key === "Escape") { close(); btn.focus(); }
+    });
+
+    menu.addEventListener("keydown", function (e) {
+      var items = Array.from(menu.querySelectorAll("a"));
+      var idx = items.indexOf(document.activeElement);
+      if (e.key === "ArrowDown") {
+        e.preventDefault();
+        var next = items[(idx + 1) % items.length];
+        if (next) next.focus();
+      } else if (e.key === "ArrowUp") {
+        e.preventDefault();
+        var prev = items[(idx - 1 + items.length) % items.length];
+        if (prev) prev.focus();
+      } else if (e.key === "Tab") {
+        close();
+      }
     });
   })();
 </script>
