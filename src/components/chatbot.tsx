@@ -393,7 +393,7 @@ export function Chatbot({ locale = "en" }: ChatbotProps) {
   const clearCache = async () => {
     if (!cacheInfo) return;
     try {
-      const res = await fetch(`/api/roast/cache/${encodeURIComponent(cacheInfo.cacheKey)}`, { method: "DELETE" });
+      const res = await fetch(`/api/roast/cache?key=${encodeURIComponent(cacheInfo.cacheKey)}`, { method: "DELETE" });
       const data = await res.json();
       if (res.ok) {
         setCacheInfo(null);
