@@ -4,7 +4,7 @@ const locales = ["en", "it", "fr", "es", "pt", "de", "nl", "ru", "et"]
 
 export async function GET({ request }: APIContext) {
   const url = new URL(request.url)
-  const baseUrl = `${url.protocol}//${url.host}`
+  const baseUrl = import.meta.env.PUBLIC_URL || `${url.protocol}//${url.host}`
 
   const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"

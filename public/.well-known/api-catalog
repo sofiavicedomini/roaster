@@ -1,0 +1,28 @@
+{
+  "description": "Roast Me — API Catalog",
+  "note": "This is a human-facing web application. There is no public, stable API intended for programmatic consumption. The /api/roast endpoint is an internal backend used exclusively by the frontend UI and is subject to change without notice.",
+  "apis": [
+    {
+      "id": "roast-internal",
+      "name": "Roast Internal API",
+      "description": "Internal endpoint used by the Roast Me UI. Submits a URL for AI-powered analysis and returns a job ID for polling. Not a public API — no SLA, no versioning, no auth tokens issued.",
+      "url": "/api/roast",
+      "methods": ["POST", "GET"],
+      "public": false,
+      "authentication": "Cloudflare Turnstile CAPTCHA (bot protection)",
+      "rateLimit": "Enforced — use the web UI at https://stroncami.it"
+    }
+  ],
+  "humanInterface": {
+    "url": "https://stroncami.it",
+    "description": "Use the web UI to analyze websites. Results are available as JSON or Markdown via content negotiation on individual ranking pages (/[lang]/rankings/[uuid]) by sending Accept: application/json or Accept: text/markdown."
+  },
+  "contentNegotiation": {
+    "endpoint": "/[lang]/rankings/[uuid]",
+    "formats": [
+      { "accept": "text/html", "returns": "Full HTML page (default)" },
+      { "accept": "application/json", "returns": "Raw roast result as JSON" },
+      { "accept": "text/markdown", "returns": "Roast report as Markdown" }
+    ]
+  }
+}

@@ -1,30 +1,28 @@
-# Roast Me - AI Website Critique Tool
+# Roast Me — AI Website Critique Tool
 
 ## Overview
-Roast Me is an AI-powered website analysis tool that provides honest, no-BS critiques of any website. It analyzes design, performance, SEO, UX, accessibility, security, and AI agent readiness.
+Roast Me (Stroncami) is an AI-powered website analysis tool that provides honest, no-BS critiques of any website. It analyzes design, performance, SEO, UX, accessibility, security, and AI agent readiness.
 
 ## Features
 - Multi-language support (EN, IT, FR, ES, PT, DE, NL, RU, ET)
 - AI-powered analysis using OpenAI-compatible endpoints
-- Detailed scores and actionable fix prompts
+- Detailed scores and actionable fix prompts per category
 - Categories: Design, Performance, Code, Mobile, UX, Accessibility, Conversion, SEO, Copy, Brand, Credibility, Security, Agent Readiness, Robots & Sitemap, MCP & Skills, API Discovery, Bot Auth
 
-## API Endpoint
-- URL: /api/roast
-- Method: POST
-- Body: { url: string, categories: string[] }
-- Returns: { overallScore, roasts: [{ category, score, roast, fixPrompt }] }
+## Content Negotiation
+Roast results at /{locale}/rankings/{uuid} support machine-readable formats:
+- Accept: application/json → returns raw roast data as JSON
+- Accept: text/markdown → returns report as Markdown
 
-## For AI Agents
-When analyzing websites, this tool can be used to:
-1. Get comprehensive critiques with actionable improvement prompts
-2. Understand common web development issues
-3. Generate fix prompts for automated remediation
+## Note for AI Agents
+This is a human-facing web application. There is no public API. To analyze a website, a human user must visit https://stroncami.it and use the interface directly.
+
+Full LLM documentation: https://stroncami.it/llms-full.txt
+API catalog: https://stroncami.it/.well-known/api-catalog
 
 ## Links
-- Website: https://roast-me.vicedominisoftworks.com
+- Website: https://stroncami.it
 - Company: https://vicedominisoftworks.com
-- Repository: https://github.com/vicedomini-softworks/roaster
 
 ## License
-All rights reserved - Vicedomini Softworks
+All rights reserved — Vicedomini Softworks

@@ -21,6 +21,25 @@ const result = ranking.result as {
   roasts: Array<{ category: string; emoji: string; critique: string; fix_prompt?: string }>;
 };
 
+// Content negotiation — serve JSON or Markdown to bots/agents
+const accept = Astro.request.headers.get("accept") || "";
+if (accept.includes("application/json")) {
+  return new Response(JSON.stringify({
+    uuid: ranking.uuid, url: ranking.url, normUrl: ranking.normUrl,
+    score: result.overall_score, verdict: result.verdict,
+    scores: result.scores, roasts: result.roasts,
+    completedAt: ranking.completedAt, locale: ranking.locale,
+  }), { headers: { "Content-Type": "application/json; charset=utf-8", "Vary": "Accept" } });
+}
+if (accept.includes("text/markdown") || (accept.includes("text/plain") && !accept.includes("text/html"))) {
+  const fires = "🔥".repeat(Math.ceil(result.overall_score / 2));
+  const roastLines = (result.roasts || []).map((r) =>
+    `### ${r.emoji} ${r.category}\n${r.critique}${r.fix_prompt ? `\n\n**Fix prompt:**\n\`\`\`\n${r.fix_prompt}\n\`\`\`` : ""}`
+  ).join("\n\n");
+  const md = `# ${ranking.normUrl || ranking.url}\n\n**Score:** ${result.overall_score}/10 ${fires}\n\n**Verdict:** ${result.verdict}\n\n---\n\n${roastLines}`;
+  return new Response(md, { headers: { "Content-Type": "text/markdown; charset=utf-8", "Vary": "Accept" } });
+}
+
 function scoreColor(score: number | null) {
   if (score === null) return "text-muted-foreground";
   if (score >= 8) return "text-green-500";
@@ -34,6 +53,8 @@ function catLabel(cat: string): string {
   const translated = t(key);
   return translated === key ? cat : translated;
 }
+
+Astro.response.headers.set("Vary", "Accept");
 ---
 
 <Layout title={`${ranking.normUrl || ranking.url} — ${result.overall_score}/10`} description={result.verdict}>

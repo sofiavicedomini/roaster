@@ -85,7 +85,8 @@
     "fixPromptLabel": "Parandusprompt AI-agendile:",
     "roastYourSiteCta": "Soovid oma saiti röstida? →",
     "homeLink": "Analüüsi saiti",
-    "shareRoast": "🔗 Jaga seda roasti"
+    "shareRoast": "🔗 Jaga seda roasti",
+    "stats": "{count} saiti analüüsitud · Keskmine skoor: {avg}/10"
   },
   "errors": {
     "urlRequired": "URL on kohustuslik",
@@ -112,7 +113,9 @@
     "intro": "Me oleme Vicedomini Softworks — Itaalia tarkvarafirma, mis ehitab asju, mida inimesed päriselt kasutavad. Lõime selle tööriista, sest internet on täis kohutavaid veebisaite, ja enamik neist ei saa sellest kunagi teada.",
     "mission": "Meie missioon: brutaalne ausus tehisintellekti täpsusega. Ei jura. Ei ilustamist. Ainult tõde teie saidi kohta, kas soovite seda kuulda või mitte.",
     "team": "Asume Itaalias. Töötame uudishimu, tugeva kohvi ja sügava põlguse toel halva UX vastu. Ehitame veebirakendusi, saite ja kohandatud tarkvara klientidele, kes ei karda tõde.",
-    "cta": "Vajad midagi hästi ehitatut? Võta meiega ühendust →"
+    "cta": "Vajad midagi hästi ehitatut? Võta meiega ühendust →",
+    "statsSites": "saidid halastamata analüüsitud",
+    "statsSubtitle": "ja arv kasvab — internet on endiselt halb"
   },
   "howItWorks": {
     "title": "Kuidas see töötab",
@@ -127,5 +130,12 @@
     "step4Title": "Sinu skoor",
     "step4Desc": "Saa üldhinne, jaga tulemust või paranda sait vaikselt pimedas. Me ei mõista kohut. (Tegelikult mõistame. See ongi kogu mõte.)",
     "cta": "Proovi kohe →"
+  },
+  "newsletter": {
+    "title": "Püsi kursis",
+    "placeholder": "sina@näide.ee",
+    "submit": "Telli",
+    "success": "Oled sees. Valmistuge.",
+    "error": "Midagi läks valesti. Proovi uuesti."
   }
 }
