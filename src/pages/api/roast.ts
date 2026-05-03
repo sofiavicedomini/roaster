@@ -55,11 +55,11 @@ export const POST: APIRoute = async ({ request }) => {
       if (!turnstileData.success) {
         const errorCodes = turnstileData["error-codes"] || [];
         console.warn("[Roast API] Turnstile verification failed:", turnstileData);
-        let errorMsg = t?.errors.captchaExpired ?? "CAPTCHA verification failed";
-        if (!errorCodes.includes("timeout-or-duplicate") && !errorCodes.includes("invalid-input-response")) {
-          errorMsg = "CAPTCHA verification failed";
-        }
-        return new Response(JSON.stringify({ error: errorMsg }), {
+        const isExpiredOrDuplicate = errorCodes.includes("timeout-or-duplicate") || errorCodes.includes("invalid-input-response");
+        const errorMsg = isExpiredOrDuplicate
+          ? (t ? t.errors.captchaExpired : "CAPTCHA expired. Please try again.")
+          : "CAPTCHA verification failed";
+        return new Response(JSON.stringify({ error: errorMsg, captchaError: true }), {
           status: 403,
           headers: { "Content-Type": "application/json" },
         });
@@ -336,7 +336,7 @@ async function processRoast(
     const normUrl = normalizeUrl(url);
     const cachedAt = new Date().toISOString();
     await saveRanking(jobId, { url, normUrl, score: (result as any).overall_score, verdict: (result as any).verdict, cats, locale, completedAt: cachedAt, result: result as Record<string, unknown> }).catch(() => {});
-    await updateJob(jobId, { status: "completed", progress: "Done", result: JSON.stringify({ ...result, cached: false, cacheKey: cacheKey(normUrl) }) });
+    await updateJob(jobId, { status: "completed", progress: "Done", result: JSON.stringify({ ...result, cached: false, cacheKey: cacheKey(normUrl), rankingId: jobId }) });
     await jobDb.del(jobIdKey(normUrl, locale));
     return;
   }
@@ -369,7 +369,7 @@ async function processRoast(
   await updateJob(jobId, {
     status: "completed",
     progress: "Done",
-    result: JSON.stringify({ ...result, cached: false, cacheKey: cacheKey(normUrl) }),
+    result: JSON.stringify({ ...result, cached: false, cacheKey: cacheKey(normUrl), rankingId: jobId }),
   });
 
   saveRanking(jobId, {
@@ -648,8 +648,7 @@ async function buildPrompt(url: string, categories: string[], locale: string, ch
     .replace(/\{\{AGENT_DATA\}\}/g, agentData)
     .replace(/\{\{URL\}\}/g, url)
     .replace(/\{\{CATEGORIES\}\}/g, categoriesStr)
-    .replace(/\{\{LANGUAGE\}\}/g, langName)
-    .replace(/\{\{CURRENT_DATE\}\}/g, new Date().toISOString());
+    .replace(/\{\{LANGUAGE\}\}/g, langName);
 
   console.log("[buildPrompt] Agent prompt length:", modified.length, "lang:", langName);
   return modified;

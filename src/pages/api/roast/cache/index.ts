@@ -5,17 +5,17 @@ import { cacheDb } from "@/lib/redis";
 
 const MIN_CACHE_AGE_MS = 30 * 60 * 1000;
 
-export const DELETE: APIRoute = async ({ params }) => {
-  const cacheKey = params.cacheKey as string;
-  if (!cacheKey) {
-    return new Response(JSON.stringify({ error: "cacheKey required" }), {
+export const DELETE: APIRoute = async ({ request }) => {
+  const key = new URL(request.url).searchParams.get("key");
+  if (!key) {
+    return new Response(JSON.stringify({ error: "key required" }), {
       status: 400,
       headers: { "Content-Type": "application/json" },
     });
   }
 
   try {
-    const raw = await cacheDb.get(cacheKey);
+    const raw = await cacheDb.get(key);
     if (!raw) {
       return new Response(JSON.stringify({ error: "Cache not found" }), {
         status: 404,
@@ -23,8 +23,8 @@ export const DELETE: APIRoute = async ({ params }) => {
       });
     }
 
-    const cached = JSON.parse(raw);
-    const cachedAt = new Date(cached.cachedAt).getTime();
+    const cached = JSON.parse(raw) as { cachedAt?: string };
+    const cachedAt = new Date(cached.cachedAt ?? 0).getTime();
     const now = Date.now();
 
     if (now - cachedAt < MIN_CACHE_AGE_MS) {
@@ -35,7 +35,7 @@ export const DELETE: APIRoute = async ({ params }) => {
       );
     }
 
-    await cacheDb.del(cacheKey);
+    await cacheDb.del(key);
     return new Response(JSON.stringify({ success: true }), {
       status: 200,
       headers: { "Content-Type": "application/json" },
