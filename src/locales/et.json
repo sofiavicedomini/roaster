@@ -83,7 +83,9 @@
     "scoresTitle": "Skoorid kategooriate kaupa",
     "roastsTitle": "Üksikasjalik roast",
     "fixPromptLabel": "Parandusprompt AI-agendile:",
-    "roastYourSiteCta": "Soovid oma saiti röstida? →"
+    "roastYourSiteCta": "Soovid oma saiti röstida? →",
+    "homeLink": "Analüüsi saiti",
+    "shareRoast": "🔗 Jaga seda roasti"
   },
   "errors": {
     "urlRequired": "URL on kohustuslik",

@@ -83,7 +83,9 @@
     "scoresTitle": "Punkte nach Kategorie",
     "roastsTitle": "Detaillierter Roast",
     "fixPromptLabel": "Korrektur-Prompt für KI-Agent:",
-    "roastYourSiteCta": "Möchtest du deine Website grillen? →"
+    "roastYourSiteCta": "Möchtest du deine Website grillen? →",
+    "homeLink": "Eine Site analysieren",
+    "shareRoast": "🔗 Diesen Roast teilen"
   },
   "errors": {
     "urlRequired": "URL ist erforderlich",

@@ -83,7 +83,9 @@
     "scoresTitle": "Puntuaciones por categoría",
     "roastsTitle": "Roast detallado",
     "fixPromptLabel": "Prompt de corrección para agente IA:",
-    "roastYourSiteCta": "¿Quieres destrozar tu sitio? →"
+    "roastYourSiteCta": "¿Quieres destrozar tu sitio? →",
+    "homeLink": "Analizar un sitio",
+    "shareRoast": "🔗 Compartir este roast"
   },
   "errors": {
     "urlRequired": "La URL es obligatoria",

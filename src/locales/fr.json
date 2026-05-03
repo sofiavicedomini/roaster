@@ -83,7 +83,9 @@
     "scoresTitle": "Scores par catégorie",
     "roastsTitle": "Roast détaillé",
     "fixPromptLabel": "Prompt de correction pour agent IA :",
-    "roastYourSiteCta": "Vous voulez griller votre site ? →"
+    "roastYourSiteCta": "Vous voulez griller votre site ? →",
+    "homeLink": "Analyser un site",
+    "shareRoast": "🔗 Partager ce roast"
   },
   "errors": {
     "urlRequired": "L'URL est requise",

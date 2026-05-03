@@ -336,7 +336,7 @@ async function processRoast(
     const normUrl = normalizeUrl(url);
     const cachedAt = new Date().toISOString();
     await saveRanking(jobId, { url, normUrl, score: (result as any).overall_score, verdict: (result as any).verdict, cats, locale, completedAt: cachedAt, result: result as Record<string, unknown> }).catch(() => {});
-    await updateJob(jobId, { status: "completed", progress: "Done", result: JSON.stringify({ ...result, cached: false, cacheKey: cacheKey(normUrl) }) });
+    await updateJob(jobId, { status: "completed", progress: "Done", result: JSON.stringify({ ...result, cached: false, cacheKey: cacheKey(normUrl), rankingId: jobId }) });
     await jobDb.del(jobIdKey(normUrl, locale));
     return;
   }
@@ -369,7 +369,7 @@ async function processRoast(
   await updateJob(jobId, {
     status: "completed",
     progress: "Done",
-    result: JSON.stringify({ ...result, cached: false, cacheKey: cacheKey(normUrl) }),
+    result: JSON.stringify({ ...result, cached: false, cacheKey: cacheKey(normUrl), rankingId: jobId }),
   });
 
   saveRanking(jobId, {

@@ -28,6 +28,12 @@ function scoreFlames(score: number) {
   <div class="flex min-h-svh flex-col items-center p-6 pt-20 pb-20 md:pt-10 md:pb-10">
     <div class="w-full max-w-4xl">
       <div class="mb-8 text-center">
+        <a
+          href={`/${lang}`}
+          class="inline-flex items-center gap-1 text-sm text-orange-400/60 hover:text-orange-300 transition-colors mb-4"
+        >
+          ← {t("rankings.homeLink")}
+        </a>
         <h1 class="text-4xl font-bold inferno-text">{t("rankings.title")}</h1>
         <p class="text-orange-400/80 mt-3 text-base">{t("rankings.subtitle")}</p>
       </div>

@@ -102,7 +102,9 @@
     "scoresTitle": "Scores by category",
     "roastsTitle": "Detailed Roast",
     "fixPromptLabel": "Fix prompt for AI agent:",
-    "roastYourSiteCta": "Want to roast your site? →"
+    "roastYourSiteCta": "Want to roast your site? →",
+    "homeLink": "Roast a site",
+    "shareRoast": "🔗 Share this roast"
   },
   "errors": {
     "urlRequired": "URL is required",

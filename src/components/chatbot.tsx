@@ -39,6 +39,7 @@ interface RoastResult {
   cachedAt?: string;
   cacheKey?: string;
   translated?: boolean;
+  rankingId?: string;
 }
 
 interface ChatbotProps {
@@ -522,14 +523,24 @@ export function Chatbot({ locale = "en" }: ChatbotProps) {
             </div>
           )}
           <div className="flex items-center justify-between">
-            <div>
+            <div className="flex-1 min-w-0">
               <h2 className="text-2xl font-bold">
                 {t.chatbot.overallScore.replace("{score}", String(result.overall_score))}
               </h2>
               <p className="text-muted-foreground mt-1">{result.verdict}</p>
             </div>
-            <div className="flex gap-1 text-3xl">
-              {"🔥".repeat(Math.ceil(result.overall_score / 2))}
+            <div className="flex flex-col items-end gap-2 shrink-0 ml-4">
+              <div className="flex gap-1 text-3xl">
+                {"🔥".repeat(Math.ceil(result.overall_score / 2))}
+              </div>
+              {result.rankingId && (
+                <a
+                  href={`/${locale}/rankings/${result.rankingId}`}
+                  className="flex items-center gap-1.5 text-xs text-orange-400/70 hover:text-orange-300 transition-colors border border-orange-500/20 hover:border-orange-400/40 rounded-md px-2.5 py-1"
+                >
+                  {t.rankings.shareRoast}
+                </a>
+              )}
             </div>
           </div>
 

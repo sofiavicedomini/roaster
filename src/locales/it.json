@@ -102,7 +102,9 @@
     "scoresTitle": "Punteggi per categoria",
     "roastsTitle": "Stroncatura dettagliata",
     "fixPromptLabel": "Prompt di correzione per AI agent:",
-    "roastYourSiteCta": "Vuoi roastare il tuo sito? →"
+    "roastYourSiteCta": "Vuoi roastare il tuo sito? →",
+    "homeLink": "Roasta un sito",
+    "shareRoast": "🔗 Condividi questo roast"
   },
   "errors": {
     "urlRequired": "L'URL è obbligatorio",

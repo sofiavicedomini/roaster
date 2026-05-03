@@ -83,7 +83,9 @@
     "scoresTitle": "Scores per categorie",
     "roastsTitle": "Gedetailleerde roast",
     "fixPromptLabel": "Correctieprompt voor AI-agent:",
-    "roastYourSiteCta": "Wil je jouw site roosteren? →"
+    "roastYourSiteCta": "Wil je jouw site roosteren? →",
+    "homeLink": "Analyseer een site",
+    "shareRoast": "🔗 Deel deze roast"
   },
   "errors": {
     "urlRequired": "URL is verplicht",

@@ -83,7 +83,9 @@
     "scoresTitle": "Оценки по категориям",
     "roastsTitle": "Детальная прожарка",
     "fixPromptLabel": "Промпт исправления для AI-агента:",
-    "roastYourSiteCta": "Хотите поджарить ваш сайт? →"
+    "roastYourSiteCta": "Хотите поджарить ваш сайт? →",
+    "homeLink": "Проанализировать сайт",
+    "shareRoast": "🔗 Поделиться этим ростом"
   },
   "errors": {
     "urlRequired": "URL обязателен",
