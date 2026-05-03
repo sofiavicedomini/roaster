@@ -438,6 +438,11 @@ body::after {
   }
 }
 
+/* Safe area padding for iOS home indicator */
+body {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
 /* Cloudflare Turnstile */
 .cf-turnstile {
   margin: 1rem auto;

@@ -18,13 +18,16 @@ const { t } = useTranslations(locale)
 <html lang={locale}>
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width" />
+    <meta name="viewport" content="width=device-width, viewport-fit=cover" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <SEO locale={locale} title={title} description={description} />
     <script is:inline>
       try {
         const theme = localStorage.getItem('theme') || 'dark';
         document.documentElement.classList.add(theme);
+        if (localStorage.getItem('fire-disabled') === 'true') {
+          document.documentElement.classList.add('no-fire');
+        }
       } catch (e) {
         document.documentElement.classList.add('dark');
       }
@@ -64,30 +67,62 @@ const { t } = useTranslations(locale)
         set:html={t("site.footer")}
       />
     </div>
-    <button
-      id="theme-toggle"
-      aria-label="Toggle theme"
-      class="fixed bottom-4 left-4 z-50 p-2 rounded-md bg-zinc-900/90 border border-orange-500/20 hover:border-orange-400/50 text-orange-400/80 hover:text-orange-300 transition-colors backdrop-blur-sm text-base"
-    >
-      <span id="theme-icon">☀️</span>
-    </button>
+    <div class="fixed bottom-4 left-4 z-50 flex items-center gap-2">
+      <button
+        id="theme-toggle"
+        aria-label="Toggle theme"
+        class="p-2 rounded-md bg-zinc-900/90 border border-orange-500/20 hover:border-orange-400/50 text-orange-400/80 hover:text-orange-300 transition-colors backdrop-blur-sm text-base"
+      >
+        <span id="theme-icon">☀️</span>
+      </button>
+      <button
+        id="fire-toggle"
+        aria-label="Disable background animation"
+        class="p-2 rounded-md bg-zinc-900/90 border border-orange-500/20 hover:border-orange-400/50 text-orange-400/80 hover:text-orange-300 transition-colors backdrop-blur-sm text-base"
+        title="Toggle background animation"
+      >
+        <span id="fire-icon">🔥</span>
+      </button>
+    </div>
     <script is:inline>
       (function() {
-        var btn = document.getElementById('theme-toggle');
-        var icon = document.getElementById('theme-icon');
-        function updateIcon() {
+        var themeBtn = document.getElementById('theme-toggle');
+        var themeIcon = document.getElementById('theme-icon');
+        function updateThemeIcon() {
           var isDark = document.documentElement.classList.contains('dark');
-          if (icon) icon.textContent = isDark ? '☀️' : '🌙';
+          if (themeIcon) themeIcon.textContent = isDark ? '☀️' : '🌙';
         }
-        updateIcon();
-        if (btn) {
-          btn.addEventListener('click', function() {
+        updateThemeIcon();
+        if (themeBtn) {
+          themeBtn.addEventListener('click', function() {
             var isDark = document.documentElement.classList.contains('dark');
             var next = isDark ? 'light' : 'dark';
             document.documentElement.classList.remove('dark', 'light');
             document.documentElement.classList.add(next);
             try { localStorage.setItem('theme', next); } catch(e) {}
-            updateIcon();
+            updateThemeIcon();
+          });
+        }
+
+        var fireBtn = document.getElementById('fire-toggle');
+        var fireIcon = document.getElementById('fire-icon');
+        function updateFireIcon() {
+          var off = document.documentElement.classList.contains('no-fire');
+          if (fireIcon) fireIcon.textContent = off ? '○' : '🔥';
+          if (fireBtn) fireBtn.setAttribute('aria-label', off ? 'Enable background animation' : 'Disable background animation');
+        }
+        updateFireIcon();
+        if (fireBtn) {
+          fireBtn.addEventListener('click', function() {
+            var off = document.documentElement.classList.contains('no-fire');
+            if (off) {
+              document.documentElement.classList.remove('no-fire');
+              try { localStorage.setItem('fire-disabled', 'false'); } catch(e) {}
+            } else {
+              document.documentElement.classList.add('no-fire');
+              try { localStorage.setItem('fire-disabled', 'true'); } catch(e) {}
+            }
+            updateFireIcon();
           });
         }
       })();

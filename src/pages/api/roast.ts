@@ -55,9 +55,9 @@ export const POST: APIRoute = async ({ request }) => {
       if (!turnstileData.success) {
         const errorCodes = turnstileData["error-codes"] || [];
         console.warn("[Roast API] Turnstile verification failed:", turnstileData);
-        let errorMsg = "CAPTCHA verification failed";
-        if (errorCodes.includes("timeout-or-duplicate") || errorCodes.includes("invalid-input-response")) {
-          errorMsg = "Il captcha è scaduto. Riprova.";
+        let errorMsg = t?.errors.captchaExpired ?? "CAPTCHA verification failed";
+        if (!errorCodes.includes("timeout-or-duplicate") && !errorCodes.includes("invalid-input-response")) {
+          errorMsg = "CAPTCHA verification failed";
         }
         return new Response(JSON.stringify({ error: errorMsg }), {
           status: 403,
@@ -648,7 +648,8 @@ async function buildPrompt(url: string, categories: string[], locale: string, ch
     .replace(/\{\{AGENT_DATA\}\}/g, agentData)
     .replace(/\{\{URL\}\}/g, url)
     .replace(/\{\{CATEGORIES\}\}/g, categoriesStr)
-    .replace(/\{\{LANGUAGE\}\}/g, langName);
+    .replace(/\{\{LANGUAGE\}\}/g, langName)
+    .replace(/\{\{CURRENT_DATE\}\}/g, new Date().toISOString());
 
   console.log("[buildPrompt] Agent prompt length:", modified.length, "lang:", langName);
   return modified;
