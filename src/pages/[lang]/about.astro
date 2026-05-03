@@ -2,6 +2,7 @@
 export const prerender = false;
 import Layout from "@/layouts/main.astro";
 import { locales, useTranslations, type Locale } from "@/i18n/utils";
+import { getRankingsCount } from "@/lib/redis";
 
 const { lang } = Astro.params;
 if (!lang || !locales.includes(lang as Locale)) {
@@ -9,6 +10,7 @@ if (!lang || !locales.includes(lang as Locale)) {
 }
 
 const { t } = useTranslations(lang as Locale);
+const totalRoasts = await getRankingsCount();
 ---
 
 <Layout title={t("about.title")} description={t("about.intro")}>
@@ -25,6 +27,16 @@ const { t } = useTranslations(lang as Locale);
         <p class="text-orange-400/80 mt-2 text-base">{t("about.subtitle")}</p>
       </div>
 
+      {totalRoasts > 0 && (
+        <div class="flex items-center gap-3 mb-6 px-4 py-3 rounded-lg bg-orange-500/5 border border-orange-500/15">
+          <span class="text-2xl" aria-hidden="true">🔥</span>
+          <div>
+            <p class="text-sm font-semibold text-orange-400">{totalRoasts} {t("about.statsSites")}</p>
+            <p class="text-xs text-muted-foreground">{t("about.statsSubtitle")}</p>
+          </div>
+        </div>
+      )}
+
       <div class="flex flex-col gap-6 rounded-lg border bg-card p-6 inferno-card">
         <div>
           <p class="text-foreground/90 leading-relaxed">{t("about.intro")}</p>
@@ -40,7 +52,7 @@ const { t } = useTranslations(lang as Locale);
             href="https://vicedominisoftworks.com"
             target="_blank"
             rel="noopener noreferrer"
-            class="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-orange-500/10 border border-orange-500/30 text-orange-400 hover:bg-orange-500/20 hover:border-orange-400/50 transition-colors font-medium"
+            class="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-zinc-900/90 border border-orange-500/30 text-orange-400 hover:bg-zinc-800/90 hover:border-orange-400/50 transition-colors font-medium backdrop-blur-sm"
           >
             {t("about.cta")}
           </a>

@@ -85,7 +85,8 @@
     "fixPromptLabel": "Prompt de corrección para agente IA:",
     "roastYourSiteCta": "¿Quieres destrozar tu sitio? →",
     "homeLink": "Analizar un sitio",
-    "shareRoast": "🔗 Compartir este roast"
+    "shareRoast": "🔗 Compartir este roast",
+    "stats": "{count} sitios analizados · Puntuación media: {avg}/10"
   },
   "errors": {
     "urlRequired": "La URL es obligatoria",
@@ -112,7 +113,9 @@
     "intro": "Somos Vicedomini Softworks — una empresa italiana de software que construye cosas que la gente realmente usa. Creamos esta herramienta porque internet está lleno de sitios web terribles, y la mayoría nunca lo sabrán.",
     "mission": "Nuestra misión: honestidad brutal con precisión de IA. Sin relleno. Sin edulcoración. Solo la verdad sobre tu sitio, lo quieras escuchar o no.",
     "team": "Con sede en Italia. Impulsados por curiosidad, café fuerte y un profundo desprecio por la mala UX. Construimos aplicaciones web, sitios y software personalizado para clientes que no temen a la verdad.",
-    "cta": "¿Necesitas algo bien construido? Contáctanos →"
+    "cta": "¿Necesitas algo bien construido? Contáctanos →",
+    "statsSites": "sitios analizados sin piedad",
+    "statsSubtitle": "y contando — internet sigue siendo un desastre"
   },
   "howItWorks": {
     "title": "Cómo Funciona",
@@ -127,5 +130,12 @@
     "step4Title": "Tu puntuación",
     "step4Desc": "Obtén tu puntuación global, comparte el resultado, o corrige tu sitio en silencio. No juzgamos. (En realidad sí. Eso es exactamente lo que hemos construido.)",
     "cta": "Pruébalo ahora →"
+  },
+  "newsletter": {
+    "title": "Mantente informado",
+    "placeholder": "tu@ejemplo.es",
+    "submit": "Suscribirse",
+    "success": "Ya estás dentro. Prepárate.",
+    "error": "Algo salió mal. Inténtalo de nuevo."
   }
 }

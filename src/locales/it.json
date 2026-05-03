@@ -104,7 +104,8 @@
     "fixPromptLabel": "Prompt di correzione per AI agent:",
     "roastYourSiteCta": "Vuoi roastare il tuo sito? →",
     "homeLink": "Roasta un sito",
-    "shareRoast": "🔗 Condividi questo roast"
+    "shareRoast": "🔗 Condividi questo roast",
+    "stats": "{count} siti stroncati · Punteggio medio: {avg}/10"
   },
   "errors": {
     "urlRequired": "L'URL è obbligatorio",
@@ -131,7 +132,9 @@
     "intro": "Siamo Vicedomini Softworks — una software house italiana che costruisce cose che la gente usa davvero. Abbiamo creato questo strumento perché internet è pieno di siti web orribili, e la maggior parte di loro non lo saprà mai.",
     "mission": "La nostra missione: onestà brutale con precisione AI. Niente fronzoli. Niente smielature. Solo la verità sul tuo sito, che tu voglia sentirla o no.",
     "team": "Con sede in Italia. Alimentati da curiosità, caffè forte e un profondo disprezzo per la cattiva UX. Costruiamo app web, siti e software personalizzati per clienti che non hanno paura della verità.",
-    "cta": "Hai bisogno di qualcosa costruito bene? Contattaci →"
+    "cta": "Hai bisogno di qualcosa costruito bene? Contattaci →",
+    "statsSites": "siti stroncati senza pietà",
+    "statsSubtitle": "e il conteggio continua — internet fa ancora schifo"
   },
   "howItWorks": {
     "title": "Come Funziona",
@@ -146,5 +149,12 @@
     "step4Title": "Il Tuo Punteggio",
     "step4Desc": "Ottieni il tuo punteggio complessivo, condividi il risultato, o correggi silenziosamente il tuo sito al buio. Non giudichiamo. (In realtà sì. È quello che abbiamo costruito.)",
     "cta": "Provalo ora →"
+  },
+  "newsletter": {
+    "title": "Rimani aggiornato",
+    "placeholder": "tu@esempio.it",
+    "submit": "Iscriviti",
+    "success": "Sei dentro. Preparati.",
+    "error": "Qualcosa è andato storto. Riprova."
   }
 }

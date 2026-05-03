@@ -104,7 +104,8 @@
     "fixPromptLabel": "Fix prompt for AI agent:",
     "roastYourSiteCta": "Want to roast your site? →",
     "homeLink": "Roast a site",
-    "shareRoast": "🔗 Share this roast"
+    "shareRoast": "🔗 Share this roast",
+    "stats": "{count} websites roasted · Average score: {avg}/10"
   },
   "errors": {
     "urlRequired": "URL is required",
@@ -131,7 +132,9 @@
     "intro": "We are Vicedomini Softworks — an Italian software company that builds things people actually use. We built this tool because the internet is full of terrible websites, and most of them will never know it.",
     "mission": "Our mission: brutal honesty delivered with AI precision. No fluff. No sugar-coating. Just the truth about your site, whether you want to hear it or not.",
     "team": "Based in Italy. Powered by curiosity, strong coffee, and a deep contempt for bad UX. We build web apps, sites, and custom software for clients who aren't afraid of the truth.",
-    "cta": "Need something built right? Contact us →"
+    "cta": "Need something built right? Contact us →",
+    "statsSites": "websites brutally analyzed",
+    "statsSubtitle": "and counting — the internet is still bad"
   },
   "howItWorks": {
     "title": "How It Works",
@@ -146,5 +149,12 @@
     "step4Title": "Your Score",
     "step4Desc": "Get your overall score, share the result, or quietly fix your site in the dark. We don't judge. (Actually, we do. That's the whole point.)",
     "cta": "Try it now →"
+  },
+  "newsletter": {
+    "title": "Stay updated",
+    "placeholder": "you@example.com",
+    "submit": "Subscribe",
+    "success": "You're in. Brace yourself.",
+    "error": "Something went wrong. Try again."
   }
 }

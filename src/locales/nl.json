@@ -85,7 +85,8 @@
     "fixPromptLabel": "Correctieprompt voor AI-agent:",
     "roastYourSiteCta": "Wil je jouw site roosteren? →",
     "homeLink": "Analyseer een site",
-    "shareRoast": "🔗 Deel deze roast"
+    "shareRoast": "🔗 Deel deze roast",
+    "stats": "{count} websites geanalyseerd · Gemiddelde score: {avg}/10"
   },
   "errors": {
     "urlRequired": "URL is verplicht",
@@ -112,7 +113,9 @@
     "intro": "Wij zijn Vicedomini Softworks — een Italiaans softwarebedrijf dat dingen bouwt die mensen echt gebruiken. We bouwden deze tool omdat het internet vol zit met verschrikkelijke websites, en de meeste ervan zullen dat nooit weten.",
     "mission": "Onze missie: brute eerlijkheid met AI-precisie. Geen opvulling. Geen zoet praten. Alleen de waarheid over jouw site, of je het nu wilt horen of niet.",
     "team": "Gevestigd in Italië. Aangedreven door nieuwsgierigheid, sterke koffie en een diep misprijzen voor slechte UX. We bouwen webapps, sites en maatwerksoftware voor klanten die de waarheid niet vrezen.",
-    "cta": "Wil je iets goed gebouwd hebben? Neem contact op →"
+    "cta": "Wil je iets goed gebouwd hebben? Neem contact op →",
+    "statsSites": "websites meedogenloos geanalyseerd",
+    "statsSubtitle": "en het telt door — het internet is nog steeds slecht"
   },
   "howItWorks": {
     "title": "Hoe het werkt",
@@ -127,5 +130,12 @@
     "step4Title": "Jouw score",
     "step4Desc": "Krijg je totaalscore, deel het resultaat of verbeter je site stilletjes in het donker. We oordelen niet. (Eigenlijk wel. Dat is het hele punt.)",
     "cta": "Probeer het nu →"
+  },
+  "newsletter": {
+    "title": "Blijf op de hoogte",
+    "placeholder": "jij@voorbeeld.nl",
+    "submit": "Abonneren",
+    "success": "Je bent erbij. Bereid je voor.",
+    "error": "Er is iets misgegaan. Probeer opnieuw."
   }
 }

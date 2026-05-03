@@ -7,6 +7,7 @@ import node from "@astrojs/node"
 
 // https://astro.build/config
 export default defineConfig({
+  site: process.env.PUBLIC_URL || "https://stroncami.it",
   output: "server",
   adapter: node({ mode: "standalone" }),
   security: {

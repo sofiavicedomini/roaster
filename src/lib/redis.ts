@@ -239,3 +239,15 @@ export async function resumeJob(jobId: string, newCategories: string[]): Promise
   
   return { shouldResume: false, job };
 }
+
+export async function subscribeNewsletter(email: string): Promise<void> {
+  await cacheDb.sadd("newsletter:subscribers", email);
+}
+
+export async function getRankingsCount(): Promise<number> {
+  try {
+    return await cacheDb.zcard("roast:rankings");
+  } catch {
+    return 0;
+  }
+}
