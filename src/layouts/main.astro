@@ -5,38 +5,127 @@ import LanguageSwitcher from "@/components/LanguageSwitcher.astro"
 import SEO from "@/components/SEO.astro"
 import GoogleAnalytics from "@/components/GoogleAnalytics.astro"
 
+interface Props {
+  title?: string
+  description?: string
+}
+
+const { title, description } = Astro.props
 const locale = getLocaleFromURL(Astro.url, Astro.request)
 const { t } = useTranslations(locale)
 ---
 
-<html lang={locale} class="dark">
+<html lang={locale}>
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width" />
+    <meta name="viewport" content="width=device-width, viewport-fit=cover" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <SEO locale={locale} />
+    <SEO locale={locale} title={title} description={description} />
+    <script is:inline>
+      try {
+        const theme = localStorage.getItem('theme') || 'dark';
+        document.documentElement.classList.add(theme);
+        if (localStorage.getItem('fire-disabled') === 'true') {
+          document.documentElement.classList.add('no-fire');
+        }
+      } catch (e) {
+        document.documentElement.classList.add('dark');
+      }
+    </script>
   </head>
   <body>
     <div class="heat-distortion fire"></div>
-    <div class="fixed top-4 left-4 z-50">
+    <div class="fixed top-4 left-4 z-50 flex items-center gap-2">
       <a
         href={`/${locale}/rankings`}
         class="px-2.5 py-1 text-xs rounded-md bg-zinc-900/90 text-orange-400/80 border border-orange-500/20 hover:border-orange-400/50 hover:text-orange-300 transition-colors backdrop-blur-sm"
       >
         {t("rankings.navLink")}
       </a>
+      <a
+        href={`/${locale}/about`}
+        class="px-2.5 py-1 text-xs rounded-md bg-zinc-900/90 text-orange-400/80 border border-orange-500/20 hover:border-orange-400/50 hover:text-orange-300 transition-colors backdrop-blur-sm"
+      >
+        {t("nav.about")}
+      </a>
+      <a
+        href={`/${locale}/how-it-works`}
+        class="px-2.5 py-1 text-xs rounded-md bg-zinc-900/90 text-orange-400/80 border border-orange-500/20 hover:border-orange-400/50 hover:text-orange-300 transition-colors backdrop-blur-sm"
+      >
+        {t("nav.howItWorks")}
+      </a>
     </div>
     <LanguageSwitcher />
     <GoogleAnalytics />
     <slot />
-    <div class="fixed bottom-4 right-4 z-50">
+    <div class="fixed bottom-4 right-4 z-50 max-w-xs">
       <a
         href="https://vicedominisoftworks.com"
         target="_blank"
         rel="noopener noreferrer"
-        class="block rounded-lg bg-zinc-900/90 backdrop-blur-sm border border-orange-500/30 px-4 py-2 text-sm text-orange-400/90 shadow-lg hover:bg-zinc-800/90 hover:border-orange-400/50 transition-all duration-200"
+        class="block rounded-lg bg-zinc-900/90 backdrop-blur-sm border border-orange-500/30 px-4 py-3 text-sm text-orange-400/90 shadow-lg hover:bg-zinc-800/90 hover:border-orange-400/50 transition-all duration-200 leading-snug"
         set:html={t("site.footer")}
       />
     </div>
+    <div class="fixed bottom-4 left-4 z-50 flex items-center gap-2">
+      <button
+        id="theme-toggle"
+        aria-label="Toggle theme"
+        class="p-2 rounded-md bg-zinc-900/90 border border-orange-500/20 hover:border-orange-400/50 text-orange-400/80 hover:text-orange-300 transition-colors backdrop-blur-sm text-base"
+      >
+        <span id="theme-icon">☀️</span>
+      </button>
+      <button
+        id="fire-toggle"
+        aria-label="Disable background animation"
+        class="p-2 rounded-md bg-zinc-900/90 border border-orange-500/20 hover:border-orange-400/50 text-orange-400/80 hover:text-orange-300 transition-colors backdrop-blur-sm text-base"
+        title="Toggle background animation"
+      >
+        <span id="fire-icon">🔥</span>
+      </button>
+    </div>
+    <script is:inline>
+      (function() {
+        var themeBtn = document.getElementById('theme-toggle');
+        var themeIcon = document.getElementById('theme-icon');
+        function updateThemeIcon() {
+          var isDark = document.documentElement.classList.contains('dark');
+          if (themeIcon) themeIcon.textContent = isDark ? '☀️' : '🌙';
+        }
+        updateThemeIcon();
+        if (themeBtn) {
+          themeBtn.addEventListener('click', function() {
+            var isDark = document.documentElement.classList.contains('dark');
+            var next = isDark ? 'light' : 'dark';
+            document.documentElement.classList.remove('dark', 'light');
+            document.documentElement.classList.add(next);
+            try { localStorage.setItem('theme', next); } catch(e) {}
+            updateThemeIcon();
+          });
+        }
+
+        var fireBtn = document.getElementById('fire-toggle');
+        var fireIcon = document.getElementById('fire-icon');
+        function updateFireIcon() {
+          var off = document.documentElement.classList.contains('no-fire');
+          if (fireIcon) fireIcon.textContent = off ? '○' : '🔥';
+          if (fireBtn) fireBtn.setAttribute('aria-label', off ? 'Enable background animation' : 'Disable background animation');
+        }
+        updateFireIcon();
+        if (fireBtn) {
+          fireBtn.addEventListener('click', function() {
+            var off = document.documentElement.classList.contains('no-fire');
+            if (off) {
+              document.documentElement.classList.remove('no-fire');
+              try { localStorage.setItem('fire-disabled', 'false'); } catch(e) {}
+            } else {
+              document.documentElement.classList.add('no-fire');
+              try { localStorage.setItem('fire-disabled', 'true'); } catch(e) {}
+            }
+            updateFireIcon();
+          });
+        }
+      })();
+    </script>
   </body>
 </html>

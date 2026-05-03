@@ -15,17 +15,71 @@ function getLocalizedPath(locale: string) {
 }
 ---
 
-<div class="fixed top-4 right-4 z-50 flex gap-1">
-  {locales.map((locale) => (
-    <a
-      href={getLocalizedPath(locale)}
-      class={`px-2 py-1 text-xs rounded-md transition-colors ${
-        currentLocale === locale
-          ? "bg-orange-500/20 text-orange-400 border border-orange-500/30"
-          : "bg-zinc-900/90 text-zinc-400 border border-zinc-700 hover:border-orange-500/30 hover:text-orange-400"
-      }`}
-    >
-      {locale.toUpperCase()}
-    </a>
-  ))}
+<div class="fixed top-4 right-4 z-50" id="lang-switcher">
+  <button
+    id="lang-toggle"
+    aria-haspopup="listbox"
+    aria-expanded="false"
+    aria-label="Select language"
+    class="flex items-center gap-1.5 px-2.5 py-1 text-xs rounded-md bg-zinc-900/90 text-orange-400 border border-orange-500/30 hover:border-orange-400/50 hover:text-orange-300 transition-colors backdrop-blur-sm"
+  >
+    <span id="lang-current">{currentLocale.toUpperCase()}</span>
+    <svg id="lang-chevron" width="10" height="10" viewBox="0 0 10 10" fill="none" class="transition-transform duration-150">
+      <path d="M2 3.5L5 6.5L8 3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </button>
+
+  <ul
+    id="lang-menu"
+    role="listbox"
+    aria-label="Language"
+    class="absolute right-0 mt-1 min-w-[5rem] rounded-md bg-zinc-900/95 border border-orange-500/20 backdrop-blur-sm shadow-lg overflow-hidden hidden"
+  >
+    {locales.map((locale) => (
+      <li role="option" aria-selected={currentLocale === locale}>
+        <a
+          href={getLocalizedPath(locale)}
+          class={`block px-3 py-1.5 text-xs transition-colors ${
+            currentLocale === locale
+              ? "text-orange-400 bg-orange-500/10"
+              : "text-zinc-400 hover:text-orange-300 hover:bg-zinc-800/80"
+          }`}
+        >
+          {locale.toUpperCase()}
+        </a>
+      </li>
+    ))}
+  </ul>
 </div>
+
+<script is:inline>
+  (function () {
+    var btn = document.getElementById("lang-toggle");
+    var menu = document.getElementById("lang-menu");
+    var chevron = document.getElementById("lang-chevron");
+
+    function open() {
+      menu.classList.remove("hidden");
+      btn.setAttribute("aria-expanded", "true");
+      chevron.style.transform = "rotate(180deg)";
+    }
+    function close() {
+      menu.classList.add("hidden");
+      btn.setAttribute("aria-expanded", "false");
+      chevron.style.transform = "";
+    }
+
+    btn.addEventListener("click", function (e) {
+      e.stopPropagation();
+      menu.classList.contains("hidden") ? open() : close();
+    });
+
+    document.addEventListener("click", function () {
+      close();
+    });
+
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "Escape") close();
+    });
+  })();
+</script>

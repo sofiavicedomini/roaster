@@ -4,7 +4,7 @@
     "description": "Obtenha uma crítica honesta e sem filtros de qualquer site",
     "seoDescription": "Obtenha uma crítica brutal e honesta de qualquer site com Róast-me. Análise por IA de design, performance, SEO, UX, acessibilidade, segurança e muito mais. Descubra o que está errado com seu site.",
     "keywords": "crítica site web, análise site web, verificador SEO, auditoria performance, revisão UX, avaliador web, análise IA sites web, roast site",
-    "footer": "Um projeto da <span class=\"font-semibold\">Vicedomini Softworks</span>"
+    "footer": "Precisa de uma app Web, Site ou Software? <span class=\"font-semibold\">Contacte Vicedomini Softworks →</span>"
   },
   "chatbot": {
     "urlLabel": "URL do site",
@@ -94,5 +94,38 @@
     "unknown": "Erro desconhecido",
     "aiApi": "Erro de API da IA: ",
     "captchaExpired": "O CAPTCHA expirou ou já foi utilizado. Um novo está a carregar — tente novamente em breve."
+  },
+  "nav": {
+    "about": "Sobre nós",
+    "howItWorks": "Como funciona"
+  },
+  "home": {
+    "recentRoasts": "Roasts Recentes"
+  },
+  "history": {
+    "title": "As suas análises recentes",
+    "clearAll": "Limpar"
+  },
+  "about": {
+    "title": "Sobre nós",
+    "subtitle": "Os humanos por trás das chamas",
+    "intro": "Somos a Vicedomini Softworks — uma empresa italiana de software que constrói coisas que as pessoas realmente usam. Criámos esta ferramenta porque a internet está cheia de sites terríveis, e a maioria deles nunca saberá.",
+    "mission": "A nossa missão: honestidade brutal com precisão de IA. Sem rodeios. Sem adornos. Apenas a verdade sobre o seu site, queira ou não ouvi-la.",
+    "team": "Sediados em Itália. Movidos por curiosidade, café forte e um profundo desprezo pela má UX. Construímos apps web, sites e software personalizado para clientes que não têm medo da verdade.",
+    "cta": "Precisa de algo bem construído? Contacte-nos →"
+  },
+  "howItWorks": {
+    "title": "Como Funciona",
+    "subtitle": "A verdade brutal, passo a passo",
+    "intro": "A nossa IA não edulcora nada. Isto é exatamente o que acontece quando submete um URL.",
+    "step1Title": "Introduza o seu URL",
+    "step1Desc": "Cole qualquer endereço de site público. Se for o seu, prepare-se.",
+    "step2Title": "A IA analisa",
+    "step2Desc": "A nossa IA obtém o conteúdo do seu site, verifica robots.txt, sitemap, desempenho, compatibilidade com agentes e tudo o que consegue encontrar. Lê tudo. Julga tudo.",
+    "step3Title": "O Roast",
+    "step3Desc": "Cada categoria selecionada recebe uma pontuação de 1 a 10, uma crítica brutal e um prompt que pode dar a um agente de IA para realmente corrigi-lo.",
+    "step4Title": "A sua pontuação",
+    "step4Desc": "Obtenha a sua pontuação global, partilhe o resultado, ou corrija o seu site em silêncio. Não julgamos. (Na verdade, sim. É exatamente isso que construímos.)",
+    "cta": "Experimente agora →"
   }
 }

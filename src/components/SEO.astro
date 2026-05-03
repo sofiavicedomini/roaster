@@ -9,7 +9,7 @@ interface Props {
   noindex?: boolean
 }
 
-const { locale, title, description, image = "/og-image.jpg", noindex = false } = Astro.props
+const { locale, title, description, image = "/og-image.svg", noindex = false } = Astro.props
 
 const currentPath = Astro.url.pathname
 const baseUrl = Astro.site?.toString() || `${Astro.url.protocol}//${Astro.url.host}`
@@ -24,7 +24,6 @@ const adsenseId = import.meta.env.ADSENSE_ACCOUNT_ID || ""
 
 <!-- Primary Meta Tags -->
 <title>{seoTitle}</title>
-<meta name="title" content={seoTitle} />
 <meta name="description" content={seoDescription} />
 <meta name="keywords" content={keywords} />
 <link rel="canonical" href={canonicalURL} />
@@ -67,7 +66,8 @@ const adsenseId = import.meta.env.ADSENSE_ACCOUNT_ID || ""
 <!-- Structured Data (JSON-LD) -->
 <script is:inline type="application/ld+json" set:html={JSON.stringify({
   "@context": "https://schema.org",
-  "@type": "WebApplication",
+  "@type": "SoftwareApplication",
+  "applicationSubCategory": "WebApplication",
   "name": seoTitle,
   "description": seoDescription,
   "url": canonicalURL,

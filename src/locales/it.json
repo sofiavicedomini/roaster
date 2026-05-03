@@ -4,7 +4,7 @@
     "description": "Ottieni una critica onesta e senza filtri per qualsiasi sito web",
     "seoDescription": "Ottieni una stroncatura brutale e onesta di qualsiasi sito web con Stroncami. Analisi AI di design, performance, SEO, UX, accessibilità, sicurezza e altro. Scopri cosa non va nel tuo sito.",
     "keywords": "stroncatura sito web, critica sito, analisi web, controllo SEO, audit performance, recensione UX, valutazione sito, analisi AI siti web",
-    "footer": "Un progetto di <span class=\"font-semibold\">Vicedomini Softworks</span>"
+    "footer": "Vuoi realizzare un'app Web, Sito o Software? <span class=\"font-semibold\">Contatta Vicedomini Softworks →</span>"
   },
   "chatbot": {
     "urlLabel": "URL del sito",
@@ -113,5 +113,38 @@
     "unknown": "Errore sconosciuto",
     "aiApi": "Errore API AI: ",
     "captchaExpired": "Il CAPTCHA è scaduto o già utilizzato. Ne sta arrivando uno nuovo — riprova tra un momento."
+  },
+  "nav": {
+    "about": "Chi siamo",
+    "howItWorks": "Come funziona"
+  },
+  "home": {
+    "recentRoasts": "Roast Recenti"
+  },
+  "history": {
+    "title": "Le tue analisi recenti",
+    "clearAll": "Cancella"
+  },
+  "about": {
+    "title": "Chi siamo",
+    "subtitle": "Gli umani dietro alle fiamme",
+    "intro": "Siamo Vicedomini Softworks — una software house italiana che costruisce cose che la gente usa davvero. Abbiamo creato questo strumento perché internet è pieno di siti web orribili, e la maggior parte di loro non lo saprà mai.",
+    "mission": "La nostra missione: onestà brutale con precisione AI. Niente fronzoli. Niente smielature. Solo la verità sul tuo sito, che tu voglia sentirla o no.",
+    "team": "Con sede in Italia. Alimentati da curiosità, caffè forte e un profondo disprezzo per la cattiva UX. Costruiamo app web, siti e software personalizzati per clienti che non hanno paura della verità.",
+    "cta": "Hai bisogno di qualcosa costruito bene? Contattaci →"
+  },
+  "howItWorks": {
+    "title": "Come Funziona",
+    "subtitle": "La verità brutale, passo dopo passo",
+    "intro": "La nostra AI non edulcora nulla. Ecco esattamente cosa succede quando invii un URL.",
+    "step1Title": "Inserisci il tuo URL",
+    "step1Desc": "Incolla qualsiasi indirizzo web pubblico. Se è il tuo sito, preparati.",
+    "step2Title": "L'AI Analizza",
+    "step2Desc": "La nostra AI recupera il contenuto del tuo sito, controlla robots.txt, sitemap, performance, compatibilità con gli agenti e tutto ciò che riesce a trovare. Legge tutto. Giudica tutto.",
+    "step3Title": "La Stroncatura",
+    "step3Desc": "Ogni categoria selezionata riceve un punteggio da 1 a 10, una critica brutale e un prompt che puoi dare a un agente AI per correggerlo davvero.",
+    "step4Title": "Il Tuo Punteggio",
+    "step4Desc": "Ottieni il tuo punteggio complessivo, condividi il risultato, o correggi silenziosamente il tuo sito al buio. Non giudichiamo. (In realtà sì. È quello che abbiamo costruito.)",
+    "cta": "Provalo ora →"
   }
 }

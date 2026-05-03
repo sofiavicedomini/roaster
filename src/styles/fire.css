@@ -1,6 +1,5 @@
 :root {
-    /* the only thing needed is a grainy/noisy background image */
-    --glitter: url("/glitter.png");
+    --glitter: url("/glitter.webp");
 }
 
 .fire::before,
@@ -52,6 +51,16 @@ html,
 body {
     min-width: 100%;
     min-height: 100%;
+}
+
+/* Hide fire in light mode — blend modes require dark background */
+html:not(.dark) .heat-distortion {
+    display: none;
+}
+
+/* Disable animation when user toggled it off */
+html.no-fire .heat-distortion {
+    display: none;
 }
 
 .fire {

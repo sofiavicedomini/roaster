@@ -2,6 +2,12 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 @import "@fontsource-variable/figtree";
+
+@font-face {
+  font-family: 'Figtree Variable';
+  font-style: normal;
+  font-display: swap;
+}
 @import "./fire.css";
 
 @theme inline {
@@ -430,6 +436,11 @@ body::after {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
+}
+
+/* Safe area padding for iOS home indicator */
+body {
+  padding-bottom: env(safe-area-inset-bottom);
 }
 
 /* Cloudflare Turnstile */

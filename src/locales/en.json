@@ -4,7 +4,7 @@
     "description": "Get an honest, no-BS critique of any website",
     "seoDescription": "Get a brutal, honest critique of any website with Roast Me. AI-powered analysis of design, performance, SEO, UX, accessibility, security and more. Discover what's wrong with your site.",
     "keywords": "website roast, site critique, web analysis, SEO checker, performance audit, UX review, website grader, AI website analysis",
-    "footer": "A project by <span class=\"font-semibold\">Vicedomini Softworks</span>"
+    "footer": "Need a Web App, Site or Software? <span class=\"font-semibold\">Contact Vicedomini Softworks →</span>"
   },
   "chatbot": {
     "urlLabel": "Website URL",
@@ -113,5 +113,38 @@
     "unknown": "Unknown error",
     "aiApi": "AI API error: ",
     "captchaExpired": "CAPTCHA expired or already used. A new one is loading — please try again in a moment."
+  },
+  "nav": {
+    "about": "About",
+    "howItWorks": "How it works"
+  },
+  "home": {
+    "recentRoasts": "Recent Roasts"
+  },
+  "history": {
+    "title": "Your Recent Analyses",
+    "clearAll": "Clear"
+  },
+  "about": {
+    "title": "About Us",
+    "subtitle": "The humans behind the flames",
+    "intro": "We are Vicedomini Softworks — an Italian software company that builds things people actually use. We built this tool because the internet is full of terrible websites, and most of them will never know it.",
+    "mission": "Our mission: brutal honesty delivered with AI precision. No fluff. No sugar-coating. Just the truth about your site, whether you want to hear it or not.",
+    "team": "Based in Italy. Powered by curiosity, strong coffee, and a deep contempt for bad UX. We build web apps, sites, and custom software for clients who aren't afraid of the truth.",
+    "cta": "Need something built right? Contact us →"
+  },
+  "howItWorks": {
+    "title": "How It Works",
+    "subtitle": "The brutal truth, step by step",
+    "intro": "Our AI doesn't sugarcoat. Here's exactly what happens when you submit a URL.",
+    "step1Title": "Enter your URL",
+    "step1Desc": "Paste any public website address. If it's your own site, brace yourself.",
+    "step2Title": "AI Scrapes & Analyzes",
+    "step2Desc": "Our AI fetches your site's content, checks robots.txt, sitemap, performance, agent compatibility, and everything it can find. It reads everything. It judges everything.",
+    "step3Title": "The Roast",
+    "step3Desc": "Each selected category gets a score from 1 to 10, a brutal critique, and a prompt you can give an AI agent to actually fix it.",
+    "step4Title": "Your Score",
+    "step4Desc": "Get your overall score, share the result, or quietly fix your site in the dark. We don't judge. (Actually, we do. That's the whole point.)",
+    "cta": "Try it now →"
   }
 }

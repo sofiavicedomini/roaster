@@ -4,7 +4,7 @@
     "description": "Erhalte eine ehrliche, schonungslose Kritik jeder Webseite",
     "seoDescription": "Erhalte eine brutale, ehrliche Kritik jeder Webseite mit Röst mich. KI-gestützte Analyse von Design, Performance, SEO, UX, Barrierefreiheit, Sicherheit und mehr. Finde heraus, was mit deiner Seite nicht stimmt.",
     "keywords": "Webseite Kritik, Seitenanalyse, SEO Checker, Performance Audit, UX Bewertung, Webseiten Bewertung, KI Webseiten Analyse, Webseite rösten",
-    "footer": "Ein Projekt von <span class=\"font-semibold\">Vicedomini Softworks</span>"
+    "footer": "Web-App, Website oder Software gesucht? <span class=\"font-semibold\">Vicedomini Softworks kontaktieren →</span>"
   },
   "chatbot": {
     "urlLabel": "Webseite URL",
@@ -94,5 +94,38 @@
     "unknown": "Unbekannter Fehler",
     "aiApi": "KI-API-Fehler: ",
     "captchaExpired": "Das CAPTCHA ist abgelaufen oder wurde bereits verwendet. Ein neues wird geladen — bitte in einem Moment erneut versuchen."
+  },
+  "nav": {
+    "about": "Über uns",
+    "howItWorks": "So funktioniert's"
+  },
+  "home": {
+    "recentRoasts": "Neueste Roasts"
+  },
+  "history": {
+    "title": "Ihre letzten Analysen",
+    "clearAll": "Löschen"
+  },
+  "about": {
+    "title": "Über uns",
+    "subtitle": "Die Menschen hinter den Flammen",
+    "intro": "Wir sind Vicedomini Softworks — ein italienisches Softwareunternehmen, das Dinge baut, die Menschen tatsächlich nutzen. Wir haben dieses Tool entwickelt, weil das Internet voller schrecklicher Websites ist, und die meisten davon werden es nie erfahren.",
+    "mission": "Unsere Mission: brutale Ehrlichkeit mit KI-Präzision. Kein Blabla. Keine Schönrednerei. Nur die Wahrheit über deine Website, ob du sie hören willst oder nicht.",
+    "team": "In Italien ansässig. Angetrieben von Neugier, starkem Kaffee und einer tiefen Verachtung für schlechte UX. Wir bauen Web-Apps, Websites und maßgeschneiderte Software für Kunden, die keine Angst vor der Wahrheit haben.",
+    "cta": "Brauchen Sie etwas gut Gebautes? Kontaktieren Sie uns →"
+  },
+  "howItWorks": {
+    "title": "So funktioniert es",
+    "subtitle": "Die brutale Wahrheit, Schritt für Schritt",
+    "intro": "Unsere KI beschönigt nichts. Hier ist genau, was passiert, wenn Sie eine URL einreichen.",
+    "step1Title": "URL eingeben",
+    "step1Desc": "Fügen Sie eine beliebige öffentliche Website-Adresse ein. Wenn es Ihre eigene ist, machen Sie sich bereit.",
+    "step2Title": "KI analysiert",
+    "step2Desc": "Unsere KI ruft den Inhalt Ihrer Website ab, prüft robots.txt, Sitemap, Performance, Agentenkompatibilität und alles, was sie finden kann. Sie liest alles. Sie beurteilt alles.",
+    "step3Title": "Der Roast",
+    "step3Desc": "Jede ausgewählte Kategorie erhält eine Bewertung von 1 bis 10, eine brutale Kritik und einen Prompt, den Sie einem KI-Agenten geben können, um es wirklich zu beheben.",
+    "step4Title": "Ihre Bewertung",
+    "step4Desc": "Erhalten Sie Ihre Gesamtbewertung, teilen Sie das Ergebnis oder korrigieren Sie Ihre Website still und heimlich. Wir urteilen nicht. (Doch, tun wir. Das ist der ganze Sinn.)",
+    "cta": "Jetzt ausprobieren →"
   }
 }

@@ -1,6 +1,27 @@
 import { defineMiddleware } from "astro:middleware"
 
-export const onRequest = defineMiddleware(async (_, next) => {
+const ALLOWED_ORIGINS = (import.meta.env.ALLOWED_ORIGINS || "")
+  .split(",").map((s: string) => s.trim()).filter(Boolean)
+
+export const onRequest = defineMiddleware(async ({ request }, next) => {
+  if (["POST", "PUT", "DELETE", "PATCH"].includes(request.method)) {
+    const origin = request.headers.get("origin")
+    const host = request.headers.get("host")
+    if (origin) {
+      try {
+        const originHost = new URL(origin).host
+        const allowed = ALLOWED_ORIGINS.length > 0
+          ? ALLOWED_ORIGINS.some((o: string) => { try { return new URL(o).host === originHost } catch { return false } })
+          : originHost === host
+        if (!allowed) {
+          return new Response("Forbidden", { status: 403 })
+        }
+      } catch {
+        return new Response("Forbidden", { status: 403 })
+      }
+    }
+  }
+
   const response = await next()
 
   const adsenseId = import.meta.env.ADSENSE_ACCOUNT_ID || ""
@@ -45,6 +66,7 @@ export const onRequest = defineMiddleware(async (_, next) => {
   response.headers.set("X-Content-Type-Options", "nosniff")
   response.headers.set("X-Frame-Options", "SAMEORIGIN")
   response.headers.set("X-XSS-Protection", "1; mode=block")
+  response.headers.set("Strict-Transport-Security", "max-age=31536000; includeSubDomains; preload")
 
   return response
 })
