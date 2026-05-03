@@ -63,6 +63,8 @@ function ThinkingPanel({ thoughts, isLoading }: { thoughts: string[]; isLoading:
       <button
         type="button"
         onClick={() => setIsExpanded((v) => !v)}
+        aria-expanded={isExpanded}
+        aria-controls="thinking-panel"
         className="w-full flex items-center gap-2.5 px-3 py-2.5 text-left hover:bg-orange-500/5 transition-colors"
       >
         {isLoading ? (
@@ -84,6 +86,7 @@ function ThinkingPanel({ thoughts, isLoading }: { thoughts: string[]; isLoading:
       </button>
       {isExpanded && (
         <div
+          id="thinking-panel"
           ref={scrollRef}
           className="border-t border-orange-500/10 px-3 py-2 max-h-44 overflow-y-auto scroll-smooth"
         >
@@ -424,7 +427,7 @@ export function Chatbot({ locale = "en" }: ChatbotProps) {
 
   return (
     <div className="flex flex-col gap-6 max-w-2xl mx-auto w-full">
-      <form onSubmit={handleSubmit} className="flex flex-col gap-4 rounded-lg border p-4 bg-card inferno-card">
+      <form onSubmit={handleSubmit} aria-label={t.chatbot.urlLabel} className="flex flex-col gap-4 rounded-lg border p-4 bg-card inferno-card">
         <div className="flex flex-col gap-2">
           <label htmlFor="url" className="text-sm font-medium">
             {t.chatbot.urlLabel}
@@ -455,6 +458,7 @@ export function Chatbot({ locale = "en" }: ChatbotProps) {
                     key={cat.id}
                     type="button"
                     onClick={() => toggleCategory(cat.id)}
+                    aria-pressed={selectedCategories.includes(cat.id)}
                     className={`flex items-center gap-2 px-3 py-1.5 rounded-md border cursor-pointer transition-colors ${
                       selectedCategories.includes(cat.id)
                         ? "border-primary bg-primary/10"
@@ -541,7 +545,7 @@ export function Chatbot({ locale = "en" }: ChatbotProps) {
                 {" "}({cacheAgeMin} min ago)
               </span>
               {isCacheOld ? (
-                <button onClick={clearCache} className="text-xs text-orange-400 hover:text-orange-300 underline">
+                <button onClick={clearCache} aria-label={`Clear cached result for ${url}`} className="text-xs text-orange-400 hover:text-orange-300 underline">
                   Clear cache
                 </button>
               ) : (
@@ -575,9 +579,9 @@ export function Chatbot({ locale = "en" }: ChatbotProps) {
                       {t.rankings.shareRoast}
                     </a>
                     <div className="flex gap-1.5">
-                      <a href={`https://twitter.com/intent/tweet?url=${shareUrl}&text=${shareText}`} target="_blank" rel="noopener noreferrer" className="text-xs px-2 py-0.5 rounded border border-orange-500/15 text-muted-foreground hover:text-orange-300 hover:border-orange-400/30 transition-colors" title="Share on X / Twitter">𝕏</a>
-                      <a href={`https://wa.me/?text=${shareText}%20${shareUrl}`} target="_blank" rel="noopener noreferrer" className="text-xs px-2 py-0.5 rounded border border-orange-500/15 text-muted-foreground hover:text-orange-300 hover:border-orange-400/30 transition-colors" title="Share on WhatsApp">WA</a>
-                      <a href={`https://www.linkedin.com/sharing/share-offsite/?url=${shareUrl}`} target="_blank" rel="noopener noreferrer" className="text-xs px-2 py-0.5 rounded border border-orange-500/15 text-muted-foreground hover:text-orange-300 hover:border-orange-400/30 transition-colors" title="Share on LinkedIn">in</a>
+                      <a href={`https://twitter.com/intent/tweet?url=${shareUrl}&text=${shareText}`} target="_blank" rel="noopener noreferrer" aria-label="Share on X / Twitter" className="text-xs px-2 py-0.5 rounded border border-orange-500/15 text-muted-foreground hover:text-orange-300 hover:border-orange-400/30 transition-colors">𝕏</a>
+                      <a href={`https://wa.me/?text=${shareText}%20${shareUrl}`} target="_blank" rel="noopener noreferrer" aria-label="Share on WhatsApp" className="text-xs px-2 py-0.5 rounded border border-orange-500/15 text-muted-foreground hover:text-orange-300 hover:border-orange-400/30 transition-colors">WA</a>
+                      <a href={`https://www.linkedin.com/sharing/share-offsite/?url=${shareUrl}`} target="_blank" rel="noopener noreferrer" aria-label="Share on LinkedIn" className="text-xs px-2 py-0.5 rounded border border-orange-500/15 text-muted-foreground hover:text-orange-300 hover:border-orange-400/30 transition-colors">in</a>
                     </div>
                   </div>
                 );
@@ -618,8 +622,8 @@ export function Chatbot({ locale = "en" }: ChatbotProps) {
                   <div className="ml-10 mt-2 p-3 rounded-md bg-background border border-orange-500/20 relative group">
                     <button
                       onClick={() => copyToClipboard(roast.fix_prompt!)}
-                      className="absolute top-2 right-2 p-1.5 text-orange-400/70 hover:text-orange-400 opacity-0 group-hover:opacity-100 transition-all"
-                      title="Copia prompt"
+                      aria-label="Copy fix prompt"
+                      className="absolute top-2 right-2 p-1.5 text-orange-400/70 hover:text-orange-400 opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-all"
                     >
                       <Copy className="w-3.5 h-3.5" />
                     </button>
