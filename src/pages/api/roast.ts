@@ -426,9 +426,8 @@ async function processRoast(
 
   const checks = await checkAgentReadiness(url);
   
-  // Run pre-analysis with tools to get accurate category data
-  const toolAnalysis = await runPreAnalysis(url, cats);
-  const checksWithTools = { ...checks, _toolAnalysis: toolAnalysis };
+  // Skip pre-analysis - let the LLM call tools as needed based on updated prompt
+  const checksWithTools = checks;
   
   await updateJob(jobId, { progress: "Building prompt" });
 
@@ -757,6 +756,11 @@ async function runPreAnalysis(url: string, categories: string[]): Promise<Record
   // Scrape homepage first
   const html = await handleScrapeUrl({ url }, url);
   const hasContent = html && html.length > 100 && !html.includes("Not found");
+
+  if (!hasContent) {
+    console.log("[Pre-analysis] Could not scrape homepage, skipping pre-analysis");
+    return {};
+  }
 
   if (hasContent) {
     // Run accessibility analysis
