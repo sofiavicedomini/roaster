@@ -1,0 +1,199 @@
+---
+import { useTranslations, type Locale } from "@/i18n/utils"
+
+interface Props {
+  locale: Locale
+}
+
+const { locale } = Astro.props
+const { t } = useTranslations(locale)
+
+const categories = [
+  { id: "design", group: "technical" },
+  { id: "performance", group: "technical" },
+  { id: "code", group: "technical" },
+  { id: "mobile", group: "technical" },
+  { id: "ux", group: "experience" },
+  { id: "accessibility", group: "experience" },
+  { id: "conversion", group: "experience" },
+  { id: "seo", group: "content" },
+  { id: "copy", group: "content" },
+  { id: "brand", group: "trust" },
+  { id: "credibility", group: "trust" },
+  { id: "security", group: "trust" },
+  { id: "agentReadiness", group: "aiAgents" },
+  { id: "robots", group: "aiAgents" },
+  { id: "mcp", group: "aiAgents" },
+  { id: "apiDiscovery", group: "aiAgents" },
+  { id: "botAuth", group: "aiAgents" },
+]
+
+const defaultCategories = ["design", "performance", "ux", "seo", "agentReadiness"]
+
+const groups = categories.reduce((acc, cat) => {
+  if (!acc[cat.group]) acc[cat.group] = []
+  acc[cat.group].push(cat)
+  return acc
+}, {} as Record<string, typeof categories>)
+---
+
+<form
+  id="chatbot-form"
+  class="flex flex-col gap-4 rounded-lg border p-4 bg-card inferno-card"
+  aria-label={t("chatbot.urlLabel")}
+>
+  <div class="flex flex-col gap-2">
+    <label for="site-url" class="text-sm font-semibold tracking-tight">{t("chatbot.urlLabel")}</label>
+    <input
+      id="site-url"
+      type="url"
+      required
+      placeholder={t("chatbot.urlPlaceholder")}
+      class="w-full rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+    />
+    {t("chatbot.urlHint") && (
+      <p class="text-xs text-muted-foreground/70">{t("chatbot.urlHint")}</p>
+    )}
+  </div>
+
+  <div class="flex flex-col gap-3">
+    <label class="text-sm font-semibold tracking-tight">{t("chatbot.categoriesLabel")}</label>
+
+    <div class="md:hidden">
+      <button
+        type="button"
+        id="category-dropdown-toggle"
+        class="w-full flex items-center justify-between px-4 py-3 rounded-lg border border-border bg-background text-sm font-medium"
+      >
+        <span id="category-count">{defaultCategories.length} selected</span>
+        <svg class="w-5 h-5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+      <div id="category-dropdown" class="hidden mt-2 p-3 rounded-lg border bg-background shadow-lg max-h-80 overflow-y-auto">
+        <div class="grid grid-cols-2 gap-2">
+          {categories.map((cat) => (
+            <label class="flex items-center gap-3 p-3 rounded-md cursor-pointer hover:bg-muted/50 transition-colors min-h-[48px]">
+              <input
+                type="checkbox"
+                name="categories"
+                value={cat.id}
+                checked={defaultCategories.includes(cat.id)}
+                class="w-5 h-5 rounded border-input accent-primary"
+              />
+              <span class="text-sm font-medium">
+                {(t(`chatbot.categories.${cat.id}`) as string) || cat.id}
+              </span>
+            </label>
+          ))}
+        </div>
+      </div>
+    </div>
+
+    <div class="hidden md:flex flex-col gap-3">
+      {Object.entries(groups).map(([group, cats]) => (
+        <div class="flex flex-col gap-2.5">
+          <span class="text-[0.7rem] font-bold text-muted-foreground uppercase tracking-[0.15em]">
+            {(t(`chatbot.groups.${group}`) as string) || group}
+          </span>
+          <div class="flex flex-wrap gap-2">
+            {cats.map((cat) => (
+              <label class={`flex items-center gap-2 px-3 py-1.5 rounded-lg border cursor-pointer transition-all duration-150 ease-out ${
+                defaultCategories.includes(cat.id)
+                  ? "border-primary bg-primary/15 shadow-[0_0_12px_theme(colors.primary/0.4)] scale-[1.02]"
+                  : "border-border hover:bg-muted/70 hover:border-muted-foreground/30 hover:shadow-[0_0_8px_theme(colors.muted/0.3)] hover:scale-[1.01] active:scale-[0.98]"
+              }`}>
+                <input
+                  type="checkbox"
+                  name="categories"
+                  value={cat.id}
+                  checked={defaultCategories.includes(cat.id)}
+                  class="sr-only"
+                />
+                <span class="text-sm font-medium">
+                  {(t(`chatbot.categories.${cat.id}`) as string) || cat.id}
+                </span>
+                <svg class={`w-4 h-4 transition-all duration-150 ${
+                  defaultCategories.includes(cat.id)
+                    ? "text-primary scale-100"
+                    : "text-muted-foreground/30 scale-75"
+                }`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
+                </svg>
+              </label>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+
+  <div id="turnstile-container" class="flex justify-center min-h-[70px]"></div>
+
+  <div id="captcha-status" class="hidden text-center text-xs text-amber-300/90 font-medium" role="status" aria-live="polite">
+    ↻ {t("chatbot.verifyingRobot")}
+  </div>
+
+  <button
+    type="submit"
+    id="roast-submit"
+    class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground shadow hover:bg-primary/90 h-9 px-4 py-2"
+  >
+    {t("chatbot.buttonRoast")}
+  </button>
+</form>
+
+<noscript>
+  <div class="mt-4 p-4 rounded-lg border bg-amber-500/15 border-amber-500/50 text-amber-300 text-sm">
+    <p class="font-medium">JavaScript richiesto</p>
+    <p class="mt-1 text-xs text-amber-300/80">Questo form richiede JavaScript per funzionare. Abilita JavaScript nel tuo browser per usare questo servizio.</p>
+  </div>
+</noscript>
+
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const dropdownToggle = document.getElementById("category-dropdown-toggle")
+    const dropdown = document.getElementById("category-dropdown")
+    const countSpan = document.getElementById("category-count")
+    const checkboxes = document.querySelectorAll('#chatbot-form input[name="categories"]')
+
+    if (dropdownToggle && dropdown) {
+      dropdownToggle.addEventListener("click", () => {
+        dropdown.classList.toggle("hidden")
+        dropdownToggle.querySelector("svg")?.classList.toggle("rotate-180")
+      })
+
+      checkboxes.forEach(cb => {
+        cb.addEventListener("change", () => {
+          const checked = document.querySelectorAll('#chatbot-form input[name="categories"]:checked')
+          if (countSpan) countSpan.textContent = `${checked.length} selected`
+        })
+      })
+
+      document.addEventListener("click", (e) => {
+        if (!dropdownToggle.contains(e.target as Node) && !dropdown.contains(e.target as Node)) {
+          dropdown.classList.add("hidden")
+          dropdownToggle.querySelector("svg")?.classList.remove("rotate-180")
+        }
+      })
+    }
+  })
+</script>
+
+<script is:inline>
+  document.documentElement.classList.add('js-enabled');
+</script>
+
+<style is:global>
+  .js-enabled #chatbot-form {
+    display: none;
+  }
+</style>
+
+<noscript>
+  <style is:global>
+    #chatbot-form {
+      display: block !important;
+    }
+  </style>
+</noscript>

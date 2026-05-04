@@ -1,5 +1,6 @@
 ---
 import Layout from "@/layouts/main.astro"
+import ChatbotForm from "@/components/ChatbotForm.astro"
 import { Chatbot } from "@/components/chatbot"
 import { RoastHistory } from "@/components/RoastHistory"
 import { useTranslations, locales, type Locale } from "@/i18n/utils"
@@ -32,7 +33,12 @@ function scoreColor(score: number) {
         </h1>
         <p class="text-orange-400/90 mt-3 text-lg animate-pulse">🔥 {t("site.description")} 🔥</p>
       </div>
-      <Chatbot client:visible locale={locale} />
+      
+      <!-- SSR form - renders meaningful HTML immediately -->
+      <ChatbotForm locale={locale} />
+      
+      <!-- Hydrate React component on top of SSR form for interactivity -->
+      <Chatbot client:load locale={locale} />
 
       {recentRoasts.length > 0 && (
         <div class="mt-10">
