@@ -267,9 +267,6 @@ export async function resumeJob(
   return { shouldResume: false, job };
 }
 
-export async function subscribeNewsletter(email: string): Promise<void> {
-  await cacheDb.sadd("newsletter:subscribers", email);
-}
 
 export async function getRankingsCount(): Promise<number> {
   try {

@@ -69,8 +69,8 @@ import {
   resumeJob,
   incrementIteration,
   saveRanking,
-  subscribeNewsletter,
 } from "@/lib/redis";
+import { subscribe } from "@/lib/newsletter";
 
 const locales: string[] = [
   "en",
@@ -169,7 +169,7 @@ export const POST: APIRoute = async ({ request }) => {
         // Skip subscription, no error shown
       } else {
         try {
-          await subscribeNewsletter(email.trim().toLowerCase());
+          await subscribe(email.trim().toLowerCase(), safeLocale);
           console.log(`[Newsletter] Subscribed: ${email}`);
         } catch (e) {
           console.error("[Newsletter] Subscribe failed:", e);
