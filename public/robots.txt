@@ -24,4 +24,4 @@ Allow: /
 Disallow: /api/
 
 # Sitemap
-Sitemap: https://roast-me.vicedominisoftworks.com/sitemap.xml
+Sitemap: https://stroncami.it/sitemap.xml

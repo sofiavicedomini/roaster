@@ -1,22 +1,11 @@
 import type { APIRoute } from "astro";
 import { cacheDb } from "@/lib/redis";
+import {companyInfo} from "@/pages/api/info.ts";
 
 const CACHE_KEY = "company:legal-info";
 const CACHE_TTL = 7 * 24 * 3600; // 7 days
 
-const companyLegalInfo = {
-  name: "Vicedomini Softworks srl",
-  address: "Circonvallazione Clodia 163/167",
-  postalCode: "00195",
-  city: "Roma",
-  country: "Italia",
-  piva: "IT 18432801001",
-  rea: "RM-1784316",
-  capital: "€ 100,00 i.v.",
-  fullAddress: "Vicedomini Softworks srl · Circonvallazione Clodia 163/167, 00195 Roma · P.IVA IT 18432801001 · REA RM-1784316 · Cap. soc. € 100,00 i.v.",
-  website: "https://vicedominisoftworks.com",
-  fetchedAt: new Date().toISOString()
-};
+const companyLegalInfo = {...companyInfo, fetchedAt: new Date('2026-05-04')};
 
 export const GET: APIRoute = async () => {
   try {

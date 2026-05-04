@@ -2,11 +2,11 @@ export const prerender = false;
 
 import type { APIRoute } from "astro";
 
-const companyInfo = {
+export const companyInfo = {
   name: "Vicedomini Softworks",
   legalName: "Vicedomini Softworks srl",
   description: "An Italian software company that builds things people actually use.",
-  mission: "Brutal honesty delivered with AI precision. No fluff. No sugar-coating. Just the truth about your site, whether you want to hear it or not.",
+  mission: "Where Engineering Meets Care. Software engineering — from domain to deploy.",
   location: "Italy",
   address: "Circonvallazione Clodia 163/167",
   postalCode: "00195",
@@ -15,8 +15,8 @@ const companyInfo = {
   piva: "IT 18432801001",
   rea: "RM-1784316",
   capital: "€ 100,00 i.v.",
-  fullLegalAddress: "Vicedomini Softworks srl · Circonvallazione Clodia 163/167, 00195 Roma · P.IVA IT 18432801001 · REA RM-1784316 · Cap. soc. € 100,00 i.v.",
-  team: "Based in Italy. Powered by curiosity, strong coffee, and a deep contempt for bad UX. We build web apps, sites, and custom software for clients who aren't afraid of the truth.",
+  fullLegalAddress: "Circonvallazione Clodia 163/167, 00195 Roma, Italy, EU",
+  team: "Based in Italy & Europe. Powered by curiosity, strong coffee, and a deep contempt for bad UX. We build web apps, sites, and custom software for clients who aren't afraid of the truth.",
   services: "Web apps, sites, and custom software development",
   contactUrl: "https://vicedominisoftworks.com",
   founded: "2024"

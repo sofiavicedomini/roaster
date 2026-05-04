@@ -133,6 +133,7 @@
   },
   "newsletter": {
     "title": "Blijf op de hoogte",
+    "description": "Blijf op de hoogte met Vicedomini Softworks",
     "placeholder": "jij@voorbeeld.nl",
     "submit": "Abonneren",
     "success": "Je bent erbij. Bereid je voor.",

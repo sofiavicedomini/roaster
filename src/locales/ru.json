@@ -133,6 +133,7 @@
   },
   "newsletter": {
     "title": "Оставайтесь в курсе",
+    "description": "Оставайтесь в курсе с Vicedomini Softworks",
     "placeholder": "вы@пример.ru",
     "submit": "Подписаться",
     "success": "Вы подписаны. Будьте готовы.",

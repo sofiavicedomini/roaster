@@ -459,6 +459,7 @@ export function Chatbot({ locale = "en" }: ChatbotProps) {
                     type="button"
                     onClick={() => toggleCategory(cat.id)}
                     aria-pressed={selectedCategories.includes(cat.id)}
+                    aria-label={`${t.chatbot.categories[cat.id as keyof typeof t.chatbot.categories] || cat.id} ${selectedCategories.includes(cat.id) ? "selected" : "not selected"}`}
                     className={`flex items-center gap-2 px-3 py-1.5 rounded-md border cursor-pointer transition-colors ${
                       selectedCategories.includes(cat.id)
                         ? "border-primary bg-primary/10"
@@ -541,7 +542,7 @@ export function Chatbot({ locale = "en" }: ChatbotProps) {
         )}
 
       {result && (
-        <div className="flex flex-col gap-4 rounded-lg border bg-card p-6 inferno-card">
+        <div className="flex flex-col gap-4 rounded-lg border bg-card p-6 inferno-card" aria-live="polite" aria-atomic="true">
           {cacheInfo && (
             <div className="text-xs text-muted-foreground border-b pb-2 mb-2 flex items-center justify-between">
               <span>
@@ -562,10 +563,10 @@ export function Chatbot({ locale = "en" }: ChatbotProps) {
           )}
           <div className="flex items-center justify-between">
             <div className="flex-1 min-w-0">
-              <h2 className="text-2xl font-bold">
+              <h2 className="text-2xl font-bold" aria-live="polite" aria-atomic="true">
                 {t.chatbot.overallScore.replace("{score}", String(result.overall_score))}
               </h2>
-              <p className="text-muted-foreground mt-1">{result.verdict}</p>
+              <p className="text-muted-foreground mt-1" id="roast-verdict">{result.verdict}</p>
             </div>
             <div className="flex flex-col items-end gap-2 shrink-0 ml-4">
               <div className="flex gap-1 text-3xl">
@@ -579,6 +580,7 @@ export function Chatbot({ locale = "en" }: ChatbotProps) {
                   <div className="flex flex-col items-end gap-1.5">
                     <a
                       href={`/${locale}/rankings/${result.rankingId}`}
+                      aria-label={t.rankings.shareRoast}
                       className="flex items-center gap-1.5 text-xs text-orange-400/70 hover:text-orange-300 transition-colors border border-orange-500/20 hover:border-orange-400/40 rounded-md px-2.5 py-1"
                     >
                       {t.rankings.shareRoast}

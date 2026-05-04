@@ -133,6 +133,7 @@
   },
   "newsletter": {
     "title": "Bleiben Sie informiert",
+    "description": "Bleiben Sie informiert mit Vicedomini Softworks",
     "placeholder": "sie@beispiel.de",
     "submit": "Abonnieren",
     "success": "Sie sind dabei. Machen Sie sich bereit.",

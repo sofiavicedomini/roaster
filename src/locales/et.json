@@ -133,6 +133,7 @@
   },
   "newsletter": {
     "title": "Püsi kursis",
+    "description": "Püsi kursis Vicedomini Softworksiga",
     "placeholder": "sina@näide.ee",
     "submit": "Telli",
     "success": "Oled sees. Valmistuge.",

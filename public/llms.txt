@@ -5,7 +5,7 @@ Roast Me (Stroncami) is an AI-powered website analysis tool that provides honest
 
 ## Features
 - Multi-language support (EN, IT, FR, ES, PT, DE, NL, RU, ET)
-- AI-powered analysis using OpenAI-compatible endpoints
+- AI-powered analysis
 - Detailed scores and actionable fix prompts per category
 - Categories: Design, Performance, Code, Mobile, UX, Accessibility, Conversion, SEO, Copy, Brand, Credibility, Security, Agent Readiness, Robots & Sitemap, MCP & Skills, API Discovery, Bot Auth
 
@@ -15,7 +15,9 @@ Roast results at /{locale}/rankings/{uuid} support machine-readable formats:
 - Accept: text/markdown → returns report as Markdown
 
 ## Note for AI Agents
-This is a human-facing web application. There is no public API. To analyze a website, a human user must visit https://stroncami.it and use the interface directly.
+This is a human-facing web application.
+There is no public API.
+To analyze a website, a human user must visit https://stroncami.it and use the interface directly.
 
 Full LLM documentation: https://stroncami.it/llms-full.txt
 API catalog: https://stroncami.it/.well-known/api-catalog

@@ -133,6 +133,7 @@
   },
   "newsletter": {
     "title": "Fique atualizado",
+    "description": "Fique atualizado com a Vicedomini Softworks",
     "placeholder": "voce@exemplo.pt",
     "submit": "Subscrever",
     "success": "Estás dentro. Prepara-te.",

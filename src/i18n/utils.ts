@@ -117,6 +117,7 @@ export interface Translation {
   };
   newsletter: {
     title: string;
+    description: string;
     placeholder: string;
     submit: string;
     success: string;
