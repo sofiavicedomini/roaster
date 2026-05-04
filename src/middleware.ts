@@ -4,6 +4,17 @@ const ALLOWED_ORIGINS = (import.meta.env.ALLOWED_ORIGINS || "")
   .split(",").map((s: string) => s.trim()).filter(Boolean)
 
 export const onRequest = defineMiddleware(async ({ request }, next) => {
+  const protocol = request.headers.get("x-forwarded-proto") || new URL(request.url).protocol
+  const isHttps = protocol === "https:" || request.headers.get("x-forwarded-proto") === "https"
+
+  if (!isHttps) {
+    const host = request.headers.get("host")
+    if (host) {
+      const httpsUrl = `https://${host}${new URL(request.url).pathname}${new URL(request.url).search}`
+      return Response.redirect(httpsUrl, 301)
+    }
+  }
+
   if (["POST", "PUT", "DELETE", "PATCH"].includes(request.method)) {
     const origin = request.headers.get("origin")
     const host = request.headers.get("host")

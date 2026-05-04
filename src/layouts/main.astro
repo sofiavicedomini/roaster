@@ -47,25 +47,25 @@ function getLocalizedPath(loc: string) {
 
     <!-- ── Desktop top-left nav ── -->
     <div class="hidden md:flex fixed top-4 left-4 z-50 items-center gap-2">
-      <a href={`/${locale}/rankings`} class="px-2.5 py-1 text-xs rounded-md bg-zinc-900/90 text-orange-400/80 border border-orange-500/20 hover:border-orange-400/50 hover:text-orange-300 transition-colors backdrop-blur-sm">{t("rankings.navLink")}</a>
-      <a href={`/${locale}/about`}    class="px-2.5 py-1 text-xs rounded-md bg-zinc-900/90 text-orange-400/80 border border-orange-500/20 hover:border-orange-400/50 hover:text-orange-300 transition-colors backdrop-blur-sm">{t("nav.about")}</a>
-      <a href={`/${locale}/how-it-works`} class="px-2.5 py-1 text-xs rounded-md bg-zinc-900/90 text-orange-400/80 border border-orange-500/20 hover:border-orange-400/50 hover:text-orange-300 transition-colors backdrop-blur-sm">{t("nav.howItWorks")}</a>
+      <a href={`/${locale}/rankings`} class="px-2.5 py-1 text-xs font-semibold rounded-md bg-zinc-900/90 text-orange-400/80 border border-orange-500/20 hover:border-orange-400/50 hover:text-orange-300 hover:shadow-[0_0_12px_theme(colors.orange.500/0.3)] transition-all duration-150 backdrop-blur-sm">{t("rankings.navLink")}</a>
+      <a href={`/${locale}/about`}    class="px-2.5 py-1 text-xs font-semibold rounded-md bg-zinc-900/90 text-orange-400/80 border border-orange-500/20 hover:border-orange-400/50 hover:text-orange-300 hover:shadow-[0_0_12px_theme(colors.orange.500/0.3)] transition-all duration-150 backdrop-blur-sm">{t("nav.about")}</a>
+      <a href={`/${locale}/how-it-works`} class="px-2.5 py-1 text-xs font-semibold rounded-md bg-zinc-900/90 text-orange-400/80 border border-orange-500/20 hover:border-orange-400/50 hover:text-orange-300 hover:shadow-[0_0_12px_theme(colors.orange.500/0.3)] transition-all duration-150 backdrop-blur-sm">{t("nav.howItWorks")}</a>
     </div>
 
     <!-- ── Desktop top-right controls ── -->
     <div class="hidden md:flex fixed top-4 right-4 z-50 items-center gap-1.5">
-      <button data-action="toggle-theme" aria-label="Toggle theme" class="p-1.5 rounded-md bg-zinc-900/90 border border-orange-500/20 hover:border-orange-400/50 text-orange-400/80 hover:text-orange-300 transition-colors backdrop-blur-sm text-sm leading-none">
+      <button data-action="toggle-theme" aria-label="Toggle theme" class="p-1.5 rounded-md bg-zinc-900/90 border border-orange-500/20 hover:border-orange-400/50 text-orange-400/80 hover:text-orange-300 hover:shadow-[0_0_12px_theme(colors.orange.500/0.3)] hover:scale-105 active:scale-95 transition-all duration-150 backdrop-blur-sm text-sm leading-none">
         <span class="theme-icon">☀️</span>
       </button>
-      <button data-action="toggle-fire" aria-label="Disable background animation" class="p-1.5 rounded-md bg-zinc-900/90 border border-orange-500/20 hover:border-orange-400/50 text-orange-400/80 hover:text-orange-300 transition-colors backdrop-blur-sm text-sm leading-none">
+      <button data-action="toggle-fire" aria-label="Disable background animation" class="p-1.5 rounded-md bg-zinc-900/90 border border-orange-500/20 hover:border-orange-400/50 text-orange-400/80 hover:text-orange-300 hover:shadow-[0_0_12px_theme(colors.orange.500/0.3)] hover:scale-105 active:scale-95 transition-all duration-150 backdrop-blur-sm text-sm leading-none">
         <span class="fire-icon">🔥</span>
       </button>
       <LanguageSwitcher />
     </div>
 
-    <!-- ── Mobile hamburger ── -->
+<!-- ── Mobile hamburger ── -->
     <div class="md:hidden fixed top-4 right-4 z-50">
-      <button id="menu-open" aria-label="Open menu" aria-expanded="false" aria-controls="mobile-sidebar" class="flex items-center justify-center w-9 h-9 rounded-md bg-zinc-900/90 border border-orange-500/20 text-orange-400/80 hover:border-orange-400/50 hover:text-orange-300 transition-colors backdrop-blur-sm">
+      <button id="menu-open" aria-label="Open menu" aria-expanded="false" aria-controls="mobile-sidebar" class="flex items-center justify-center w-9 h-9 rounded-md bg-zinc-900/90 border border-orange-500/20 hover:border-orange-400/50 hover:text-orange-300 hover:shadow-[0_0_12px_theme(colors.orange.500/0.3)] hover:scale-105 active:scale-95 transition-all duration-150 backdrop-blur-sm">
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
           <path d="M2 4h12M2 8h12M2 12h12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
         </svg>

@@ -322,6 +322,19 @@ export function Chatbot({ locale = "en" }: ChatbotProps) {
   const cacheAgeMin = cacheInfo ? Math.round((now - new Date(cacheInfo.cachedAt).getTime()) / 60000) : 0;
   const cacheClearInMin = cacheInfo ? Math.ceil(30 - (now - new Date(cacheInfo.cachedAt).getTime()) / 60000) : 0;
   const isCacheOld = cacheInfo ? now - new Date(cacheInfo.cachedAt).getTime() >= 30 * 60 * 1000 : false;
+  const [isCategoryDropdownOpen, setIsCategoryDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!isCategoryDropdownOpen) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setIsCategoryDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [isCategoryDropdownOpen]);
 
   const toggleCategory = (id: string) => {
     setSelectedCategories((prev) =>
@@ -429,7 +442,7 @@ export function Chatbot({ locale = "en" }: ChatbotProps) {
        <form onSubmit={handleSubmit} aria-label={t.chatbot.urlLabel} className="flex flex-col gap-4 rounded-lg border p-4 bg-card inferno-card" aria-busy={isLoading}>
 
         <div className="flex flex-col gap-2">
-          <label htmlFor="site-url" className="text-sm font-medium">{t.chatbot.urlLabel}</label>
+          <label htmlFor="site-url" className="text-sm font-semibold tracking-tight">{t.chatbot.urlLabel}</label>
           <input
             id="site-url"
             type="url"
@@ -446,41 +459,84 @@ export function Chatbot({ locale = "en" }: ChatbotProps) {
         </div>
 
          <div className="flex flex-col gap-3">
-          <label className="text-sm font-medium">{t.chatbot.categoriesLabel}</label>
-          {Object.entries(groups).map(([group, cats]) => (
-            <div key={group} className="flex flex-col gap-2">
-              <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                {t.chatbot.groups[group as keyof typeof t.chatbot.groups] || group}
+          <label className="text-sm font-semibold tracking-tight">{t.chatbot.categoriesLabel}</label>
+
+          {/* Mobile: dropdown with larger touch targets */}
+          <div ref={dropdownRef} className="md:hidden relative">
+            <button
+              type="button"
+              onClick={() => setIsCategoryDropdownOpen(!isCategoryDropdownOpen)}
+              className="w-full flex items-center justify-between px-4 py-3 rounded-lg border border-border bg-background text-sm font-medium"
+            >
+              <span>
+                {selectedCategories.length > 0
+                  ? `${selectedCategories.length} selected`
+                  : "Select categories"}
               </span>
-              <div className="flex flex-wrap gap-2">
-                {cats.map((cat) => (
-                  <button
-                    key={cat.id}
-                    type="button"
-                    onClick={() => toggleCategory(cat.id)}
-                    aria-pressed={selectedCategories.includes(cat.id)}
-                    aria-label={`${t.chatbot.categories[cat.id as keyof typeof t.chatbot.categories] || cat.id} ${selectedCategories.includes(cat.id) ? "selected" : "not selected"}`}
-                    className={`flex items-center gap-2 px-3 py-1.5 rounded-md border cursor-pointer transition-colors ${
-                      selectedCategories.includes(cat.id)
-                        ? "border-primary bg-primary/10"
-                        : "border-border hover:bg-muted"
-                    }`}
-                  >
-                    <span className="text-sm">
-                      {t.chatbot.categories[cat.id as keyof typeof t.chatbot.categories] || cat.id}
-                    </span>
-                    <Check
-                      className={`w-4 h-4 transition-colors ${
-                        selectedCategories.includes(cat.id)
-                          ? "text-primary"
-                          : "text-muted-foreground/40"
-                      }`}
-                    />
-                  </button>
-                ))}
+              <ChevronDown className={`w-5 h-5 transition-transform ${isCategoryDropdownOpen ? "rotate-180" : ""}`} />
+            </button>
+
+            {isCategoryDropdownOpen && (
+              <div className="absolute z-50 w-full mt-2 p-3 rounded-lg border bg-background shadow-lg max-h-80 overflow-y-auto">
+                <div className="grid grid-cols-2 gap-2">
+                  {CATEGORIES.map((cat) => (
+                    <label
+                      key={cat.id}
+                      className="flex items-center gap-3 p-3 rounded-md cursor-pointer hover:bg-muted/50 transition-colors min-h-[48px]"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={selectedCategories.includes(cat.id)}
+                        onChange={() => toggleCategory(cat.id)}
+                        className="w-5 h-5 rounded border-input accent-primary"
+                      />
+                      <span className="text-sm font-medium">
+                        {t.chatbot.categories[cat.id as keyof typeof t.chatbot.categories] || cat.id}
+                      </span>
+                    </label>
+                  ))}
+                </div>
               </div>
-            </div>
-          ))}
+            )}
+          </div>
+
+          {/* Desktop: inline buttons */}
+          <div className="hidden md:flex flex-col gap-3">
+            {Object.entries(groups).map(([group, cats]) => (
+              <div key={group} className="flex flex-col gap-2.5">
+                <span className="text-[0.7rem] font-bold text-muted-foreground uppercase tracking-[0.15em]">
+                  {t.chatbot.groups[group as keyof typeof t.chatbot.groups] || group}
+                </span>
+                <div className="flex flex-wrap gap-2">
+                  {cats.map((cat) => (
+                    <button
+                      key={cat.id}
+                      type="button"
+                      onClick={() => toggleCategory(cat.id)}
+                      aria-pressed={selectedCategories.includes(cat.id)}
+                      aria-label={`${t.chatbot.categories[cat.id as keyof typeof t.chatbot.categories] || cat.id} ${selectedCategories.includes(cat.id) ? "selected" : "not selected"}`}
+                      className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border cursor-pointer transition-all duration-150 ease-out ${
+                        selectedCategories.includes(cat.id)
+                          ? "border-primary bg-primary/15 shadow-[0_0_12px_theme(colors.primary/0.4)] scale-[1.02]"
+                          : "border-border hover:bg-muted/70 hover:border-muted-foreground/30 hover:shadow-[0_0_8px_theme(colors.muted/0.3)] hover:scale-[1.01] active:scale-[0.98]"
+                      }`}
+                    >
+                      <span className="text-sm font-medium">
+                        {t.chatbot.categories[cat.id as keyof typeof t.chatbot.categories] || cat.id}
+                      </span>
+                      <Check
+                        className={`w-4 h-4 transition-all duration-150 ${
+                          selectedCategories.includes(cat.id)
+                            ? "text-primary scale-100"
+                            : "text-muted-foreground/30 scale-75"
+                        }`}
+                      />
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
 
         {turnstileSiteKey && (
@@ -545,17 +601,17 @@ export function Chatbot({ locale = "en" }: ChatbotProps) {
         <div className="flex flex-col gap-4 rounded-lg border bg-card p-6 inferno-card" aria-live="polite" aria-atomic="true">
           {cacheInfo && (
             <div className="text-xs text-muted-foreground border-b pb-2 mb-2 flex items-center justify-between">
-              <span>
+              <span className="font-medium">
                 {cacheInfo.translated ? "Translated" : "Cached"} result
                 {" "}from {new Date(cacheInfo.cachedAt).toLocaleString()}
                 {" "}({cacheAgeMin} min ago)
               </span>
               {isCacheOld ? (
-                <button onClick={clearCache} aria-label={`Clear cached result for ${url}`} className="text-xs text-orange-400 hover:text-orange-300 underline">
+                <button onClick={clearCache} aria-label={`Clear cached result for ${url}`} className="text-xs font-semibold text-orange-400 hover:text-orange-300 hover:underline underline-offset-2 transition-all">
                   Clear cache
                 </button>
               ) : (
-                <span className="text-xs text-amber-400/70">
+                <span className="text-xs text-amber-400/70 font-medium">
                   Wait {cacheClearInMin} min to clear
                 </span>
               )}
@@ -563,13 +619,13 @@ export function Chatbot({ locale = "en" }: ChatbotProps) {
           )}
           <div className="flex items-center justify-between">
             <div className="flex-1 min-w-0">
-              <h2 className="text-2xl font-bold" aria-live="polite" aria-atomic="true">
+              <h2 className="text-3xl font-extrabold tracking-tight" aria-live="polite" aria-atomic="true">
                 {t.chatbot.overallScore.replace("{score}", String(result.overall_score))}
               </h2>
-              <p className="text-muted-foreground mt-1" id="roast-verdict">{result.verdict}</p>
+              <p className="text-muted-foreground mt-2 text-base" id="roast-verdict">{result.verdict}</p>
             </div>
             <div className="flex flex-col items-end gap-2 shrink-0 ml-4">
-              <div className="flex gap-1 text-3xl">
+              <div className="flex gap-1 text-4xl">
                 {"🔥".repeat(Math.ceil(result.overall_score / 2))}
               </div>
               {result.rankingId && (() => {
@@ -581,7 +637,7 @@ export function Chatbot({ locale = "en" }: ChatbotProps) {
                     <a
                       href={`/${locale}/rankings/${result.rankingId}`}
                       aria-label={t.rankings.shareRoast}
-                      className="flex items-center gap-1.5 text-xs text-orange-400/70 hover:text-orange-300 transition-colors border border-orange-500/20 hover:border-orange-400/40 rounded-md px-2.5 py-1"
+                      className="flex items-center gap-1.5 text-xs font-semibold text-orange-400/70 hover:text-orange-300 transition-colors border border-orange-500/20 hover:border-orange-400/40 rounded-md px-2.5 py-1"
                     >
                       {t.rankings.shareRoast}
                     </a>
@@ -600,9 +656,9 @@ export function Chatbot({ locale = "en" }: ChatbotProps) {
             {Object.entries(result.scores).map(([cat, score]) => (
               <div
                 key={cat}
-                className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-muted"
+                className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-muted/60"
               >
-                <span className="text-sm capitalize">
+                <span className="text-sm font-semibold capitalize">
                   {t.chatbot.categories[cat as keyof typeof t.chatbot.categories] || cat}
                 </span>
                 <span className={`font-bold ${getScoreColor(score)}`}>
@@ -613,16 +669,16 @@ export function Chatbot({ locale = "en" }: ChatbotProps) {
           </div>
 
           <div className="flex flex-col gap-4 pt-4 border-t">
-            <h3 className="font-medium text-lg">{t.chatbot.detailedRoasts}</h3>
+            <h3 className="font-bold text-lg tracking-tight">{t.chatbot.detailedRoasts}</h3>
             {result.roasts.map((roast, i) => (
-              <div key={i} className="flex flex-col gap-2 p-3 rounded-lg bg-muted/50">
+              <div key={i} className="flex flex-col gap-2 p-4 rounded-lg bg-muted/50 hover:bg-muted/70 transition-colors duration-150">
                 <div className="flex gap-3">
-                  <span className="text-2xl">{roast.emoji}</span>
+                  <span className="text-3xl">{roast.emoji}</span>
                   <div className="flex-1">
-                    <h4 className="font-medium capitalize">
+                    <h4 className="font-bold capitalize text-base">
                       {t.chatbot.categories[roast.category as keyof typeof t.chatbot.categories] || roast.category}
                     </h4>
-                    <p className="text-sm text-muted-foreground mt-1">{roast.critique}</p>
+                    <p className="text-sm text-muted-foreground mt-1.5 leading-relaxed">{roast.critique}</p>
                   </div>
                 </div>
                 {roast.fix_prompt && (

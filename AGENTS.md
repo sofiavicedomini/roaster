@@ -45,3 +45,27 @@ API route uses OpenAI-compatible endpoint. Defaults to local Ollama:
 - `OPENAI_MODEL` (default: `llama3`)
 
 See `.env.example` for setup.
+
+## Security
+
+- `src/middleware.ts` - sets CSP, HSTS, X-Content-Type-Options, X-Frame-Options, HTTPS redirect
+- `/api/security-check?url=<target>` - analyze target's security headers (live fetch)
+- `src/lib/security-analyzer.ts` - reusable analysis functions
+
+## Agent Readiness Checks
+
+`checkAgentReadiness()` in `src/pages/api/roast.ts` categorizes checks:
+- `robots` → robots.txt, sitemap.xml
+- `mcp` → mcp, webmcp, agentskills
+- `apiDiscovery` → llms.txt, llms-full.txt, api-catalog
+- `botAuth` → oauth, oauth-protected, agent-card, a2a
+- `security` → CSP, HSTS, X-Content-Type-Options, X-Frame-Options, Referrer-Policy, Permissions-Policy
+
+## Internal Agent Tools
+
+LLM agent tools in `/api/roast` (defined in `AGENT_TOOLS`):
+- `scrape_url` - fetch URL content for evidence (homepage, robots.txt, etc.)
+- `analyze_security_headers` - fetch & analyze CSP, HSTS, X-Content-Type-Options, X-Frame-Options, Referrer-Policy, Permissions-Policy
+- `submit_roast` - submit final analysis with scores & critiques
+
+Categories for roast: `design`, `performance`, `mobile`, `ux`, `accessibility`, `conversion`, `seo`, `copy`, `brand`, `credibility`, `security`, `agentReadiness`, `robots`, `mcp`, `apiDiscovery`, `botAuth`, `code` (18 total)

@@ -94,6 +94,7 @@ export const POST: APIRoute = async ({ request }) => {
         await createJob(jobId, {
           status: "pending",
           progress: "Starting with merged categories",
+          url,
           normUrl,
           locale: safeLocale,
           cats: mergedCats.join(","),
@@ -180,6 +181,7 @@ export const POST: APIRoute = async ({ request }) => {
     await createJob(jobId, {
       status: "pending",
       progress: "Starting",
+      url,
       normUrl,
       locale: safeLocale,
       cats: catsKey,
@@ -220,6 +222,26 @@ export const GET: APIRoute = async ({ request }) => {
       headers: { "Content-Type": "application/json" },
     });
   }
+
+  let linkHeader = "";
+  if (job.result) {
+    try {
+      const parsed = JSON.parse(job.result) as Record<string, unknown>;
+      const checks = parsed.checks as Record<string, unknown> | undefined;
+      const jobUrl = job.normUrl || (job as Record<string, unknown>).url as string || parsed.url as string | undefined;
+      if (checks && jobUrl) {
+        linkHeader = buildLinkHeader(jobUrl, checks);
+      }
+    } catch {
+      // Ignore parse errors
+    }
+  }
+
+  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  if (linkHeader) {
+    headers["Link"] = linkHeader;
+  }
+
   return new Response(
     JSON.stringify({
       status: job.status,
@@ -227,7 +249,7 @@ export const GET: APIRoute = async ({ request }) => {
       result: job.result ? JSON.parse(job.result) : null,
       error: job.error || null,
     }),
-    { status: 200, headers: { "Content-Type": "application/json" } },
+    { status: 200, headers },
   );
 };
 
@@ -244,6 +266,37 @@ function stripCats(result: Record<string, unknown>, cats: string[]): Record<stri
     r.scores = s;
   }
   return r;
+}
+
+function buildLinkHeader(baseUrl: string, checks: Record<string, unknown>): string {
+  const links: string[] = [];
+  try {
+    const origin = new URL(baseUrl).origin;
+    const checkMapping: Record<string, string> = {
+      llms: "/llms.txt",
+      llmsfull: "/llms-full.txt",
+      sitemap: "/sitemap.xml",
+      robots: "/robots.txt",
+      mcp: "/.well-known/mcp",
+      oauth: "/.well-known/oauth-authorization-server",
+      "agent-card": "/.well-known/agent.json",
+      a2a: "/.well-known/a2a.json",
+      "api-catalog": "/.well-known/api-catalog",
+      webmcp: "/.well-known/webmcp",
+      agentskills: "/.agentskills",
+    };
+
+    for (const [key, path] of Object.entries(checkMapping)) {
+      const check = checks[key] as { status: string } | undefined;
+      if (check?.status === "found") {
+        links.push(`<${origin}${path}>; rel="alternate"`);
+      }
+    }
+  } catch {
+      // Ignore URL parse errors
+    }
+
+  return links.length > 0 ? links.join(", ") : "";
 }
 
 function isSiteDown(checks: Record<string, unknown>): boolean {
@@ -334,7 +387,7 @@ async function processRoast(
     const normUrl = normalizeUrl(url);
     const cachedAt = new Date().toISOString();
     await saveRanking(jobId, { url, normUrl, score: (result as Record<string, unknown>).overall_score as number, verdict: (result as Record<string, unknown>).verdict as string, cats, locale, completedAt: cachedAt, result: result as Record<string, unknown> }).catch(() => {});
-    await updateJob(jobId, { status: "completed", progress: "Done", result: JSON.stringify({ ...result as Record<string, unknown>, cached: false, cacheKey: cacheKey(normUrl), rankingId: jobId }) });
+    await updateJob(jobId, { status: "completed", progress: "Done", result: JSON.stringify({ ...result as Record<string, unknown>, cached: false, cacheKey: cacheKey(normUrl), rankingId: jobId, checks }) });
     await jobDb.del(jobIdKey(normUrl, locale));
     return;
   }
@@ -367,7 +420,7 @@ async function processRoast(
   await updateJob(jobId, {
     status: "completed",
     progress: "Done",
-    result: JSON.stringify({ ...result, cached: false, cacheKey: cacheKey(normUrl), rankingId: jobId }),
+    result: JSON.stringify({ ...result, cached: false, cacheKey: cacheKey(normUrl), rankingId: jobId, checks }),
   });
 
   saveRanking(jobId, {
@@ -571,10 +624,33 @@ async function checkAgentReadiness(baseUrl: string) {
   try {
     const res = await fetch(baseUrl, { headers: { "User-Agent": "Mozilla/5.0 Agent-Readiness-Checker" } });
     const headers: string[] = [];
+
     for (const h of headersToCheck) {
       const val = res.headers.get(h);
       if (val) headers.push(`${h}: ${val}`);
     }
+
+    const csp = res.headers.get("content-security-policy");
+    const hsts = res.headers.get("strict-transport-security");
+    const xcto = res.headers.get("x-content-type-options");
+    const xfo = res.headers.get("x-frame-options");
+    const ref = res.headers.get("referrer-policy");
+    const perm = res.headers.get("permissions-policy");
+
+    if (csp || hsts || xcto || xfo || ref || perm) {
+      const securityHeaders: string[] = [];
+      if (csp) securityHeaders.push(`CSP: ${csp.length > 100 ? csp.substring(0, 97) + "..." : csp}`);
+      if (hsts) securityHeaders.push(`HSTS: ${hsts}`);
+      if (xcto) securityHeaders.push(`X-Content-Type: ${xcto}`);
+      if (xfo) securityHeaders.push(`X-Frame: ${xfo}`);
+      if (ref) securityHeaders.push(`Referrer: ${ref}`);
+      if (perm) securityHeaders.push(`Permissions: ${perm.substring(0, 50)}${perm.length > 50 ? "..." : ""}`);
+      results["securityHeaders"] = { status: "found", detail: securityHeaders.join("; "), score: securityHeaders.length >= 4 ? 3 : securityHeaders.length };
+      totalScore += results["securityHeaders"].score;
+    } else {
+      results["securityHeaders"] = { status: "not found", detail: "No security headers found (missing CSP, HSTS, X-Content-Type-Options, etc.)", score: 0 };
+    }
+    maxScore += 3;
     const linkHeader = res.headers.get("link");
     if (linkHeader && (linkHeader.includes("mcp") || linkHeader.includes("agent") || linkHeader.includes("llms"))) {
       headers.push(`[agent Link rel]: ${linkHeader}`);
@@ -599,17 +675,19 @@ async function checkAgentReadiness(baseUrl: string) {
     apiDiscoveryMax: 5,
     botAuth: (results.oauth?.score ?? 0) + (results["oauth-protected"]?.score ?? 0) + (results["agent-card"]?.score ?? 0) + (results.a2a?.score ?? 0),
     botAuthMax: 7,
+    security: (results.securityHeaders?.score ?? 0),
+    securityMax: 3,
   };
 
   results["_summary"] = {
     status: `${totalScore}/${maxScore} points`,
-    detail: `Overall Agent Readiness: ${Math.round((totalScore / maxScore) * 10)}/10. robots/sitemap: ${catScores.robots}/${catScores.robotsMax}. MCP: ${catScores.mcp}/${catScores.mcpMax}. API discovery: ${catScores.apiDiscovery}/${catScores.apiDiscoveryMax}. Bot auth/A2A: ${catScores.botAuth}/${catScores.botAuthMax}`,
+    detail: `Overall Agent Readiness: ${Math.round((totalScore / maxScore) * 10)}/10. robots/sitemap: ${catScores.robots}/${catScores.robotsMax}. MCP: ${catScores.mcp}/${catScores.mcpMax}. API discovery: ${catScores.apiDiscovery}/${catScores.apiDiscoveryMax}. Bot auth/A2A: ${catScores.botAuth}/${catScores.botAuthMax}. Security headers: ${catScores.security}/${catScores.securityMax}`,
     score: Math.round((totalScore / maxScore) * 10),
   };
 
   results["_categoryMapping"] = {
     status: "info",
-    detail: "USE THIS: 'robots' category→check keys: robots,sitemap | 'mcp' category→check keys: mcp,webmcp,agentskills | 'apiDiscovery' category→check keys: llms,llmsfull,api-catalog | 'botAuth' category→check keys: oauth,oauth-protected,agent-card,a2a | 'agentReadiness' category→overall score + headers",
+    detail: "USE THIS: 'robots' category→check keys: robots,sitemap | 'mcp' category→check keys: mcp,webmcp,agentskills | 'apiDiscovery' category→check keys: llms,llmsfull,api-catalog | 'botAuth' category→check keys: oauth,oauth-protected,agent-card,a2a | 'security' category→check keys: securityHeaders | 'agentReadiness' category→overall score + headers",
     score: 0,
   };
 
@@ -702,6 +780,20 @@ const AGENT_TOOLS = [
         type: "object",
         properties: {
           url: { type: "string", description: "Absolute URL to fetch" },
+        },
+        required: ["url"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "analyze_security_headers",
+      description: "Fetch and analyze security headers of a URL: CSP, HSTS, X-Content-Type-Options, X-Frame-Options, Referrer-Policy, Permissions-Policy. Returns which headers are present/missing and recommendations.",
+      parameters: {
+        type: "object",
+        properties: {
+          url: { type: "string", description: "Target URL to analyze" },
         },
         required: ["url"],
       },
@@ -926,8 +1018,37 @@ async function runAgentLoop(
         } catch (e) {
           messages.push({ role: "tool", tool_call_id: call.id, content: `Fetch error: ${e}` });
         }
+      } else if (call.function.name === "analyze_security_headers") {
+        try {
+          const { url: targetUrl } = JSON.parse(call.function.arguments) as { url: string };
+          const resolved = targetUrl.startsWith("http") ? targetUrl : new URL(targetUrl, new URL(url).origin).toString();
+          const response = await fetch(resolved, { method: "HEAD", redirect: "manual" });
+          const headers: string[] = [];
+          for (const [key, value] of response.headers.entries()) {
+            if (key.toLowerCase().includes("content-security") ||
+                key.toLowerCase().includes("strict-transport") ||
+                key.toLowerCase().startsWith("x-") ||
+                key.toLowerCase() === "referrer-policy" ||
+                key.toLowerCase() === "permissions-policy") {
+              headers.push(`${key}: ${value}`);
+            }
+          }
+          const missing: string[] = [];
+          if (!headers.some(h => h.startsWith("content-security-policy:"))) missing.push("Content-Security-Policy");
+          if (!headers.some(h => h.startsWith("strict-transport-security:"))) missing.push("Strict-Transport-Security");
+          if (!headers.some(h => h.startsWith("x-content-type-options:"))) missing.push("X-Content-Type-Options");
+          if (!headers.some(h => h.startsWith("x-frame-options:"))) missing.push("X-Frame-Options");
+          if (!headers.some(h => h.startsWith("referrer-policy:"))) missing.push("Referrer-Policy");
+          if (!headers.some(h => h.startsWith("permissions-policy:"))) missing.push("Permissions-Policy");
+          const result = headers.length > 0
+            ? `Security headers found (${headers.length}): ${headers.join("; ")}${missing.length > 0 ? `. Missing: ${missing.join(", ")}` : ""}`
+            : `No security headers found. Missing: ${missing.length > 0 ? missing.join(", ") : "all"}`;
+          messages.push({ role: "tool", tool_call_id: call.id, content: result });
+        } catch (e) {
+          messages.push({ role: "tool", tool_call_id: call.id, content: `Fetch error: ${e}` });
+        }
       } else {
-        messages.push({ role: "tool", tool_call_id: call.id, content: `Unknown tool "${call.function.name}". Use scrape_url or submit_roast.` });
+        messages.push({ role: "tool", tool_call_id: call.id, content: `Unknown tool "${call.function.name}". Use scrape_url, analyze_security_headers, or submit_roast.` });
       }
     }
   }
