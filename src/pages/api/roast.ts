@@ -862,6 +862,8 @@ async function runPreAnalysis(url: string, categories: string[]): Promise<Record
     console.log("[Pre-analysis] Timeout or error, continuing with partial results:", e);
   }
 
+  console.log("[Pre-analysis] Results:", JSON.stringify(results, null, 2).substring(0, 500));
+
   console.log("[Pre-analysis] Completed with", Object.keys(results).length, "tools");
   return results;
 }
