@@ -1,6 +1,20 @@
 export interface LLMMessage {
-  role: "system" | "user" | "assistant";
+  role: "system" | "user" | "assistant" | "tool";
   content: string;
+  tool_call_id?: string;
+}
+
+export interface LLMTool {
+  type: "function";
+  function: {
+    name: string;
+    description: string;
+    parameters?: {
+      type: "object";
+      properties?: Record<string, unknown>;
+      required?: string[];
+    };
+  };
 }
 
 export interface LLMConfig {
@@ -13,12 +27,14 @@ export interface LLMConfig {
 export class LLM {
   private config: LLMConfig;
   private messages: LLMMessage[];
+  private tools: LLMTool[];
 
   constructor(systemPrompt: string, config: LLMConfig) {
     this.config = config;
     this.messages = [
       { role: "system", content: systemPrompt }
     ];
+    this.tools = [];
   }
 
   /**
@@ -39,7 +55,8 @@ export class LLM {
         body: JSON.stringify({
           model: this.config.model,
           messages: this.messages,
-          temperature: this.config.temperature ?? 0.3
+          temperature: this.config.temperature ?? 0.3,
+          ...(this.tools.length > 0 && { tools: this.tools })
         })
       });
 
@@ -66,6 +83,36 @@ export class LLM {
   }
 
   /**
+   * Add a tool to the LLM for function calling
+   */
+  addTool(name: string, description: string, parameters?: {
+    type: "object";
+    properties?: Record<string, unknown>;
+    required?: string[];
+  }): void {
+    const tool: LLMTool = {
+      type: "function",
+      function: {
+        name,
+        description,
+        parameters: parameters || {
+          type: "object",
+          properties: {},
+          required: []
+        }
+      }
+    };
+    this.tools.push(tool);
+  }
+
+  /**
+   * Get all registered tools
+   */
+  getTools(): LLMTool[] {
+    return [...this.tools];
+  }
+
+  /**
    * Get all messages in the conversation history
    */
   getMessages(): LLMMessage[] {
@@ -73,7 +120,7 @@ export class LLM {
   }
 
   /**
-   * Clear conversation history (keeps system prompt)
+   * Clear conversation history (keeps system prompt and tools)
    */
   clearHistory(): void {
     const systemPrompt = this.messages.find(m => m.role === "system");
@@ -83,8 +130,10 @@ export class LLM {
   /**
    * Add a custom message to history (for manual intervention)
    */
-  addMessage(role: "user" | "assistant", content: string): void {
-    this.messages.push({ role, content });
+  addMessage(role: "user" | "assistant" | "tool", content: string, tool_call_id?: string): void {
+    const msg: LLMMessage = { role, content };
+    if (tool_call_id) msg.tool_call_id = tool_call_id;
+    this.messages.push(msg);
   }
 
   /**
@@ -92,5 +141,12 @@ export class LLM {
    */
   getMessageCount(): number {
     return this.messages.filter(m => m.role !== "system").length;
+  }
+
+  /**
+   * Get tool count
+   */
+  getToolCount(): number {
+    return this.tools.length;
   }
 }
