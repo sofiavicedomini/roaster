@@ -43,8 +43,15 @@ export async function POST({ request }: APIContext) {
     );
   }
 
-  // 1. Create or update contact in Brevo
+  // Create or update contact in Brevo (with list assignment if configured)
   console.log(`[Newsletter] Creating/updating Brevo contact for: ${email}`);
+  const contactData: { email: string; lang: string; listIds?: number[] } = { email, lang };
+
+  if (listId) {
+    contactData.listIds = [parseInt(listId)];
+    console.log(`[Newsletter] Will assign contact to Brevo list: ${listId}`);
+  }
+
   const contactRes = await fetch(
     "https://api.brevo.com/v3/contacts",
     {
@@ -53,7 +60,7 @@ export async function POST({ request }: APIContext) {
         "Content-Type": "application/json",
         "api-key": apiKey,
       },
-      body: JSON.stringify({ email, lang }),
+      body: JSON.stringify(contactData),
     },
   );
 
@@ -69,33 +76,7 @@ export async function POST({ request }: APIContext) {
     });
   }
 
-  console.log(`[Newsletter] Brevo contact created/updated successfully`);
-
-  // 2. If a list ID is configured, add the contact to it
-  if (listId) {
-    console.log(`[Newsletter] Adding contact to Brevo list: ${listId}`);
-    const listRes = await fetch(`https://api.brevo.com/v3/contacts/lists/${listId}/members`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "api-key": apiKey,
-      },
-      body: JSON.stringify({
-        contact: { email },
-        optInStatus: "subscribed"
-      }),
-    });
-
-    console.log(`[Newsletter] Brevo list addition response: ${listRes.status} ${listRes.statusText}`);
-    if (!listRes.ok) {
-      const listErr = await listRes.text();
-      console.error(`[Newsletter] Failed to add contact to list (${listRes.status}):`, listErr);
-    } else {
-      console.log(`[Newsletter] Contact successfully added to list`);
-    }
-  } else {
-    console.log(`[Newsletter] No list ID configured, skipping list addition`);
-  }
+  console.log(`[Newsletter] Brevo contact created/updated successfully${listId ? ` and assigned to list ${listId}` : ''}`);
 
   console.log(`[Newsletter] Subscription completed successfully for: ${email}`);
 
