@@ -428,6 +428,23 @@ export function Chatbot({ locale = "en" }: ChatbotProps) {
     <div className="flex flex-col gap-6 max-w-2xl mx-auto w-full">
        <form onSubmit={handleSubmit} aria-label={t.chatbot.urlLabel} className="flex flex-col gap-4 rounded-lg border p-4 bg-card inferno-card" aria-busy={isLoading}>
 
+        <div className="flex flex-col gap-2">
+          <label htmlFor="site-url" className="text-sm font-medium">{t.chatbot.urlLabel}</label>
+          <input
+            id="site-url"
+            type="url"
+            required
+            placeholder={t.chatbot.urlPlaceholder}
+            value={url}
+            onChange={(e) => setUrl(e.target.value)}
+            className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+            disabled={isLoading}
+          />
+          {t.chatbot.urlHint && (
+            <p className="text-xs text-muted-foreground/70">{t.chatbot.urlHint}</p>
+          )}
+        </div>
+
          <div className="flex flex-col gap-3">
           <label className="text-sm font-medium">{t.chatbot.categoriesLabel}</label>
           {Object.entries(groups).map(([group, cats]) => (

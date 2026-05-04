@@ -40,11 +40,11 @@ const fallbackCompany = {
 const displayCompany = companyInfo || fallbackCompany;
 ---
 
-<footer class="mt-16 border-t border-border py-8">
+<footer class="mt-16 border-t border-border py-8 bg-background/50">
   <div class="max-w-2xl mx-auto px-4">
-    <div class="flex flex-col items-center text-center gap-4">
+    <div class="flex flex-col items-center text-center gap-4 relative z-10">
       <!-- Company Info -->
-      <div class="text-xs text-muted-foreground/70 leading-relaxed max-w-md">
+       <div class="text-xs text-muted-foreground/70 leading-relaxed max-w-md relative z-10">
         <p class="font-medium text-foreground/80">{displayCompany.name}</p>
         <p class="mt-1.5">{displayCompany.fullAddress}</p>
         <p class="mt-0.5">P.IVA {displayCompany.piva} · REA {displayCompany.rea}</p>
