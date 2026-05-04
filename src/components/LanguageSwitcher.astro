@@ -21,10 +21,10 @@ function getLocalizedPath(locale: string) {
     aria-haspopup="listbox"
     aria-expanded="false"
     aria-label="Select language"
-    class="flex items-center gap-1.5 px-2.5 py-1 text-xs rounded-md bg-zinc-900/90 text-orange-400 border border-orange-500/30 hover:border-orange-400/50 hover:text-orange-300 transition-colors backdrop-blur-sm"
+    class="flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-lg bg-zinc-900/90 text-orange-400 border border-orange-500/25 hover:border-orange-400/50 hover:text-orange-300 hover:shadow-[0_0_10px_oklch(0.837_0.128_66.29_/_0.25)] transition-all backdrop-blur-sm font-medium"
   >
     <span id="lang-current">{currentLocale.toUpperCase()}</span>
-    <svg id="lang-chevron" width="10" height="10" viewBox="0 0 10 10" fill="none" class="transition-transform duration-150">
+    <svg id="lang-chevron" width="10" height="10" viewBox="0 0 10 10" fill="none" class="transition-transform duration-200">
       <path d="M2 3.5L5 6.5L8 3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
     </svg>
   </button>
@@ -33,16 +33,16 @@ function getLocalizedPath(locale: string) {
     id="lang-menu"
     role="listbox"
     aria-label="Language"
-    class="absolute right-0 mt-1 min-w-[5rem] rounded-md bg-zinc-900/95 border border-orange-500/20 backdrop-blur-sm shadow-lg overflow-hidden hidden"
+    class="absolute right-0 mt-1.5 min-w-[6rem] rounded-lg bg-zinc-900/95 border border-orange-500/25 backdrop-blur-md shadow-xl overflow-hidden hidden"
   >
     {locales.map((locale) => (
       <li role="option" aria-selected={currentLocale === locale}>
         <a
           href={getLocalizedPath(locale)}
-          class={`block px-3 py-1.5 text-xs transition-colors ${
+          class={`block px-3.5 py-2 text-xs transition-all ${
             currentLocale === locale
-              ? "text-orange-400 bg-orange-500/10"
-              : "text-zinc-400 hover:text-orange-300 hover:bg-zinc-800/80"
+              ? "text-orange-400 bg-orange-500/15 font-semibold"
+              : "text-zinc-400 hover:text-orange-300 hover:bg-orange-500/10"
           }`}
         >
           {locale.toUpperCase()}

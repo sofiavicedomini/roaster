@@ -39,49 +39,49 @@ const groups = categories.reduce((acc, cat) => {
 
 <form
   id="chatbot-form"
-  class="flex flex-col gap-4 rounded-lg border p-4 bg-card inferno-card"
+  class="flex flex-col gap-5 rounded-xl border border-orange-500/15 p-5 bg-gradient-to-br from-background to-orange-500/5 shadow-lg"
   aria-label={t("chatbot.urlLabel")}
 >
-  <div class="flex flex-col gap-2">
-    <label for="site-url" class="text-sm font-semibold tracking-tight">{t("chatbot.urlLabel")}</label>
+  <div class="flex flex-col gap-3">
+    <label for="site-url" class="text-sm font-semibold tracking-tight text-orange-200/90">{t("chatbot.urlLabel")}</label>
     <input
       id="site-url"
       type="url"
       required
       placeholder={t("chatbot.urlPlaceholder")}
-      class="w-full rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+      class="w-full rounded-lg border border-orange-500/20 bg-background/80 px-4 py-3 text-sm placeholder:text-orange-300/40 focus:outline-none focus:ring-2 focus:ring-orange-500/40 transition-all"
     />
     {t("chatbot.urlHint") && (
-      <p class="text-xs text-muted-foreground/70">{t("chatbot.urlHint")}</p>
+      <p class="text-xs text-orange-300/50 mt-0.5">{t("chatbot.urlHint")}</p>
     )}
   </div>
 
   <div class="flex flex-col gap-3">
-    <label class="text-sm font-semibold tracking-tight">{t("chatbot.categoriesLabel")}</label>
+    <label class="text-sm font-semibold tracking-tight text-orange-200/90">{t("chatbot.categoriesLabel")}</label>
 
     <div class="md:hidden">
       <button
         type="button"
         id="category-dropdown-toggle"
-        class="w-full flex items-center justify-between px-4 py-3 rounded-lg border border-border bg-background text-sm font-medium"
+        class="w-full flex items-center justify-between px-4 py-3 rounded-lg border border-orange-500/20 bg-orange-500/5 text-sm font-medium text-orange-200 hover:bg-orange-500/10 transition-all"
       >
         <span id="category-count">{defaultCategories.length} selected</span>
-        <svg class="w-5 h-5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg class="w-5 h-5 text-orange-400/60 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
         </svg>
       </button>
-      <div id="category-dropdown" class="hidden mt-2 p-3 rounded-lg border bg-background shadow-lg max-h-80 overflow-y-auto">
+      <div id="category-dropdown" class="hidden mt-2 p-3 rounded-lg border border-orange-500/20 bg-zinc-900/95 shadow-xl max-h-80 overflow-y-auto">
         <div class="grid grid-cols-2 gap-2">
           {categories.map((cat) => (
-            <label class="flex items-center gap-3 p-3 rounded-md cursor-pointer hover:bg-muted/50 transition-colors min-h-[48px]">
+            <label class="flex items-center gap-3 p-3 rounded-lg cursor-pointer hover:bg-orange-500/10 transition-all min-h-[48px] border border-transparent hover:border-orange-500/15">
               <input
                 type="checkbox"
                 name="categories"
                 value={cat.id}
                 checked={defaultCategories.includes(cat.id)}
-                class="w-5 h-5 rounded border-input accent-primary"
+                class="w-5 h-5 rounded border-orange-500/30 accent-orange-500 bg-orange-500/10"
               />
-              <span class="text-sm font-medium">
+              <span class="text-sm font-medium text-orange-200">
                 {(t(`chatbot.categories.${cat.id}`) as string) || cat.id}
               </span>
             </label>
@@ -92,16 +92,16 @@ const groups = categories.reduce((acc, cat) => {
 
     <div class="hidden md:flex flex-col gap-3">
       {Object.entries(groups).map(([group, cats]) => (
-        <div class="flex flex-col gap-2.5">
-          <span class="text-[0.7rem] font-bold text-muted-foreground uppercase tracking-[0.15em]">
+        <div class="flex flex-col gap-2">
+          <span class="text-[0.65rem] font-bold text-orange-300/50 uppercase tracking-widest">
             {(t(`chatbot.groups.${group}`) as string) || group}
           </span>
           <div class="flex flex-wrap gap-2">
             {cats.map((cat) => (
-              <label class={`flex items-center gap-2 px-3 py-1.5 rounded-lg border cursor-pointer transition-all duration-150 ease-out ${
+              <label class={`flex items-center gap-2 px-3.5 py-2 rounded-lg border cursor-pointer transition-all duration-200 text-sm ${
                 defaultCategories.includes(cat.id)
-                  ? "border-primary bg-primary/15 shadow-[0_0_12px_theme(colors.primary/0.4)] scale-[1.02]"
-                  : "border-border hover:bg-muted/70 hover:border-muted-foreground/30 hover:shadow-[0_0_8px_theme(colors.muted/0.3)] hover:scale-[1.01] active:scale-[0.98]"
+                  ? "border-orange-500/50 bg-orange-500/20 shadow-[0_0_16px_oklch(0.837_0.128_66.29_/_0.3)] scale-[1.02] text-orange-100"
+                  : "border-orange-500/15 bg-orange-500/5 hover:bg-orange-500/10 hover:border-orange-500/25 hover:shadow-[0_0_8px_oklch(0.705_0.213_47.604_/_0.2)] hover:scale-[1.01] text-orange-200/60"
               }`}>
                 <input
                   type="checkbox"
@@ -110,13 +110,13 @@ const groups = categories.reduce((acc, cat) => {
                   checked={defaultCategories.includes(cat.id)}
                   class="sr-only"
                 />
-                <span class="text-sm font-medium">
+                <span class="font-medium">
                   {(t(`chatbot.categories.${cat.id}`) as string) || cat.id}
                 </span>
-                <svg class={`w-4 h-4 transition-all duration-150 ${
+                <svg class={`w-4 h-4 transition-all duration-200 ${
                   defaultCategories.includes(cat.id)
-                    ? "text-primary scale-100"
-                    : "text-muted-foreground/30 scale-75"
+                    ? "text-orange-400 scale-100"
+                    : "text-orange-300/30 scale-75"
                 }`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
                 </svg>
@@ -137,7 +137,7 @@ const groups = categories.reduce((acc, cat) => {
   <button
     type="submit"
     id="roast-submit"
-    class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground shadow hover:bg-primary/90 h-9 px-4 py-2"
+    class="inline-flex items-center justify-center whitespace-nowrap rounded-xl text-sm font-semibold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500/40 disabled:pointer-events-none disabled:opacity-50 bg-gradient-to-br from-orange-500 to-orange-600 text-white shadow-lg hover:from-orange-400 hover:to-orange-500 hover:shadow-[0_0_24px_oklch(0.837_0.128_66.29_/_0.5)] hover:scale-[1.02] active:scale-[0.98] h-11 px-6"
   >
     {t("chatbot.buttonRoast")}
   </button>

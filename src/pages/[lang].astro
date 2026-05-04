@@ -18,20 +18,20 @@ const recentRaw = await getRankings(5)
 const recentRoasts = recentRaw.filter(Boolean) as NonNullable<typeof recentRaw[number]>[]
 
 function scoreColor(score: number) {
-  if (score >= 8) return "text-green-500"
-  if (score >= 5) return "text-yellow-500"
-  return "text-red-500"
+  if (score >= 8) return "text-emerald-400"
+  if (score >= 5) return "text-amber-400"
+  return "text-red-400"
 }
 ---
 
 <Layout>
   <div class="flex min-h-svh flex-col items-center justify-center p-6 pt-20 pb-24 md:pt-6 md:pb-16">
     <div class="w-full max-w-2xl">
-      <div class="mb-8 text-center">
-        <h1 class="text-6xl font-bold inferno-text">
+      <div class="mb-10 text-center">
+        <h1 class="text-6xl md:text-7xl font-extrabold inferno-text tracking-tight">
           {t("site.title")}
         </h1>
-        <p class="text-orange-400/90 mt-3 text-lg animate-pulse">🔥 {t("site.description")} 🔥</p>
+        <p class="text-orange-300/80 mt-4 text-lg md:text-xl animate-pulse font-medium">🔥 {t("site.description")} 🔥</p>
       </div>
       
       <!-- SSR form - renders meaningful HTML immediately -->
@@ -41,20 +41,20 @@ function scoreColor(score: number) {
       <Chatbot client:load locale={locale} />
 
       {recentRoasts.length > 0 && (
-        <div class="mt-10">
-          <h2 class="text-sm font-semibold text-orange-400/60 uppercase tracking-wider mb-3">{t("home.recentRoasts")}</h2>
-          <div class="flex flex-col gap-2">
+        <div class="mt-12">
+          <h2 class="text-xs font-bold text-orange-400/50 uppercase tracking-widest mb-4">{t("home.recentRoasts")}</h2>
+          <div class="flex flex-col gap-2.5">
             {recentRoasts.map((r) => (
               <a
                 href={`/${locale}/rankings/${r.uuid}`}
-                class="flex items-center gap-3 p-3 rounded-lg border border-orange-500/10 bg-card/50 hover:bg-muted/10 hover:border-orange-500/30 transition-colors no-underline"
+                class="flex items-center gap-3.5 p-3.5 rounded-lg border border-orange-500/10 bg-gradient-to-br from-orange-500/5 to-transparent hover:from-orange-500/10 hover:border-orange-500/25 transition-all duration-200 no-underline group"
               >
-                <span class={`text-lg font-bold tabular-nums shrink-0 ${scoreColor(r.score)}`}>{r.score}<span class="text-xs font-normal opacity-60">/10</span></span>
+                <span class={`text-lg font-bold tabular-nums shrink-0 px-2 py-1 rounded bg-orange-500/10 ${scoreColor(r.score)}`}>{r.score}<span class="text-sm font-normal opacity-60">/10</span></span>
                 <div class="flex-1 min-w-0">
-                  <div class="text-xs font-medium text-foreground/80 truncate">{r.normUrl || r.url}</div>
-                  <div class="text-xs text-muted-foreground/60 truncate mt-0.5">{r.verdict}</div>
+                  <div class="text-sm font-medium text-orange-100/80 truncate group-hover:text-orange-100 transition-colors">{r.normUrl || r.url}</div>
+                  <div class="text-xs text-orange-300/50 truncate mt-0.5">{r.verdict}</div>
                 </div>
-                <span class="text-xs text-muted-foreground/40 shrink-0">{new Date(r.completedAt).toLocaleDateString(locale, { day: "2-digit", month: "short" })}</span>
+                <span class="text-xs text-orange-300/40 shrink-0">{new Date(r.completedAt).toLocaleDateString(locale, { day: "2-digit", month: "short" })}</span>
               </a>
             ))}
           </div>
