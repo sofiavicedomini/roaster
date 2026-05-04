@@ -109,7 +109,7 @@ function scoreFlames(score: number) {
   </div>
 </Layout>
 
-<script define:vars={{ successMsg: t("newsletter.success"), errorMsg: t("newsletter.error") }}>
+<script is:inline define:vars={{ successMsg: t("newsletter.success"), errorMsg: t("newsletter.error") }}>
   const form = document.getElementById("newsletter-form");
   const msg = document.getElementById("newsletter-msg");
   if (form && msg) {

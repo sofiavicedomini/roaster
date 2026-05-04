@@ -1,5 +1,3 @@
-export const prerender = false;
-
 import type { APIRoute } from "astro";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
@@ -335,8 +333,8 @@ async function processRoast(
     const result = generateInaccessibleRoast(url, cats, locale);
     const normUrl = normalizeUrl(url);
     const cachedAt = new Date().toISOString();
-    await saveRanking(jobId, { url, normUrl, score: (result as any).overall_score, verdict: (result as any).verdict, cats, locale, completedAt: cachedAt, result: result as Record<string, unknown> }).catch(() => {});
-    await updateJob(jobId, { status: "completed", progress: "Done", result: JSON.stringify({ ...result, cached: false, cacheKey: cacheKey(normUrl), rankingId: jobId }) });
+    await saveRanking(jobId, { url, normUrl, score: (result as Record<string, unknown>).overall_score as number, verdict: (result as Record<string, unknown>).verdict as string, cats, locale, completedAt: cachedAt, result: result as Record<string, unknown> }).catch(() => {});
+    await updateJob(jobId, { status: "completed", progress: "Done", result: JSON.stringify({ ...result as Record<string, unknown>, cached: false, cacheKey: cacheKey(normUrl), rankingId: jobId }) });
     await jobDb.del(jobIdKey(normUrl, locale));
     return;
   }
@@ -420,7 +418,7 @@ async function translateRoast(jobId: string, cached: Record<string, unknown>, lo
     await setCached(normUrl, cacheEntry);
   }
 
-    await jobDb.del(jobIdKey(normUrl, locale));
+  await jobDb.del(jobIdKey(normUrl, locale));
 }
 
 async function fetchUrl(url: string): Promise<string | null> {

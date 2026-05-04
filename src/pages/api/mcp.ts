@@ -1,13 +1,15 @@
 export const prerender = false;
 
 import type { APIRoute } from "astro";
-import { getRankings, type RankingData } from "@/lib/redis";
+import { getRankings, getRanking } from "@/lib/redis";
 
 interface MCPRequest {
   method: string;
   params?: {
     url?: string;
     jobId?: string;
+    rankingId?: string;
+    locale?: string;
     limit?: number;
     categories?: string[];
   };
@@ -75,7 +77,7 @@ export const POST: APIRoute = async ({ request }) => {
 
     if (!method) {
       return new Response(
-        JSON.stringify({ error: "Method parameter required", availableMethods: Object.keys(SERVER_INFO.endpoints).map((e, i) => SERVER_INFO.endpoints[i].name) }),
+        JSON.stringify({ error: "Method parameter required", availableMethods: Object.keys(SERVER_INFO.endpoints).map((_, i) => SERVER_INFO.endpoints[i].name) }),
         { status: 400, headers: { "Content-Type": "application/json" } }
       );
     }

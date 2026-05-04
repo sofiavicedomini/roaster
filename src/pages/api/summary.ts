@@ -70,7 +70,7 @@ export const GET: APIRoute = async ({ request }) => {
             score: r.score,
             verdict: r.verdict,
             completedAt: r.completedAt,
-            result: r.result
+             result: (r as Record<string, unknown>).result as Record<string, unknown>
           }))
         : validRoasts.slice(0, 20).map(r => ({
             uuid: r.uuid,

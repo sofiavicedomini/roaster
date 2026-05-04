@@ -174,7 +174,8 @@ export async function getRankings(limit = 20): Promise<Array<{
       uuids.map(async (uuid) => {
         const raw = await cacheDb.get(`roast:ranking:${uuid}`);
         if (!raw) return null;
-        const { result: _r, ...summary } = JSON.parse(raw);
+        const { result, ...summary } = JSON.parse(raw);
+        void result;
         return { uuid, ...summary };
       }),
     );

@@ -53,12 +53,7 @@ if (isAgentRequest && (accept.includes("application/json") || accept.includes("a
   }), { headers: { "Vary": "Accept, X-Agent, User-Agent" } });
 }
 if (isAgentRequest && (accept.includes("text/markdown") || (accept.includes("text/plain") && !accept.includes("text/html")))) {
-  const fires = "🔥".repeat(Math.ceil(result.overall_score / 2));
-  const roastLines = (result.roasts || []).map((r) =>
-    `### ${r.emoji} ${r.category}\n${r.critique}${r.fix_prompt ? `\n\n**Fix prompt:**\n\`\`\`\n${r.fix_prompt}\n\`\`\`` : ""}`
-  ).join("\n\n");
-  const md = `# ${ranking.normUrl || ranking.url}\n\n**Score:** ${result.overall_score}/10 ${fires}\n\n**Verdict:** ${result.verdict}\n\n---\n\n${roastLines}`;
-  return new Response(md, { headers: { "Content-Type": "text/markdown; charset=utf-8", "Vary": "Accept, X-Agent, User-Agent" } });
+  return new Response(`# ${ranking.normUrl || ranking.url}\n\n**Score:** ${result.overall_score}/10 ${"🔥".repeat(Math.ceil(result.overall_score / 2))}\n\n**Verdict:** ${result.verdict}\n\n---\n\n${(result.roasts || []).map((r) => `### ${r.emoji} ${r.category}\n${r.critique}${r.fix_prompt ? `\n\n**Fix prompt:**\n\`\`\`\n${r.fix_prompt}\n\`\`\`` : ""}`).join("\n\n")}`, { headers: { "Content-Type": "text/markdown; charset=utf-8", "Vary": "Accept, X-Agent, User-Agent" } });
 }
 
 function scoreColor(score: number | null) {

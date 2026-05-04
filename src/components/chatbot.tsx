@@ -135,7 +135,7 @@ const CATEGORIES = [
 
 export function Chatbot({ locale = "en" }: ChatbotProps) {
   const t = getTranslations(locale);
-  const [url, setUrl] = useState("");
+  const [url] = useState("");
   const [selectedCategories, setSelectedCategories] = useState<string[]>([
     "design", "performance", "ux", "seo", "agentReadiness",
   ]);
@@ -146,7 +146,6 @@ export function Chatbot({ locale = "en" }: ChatbotProps) {
     return acc;
   }, {} as Record<string, typeof CATEGORIES>);
 
-  const inputRef = useRef<HTMLInputElement>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [loadingMsgIdx, setLoadingMsgIdx] = useState(0);
   const [result, setResult] = useState<RoastResult | null>(null);
@@ -311,7 +310,7 @@ export function Chatbot({ locale = "en" }: ChatbotProps) {
       }
     }, 2000);
     return () => clearInterval(timer);
-  }, [jobId, isLoading]);
+  }, [jobId, isLoading, url]);
 
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => {
@@ -427,40 +426,9 @@ export function Chatbot({ locale = "en" }: ChatbotProps) {
 
   return (
     <div className="flex flex-col gap-6 max-w-2xl mx-auto w-full">
-      <form onSubmit={handleSubmit} aria-label={t.chatbot.urlLabel} className="flex flex-col gap-4 rounded-lg border p-4 bg-card inferno-card" aria-busy={isLoading}>
-              <fieldset className="flex flex-col gap-2">
-                <legend className="text-xs font-semibold text-foreground uppercase tracking-wider">
-                  {t.chatbot.groups[group as keyof typeof t.chatbot.groups] || group}
-                </legend>
-                <div className="flex flex-wrap gap-2">
-                  {cats.map((cat) => (
-                    <button
-                      key={cat.id}
-                      type="button"
-                      onClick={() => toggleCategory(cat.id)}
-                      aria-pressed={selectedCategories.includes(cat.id)}
-                      className={`flex items-center gap-2 px-3 py-1.5 rounded-md border cursor-pointer transition-colors ${
-                        selectedCategories.includes(cat.id)
-                          ? "border-primary bg-primary/20 text-foreground"
-                          : "border-input bg-background text-muted-foreground hover:text-foreground hover:border-orange-500/40"
-                      }`}
-                    >
-                      <span className="text-sm font-medium">
-                        {t.chatbot.categories[cat.id as keyof typeof t.chatbot.categories] || cat.id}
-                      </span>
-                      <Check
-                        className={`w-4 h-4 transition-colors shrink-0 ${
-                          selectedCategories.includes(cat.id)
-                            ? "text-primary"
-                            : "text-muted-foreground/50"
-                        }`}
-                      />
-                    </button>
-                  ))}
-                </div>
-              </fieldset>
+       <form onSubmit={handleSubmit} aria-label={t.chatbot.urlLabel} className="flex flex-col gap-4 rounded-lg border p-4 bg-card inferno-card" aria-busy={isLoading}>
 
-        <div className="flex flex-col gap-3">
+         <div className="flex flex-col gap-3">
           <label className="text-sm font-medium">{t.chatbot.categoriesLabel}</label>
           {Object.entries(groups).map(([group, cats]) => (
             <div key={group} className="flex flex-col gap-2">

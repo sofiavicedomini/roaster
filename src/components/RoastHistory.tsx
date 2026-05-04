@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { getTranslations, type Locale } from "@/i18n/utils";
 
 interface HistoryEntry {
@@ -15,14 +15,11 @@ interface Props {
 
 export function RoastHistory({ locale = "en" }: Props) {
   const t = getTranslations(locale);
-  const [history, setHistory] = useState<HistoryEntry[]>([]);
-
-  useEffect(() => {
+  const [history, setHistory] = useState<HistoryEntry[]>(() => {
     try {
-      const stored = JSON.parse(localStorage.getItem("roastHistory") || "[]");
-      setHistory(stored);
-    } catch { /* no-op */ }
-  }, []);
+      return JSON.parse(localStorage.getItem("roastHistory") || "[]");
+    } catch { return []; }
+  });
 
   const clearAll = () => {
     try { localStorage.removeItem("roastHistory"); } catch { /* no-op */ }

@@ -1,5 +1,3 @@
----
-// API route to fetch and cache company legal info from vicedominisoftworks.com
 import type { APIRoute } from "astro";
 import { cacheDb } from "@/lib/redis";
 
@@ -20,7 +18,7 @@ const companyLegalInfo = {
   fetchedAt: new Date().toISOString()
 };
 
-export const GET: APIRoute = async ({ request }) => {
+export const GET: APIRoute = async () => {
   try {
     // Try to get from cache first
     const cached = await cacheDb.get(CACHE_KEY);
