@@ -430,6 +430,8 @@ async function processRoast(
   const toolAnalysis = await runPreAnalysis(url, cats);
   const checksWithTools = { ...checks, _toolAnalysis: toolAnalysis };
   
+  console.log("[Pre-analysis] Tool results passed to prompt:", JSON.stringify(toolAnalysis, null, 2).substring(0, 300));
+  
   await updateJob(jobId, { progress: "Building prompt" });
 
   // If the site is completely unreachable, skip the LLM loop and roast it for that
@@ -793,38 +795,71 @@ async function runPreAnalysis(url: string, categories: string[]): Promise<Record
         score: hasIssues ? 4 : 8,
       };
     } catch (e) {
-      // Silently skip failed tools
       console.log(`[Pre-analysis] ${name} tool skipped: ${e}`);
     }
   };
 
-  // Run only essential tools that are less likely to fail
+  // Run ALL tools in parallel with individual timeouts
   const promises: Promise<void>[] = [];
 
+  // Accessibility
   if (categories.includes("accessibility")) {
     promises.push(runTool("accessibility", () => handleAnalyzeAccessibility({ html }, url)));
   }
 
+  // SEO
   if (categories.includes("seo")) {
     promises.push(runTool("seo", () => handleAnalyzeSeo({ html }, url)));
   }
 
+  // HTML Structure / Code
   if (categories.includes("code") || categories.includes("design")) {
     promises.push(runTool("html_structure", () => handleAnalyzeHtmlStructure({ html }, url)));
   }
 
+  // Mobile
   if (categories.includes("mobile")) {
     promises.push(runTool("mobile", () => handleAnalyzeMobile({ html }, url)));
   }
 
-  // Wait for all tools with overall timeout
+  // Performance
+  if (categories.includes("performance")) {
+    promises.push(runTool("performance", () => handleAnalyzePerformance({ html }, url)));
+  }
+
+  // Security
+  if (categories.includes("security")) {
+    promises.push(runTool("security", () => handleAnalyzeSecurityHeaders({}, url)));
+  }
+
+  // Brand
+  if (categories.includes("brand")) {
+    promises.push(runTool("brand", () => handleAnalyzeBrand({ html }, url)));
+  }
+
+  // UX
+  if (categories.includes("ux")) {
+    promises.push(runTool("ux", () => handleAnalyzeUx({ html }, url)));
+  }
+
+  // Conversion
+  if (categories.includes("conversion")) {
+    promises.push(runTool("conversion", () => handleAnalyzeConversion({ html }, url)));
+  }
+
+  // Credibility
+  if (categories.includes("credibility")) {
+    promises.push(runTool("credibility", () => handleAnalyzeCredibility({}, url)));
+  }
+
+  // Wait for all tools with overall timeout (30 seconds for all tools)
   try {
     await Promise.race([
       Promise.all(promises),
-      new Promise<void>((_, reject) => setTimeout(() => reject(new Error("Pre-analysis timeout")), 25000))
+      new Promise<void>((_, reject) => setTimeout(() => reject(new Error("Pre-analysis timeout")), 30000))
     ]);
   } catch (e) {
-    console.log("[Pre-analysis] Timeout or error, continuing with partial results");
+    console.log("[Pre-analysis] Timeout or error, continuing with partial results:", e);
   }
 
   console.log("[Pre-analysis] Completed with", Object.keys(results).length, "tools");
