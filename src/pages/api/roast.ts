@@ -71,14 +71,26 @@ import {
   saveRanking,
 } from "@/lib/redis";
 
-const locales: string[] = ["en", "it", "fr", "es", "pt", "de", "nl", "ru", "et"];
+const locales: string[] = [
+  "en",
+  "it",
+  "fr",
+  "es",
+  "pt",
+  "de",
+  "nl",
+  "ru",
+  "et",
+];
 
 export const POST: APIRoute = async ({ request }) => {
   let t: ReturnType<typeof getTranslations> | null = null;
   try {
     const body = await request.json();
     const { url, categories, locale = "en", turnstileToken } = body;
-    const safeLocale = locales.includes(locale as Locale) ? locale as Locale : "en" as Locale;
+    const safeLocale = locales.includes(locale as Locale)
+      ? (locale as Locale)
+      : ("en" as Locale);
     t = getTranslations(safeLocale);
 
     if (!url) {
@@ -90,28 +102,44 @@ export const POST: APIRoute = async ({ request }) => {
 
     const turnstileSecret = import.meta.env.TURNSTILE_SECRET_KEY;
     if (turnstileSecret && turnstileToken) {
-      const turnstileResponse = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
-        method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: new URLSearchParams({
-          secret: turnstileSecret,
-          response: turnstileToken,
-          remoteip: request.headers.get("x-forwarded-for") || "",
-        }),
-      });
+      const turnstileResponse = await fetch(
+        "https://challenges.cloudflare.com/turnstile/v0/siteverify",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body: new URLSearchParams({
+            secret: turnstileSecret,
+            response: turnstileToken,
+            remoteip: request.headers.get("x-forwarded-for") || "",
+          }),
+        },
+      );
 
-      const turnstileData = await turnstileResponse.json() as { success: boolean; "error-codes"?: string[] };
+      const turnstileData = (await turnstileResponse.json()) as {
+        success: boolean;
+        "error-codes"?: string[];
+      };
       if (!turnstileData.success) {
         const errorCodes = turnstileData["error-codes"] || [];
-        console.warn("[Roast API] Turnstile verification failed:", turnstileData);
-        const isExpiredOrDuplicate = errorCodes.includes("timeout-or-duplicate") || errorCodes.includes("invalid-input-response");
+        console.warn(
+          "[Roast API] Turnstile verification failed:",
+          turnstileData,
+        );
+        const isExpiredOrDuplicate =
+          errorCodes.includes("timeout-or-duplicate") ||
+          errorCodes.includes("invalid-input-response");
         const errorMsg = isExpiredOrDuplicate
-          ? (t ? t.errors.captchaExpired : "CAPTCHA expired. Please try again.")
+          ? t
+            ? t.errors.captchaExpired
+            : "CAPTCHA expired. Please try again."
           : "CAPTCHA verification failed";
-        return new Response(JSON.stringify({ error: errorMsg, captchaError: true }), {
-          status: 403,
-          headers: { "Content-Type": "application/json" },
-        });
+        return new Response(
+          JSON.stringify({ error: errorMsg, captchaError: true }),
+          {
+            status: 403,
+            headers: { "Content-Type": "application/json" },
+          },
+        );
       }
       console.log("[Roast API] Turnstile verification passed");
     } else if (turnstileSecret && !turnstileToken) {
@@ -133,7 +161,12 @@ export const POST: APIRoute = async ({ request }) => {
       if (hasAllCats && cached.lang === safeLocale) {
         const stripped = stripCats(cached.result, cats);
         return new Response(
-          JSON.stringify({ ...stripped, cached: true, cachedAt: cached.cachedAt, cacheKey: cacheKey(normUrl) }),
+          JSON.stringify({
+            ...stripped,
+            cached: true,
+            cachedAt: cached.cachedAt,
+            cacheKey: cacheKey(normUrl),
+          }),
           { status: 200, headers: { "Content-Type": "application/json" } },
         );
       }
@@ -152,12 +185,18 @@ export const POST: APIRoute = async ({ request }) => {
         });
         processRoast(jobId, url, mergedCats, safeLocale).catch((e) => {
           console.error("[Roast BG] Error:", e);
-          updateJob(jobId, { status: "failed", error: e instanceof Error ? e.message : "Unknown error" }).catch(() => {});
+          updateJob(jobId, {
+            status: "failed",
+            error: e instanceof Error ? e.message : "Unknown error",
+          }).catch(() => {});
         });
-        return new Response(JSON.stringify({ jobId, status: "pending", cached: false }), {
-          status: 202,
-          headers: { "Content-Type": "application/json" },
-        });
+        return new Response(
+          JSON.stringify({ jobId, status: "pending", cached: false }),
+          {
+            status: 202,
+            headers: { "Content-Type": "application/json" },
+          },
+        );
       }
 
       if (cached.lang !== safeLocale) {
@@ -165,7 +204,13 @@ export const POST: APIRoute = async ({ request }) => {
         if (trans) {
           const stripped = stripCats(trans.result, cats);
           return new Response(
-            JSON.stringify({ ...stripped, cached: true, cachedAt: trans.translatedAt, translated: true, cacheKey: cacheKey(normUrl) }),
+            JSON.stringify({
+              ...stripped,
+              cached: true,
+              cachedAt: trans.translatedAt,
+              translated: true,
+              cacheKey: cacheKey(normUrl),
+            }),
             { status: 200, headers: { "Content-Type": "application/json" } },
           );
         }
@@ -180,12 +225,18 @@ export const POST: APIRoute = async ({ request }) => {
         });
         translateRoast(jobId, cached, safeLocale).catch((e) => {
           console.error("[Translate BG] Error:", e);
-          updateJob(jobId, { status: "failed", error: e instanceof Error ? e.message : "Unknown error" }).catch(() => {});
+          updateJob(jobId, {
+            status: "failed",
+            error: e instanceof Error ? e.message : "Unknown error",
+          }).catch(() => {});
         });
-        return new Response(JSON.stringify({ jobId, status: "pending", cached: false }), {
-          status: 202,
-          headers: { "Content-Type": "application/json" },
-        });
+        return new Response(
+          JSON.stringify({ jobId, status: "pending", cached: false }),
+          {
+            status: 202,
+            headers: { "Content-Type": "application/json" },
+          },
+        );
       }
     }
 
@@ -196,33 +247,59 @@ export const POST: APIRoute = async ({ request }) => {
       if (job && job.status === "completed") {
         const hasAllCats = cats.every((c) => job.cats?.split(",").includes(c));
         if (hasAllCats) {
-          return new Response(JSON.stringify({ jobId: existingJobId, status: job.status, cached: false }), {
-            status: 202,
-            headers: { "Content-Type": "application/json" },
-          });
+          return new Response(
+            JSON.stringify({
+              jobId: existingJobId,
+              status: job.status,
+              cached: false,
+            }),
+            {
+              status: 202,
+              headers: { "Content-Type": "application/json" },
+            },
+          );
         }
       }
-      
+
       if (job && ["pending", "processing"].includes(job.status)) {
         const { shouldResume } = await resumeJob(existingJobId, cats);
-        
+
         if (shouldResume) {
           console.log(`[Roast API] Resuming stuck job ${existingJobId}`);
           await setJobId(normUrl, safeLocale, existingJobId);
-          processRoast(existingJobId, url, cats, safeLocale, true).catch((e) => {
-            console.error("[Roast BG] Resume error:", e);
-            updateJob(existingJobId, { status: "failed", error: e instanceof Error ? e.message : "Unknown error" }).catch(() => {});
-          });
-          return new Response(JSON.stringify({ jobId: existingJobId, status: "resuming", cached: false }), {
+          processRoast(existingJobId, url, cats, safeLocale, true).catch(
+            (e) => {
+              console.error("[Roast BG] Resume error:", e);
+              updateJob(existingJobId, {
+                status: "failed",
+                error: e instanceof Error ? e.message : "Unknown error",
+              }).catch(() => {});
+            },
+          );
+          return new Response(
+            JSON.stringify({
+              jobId: existingJobId,
+              status: "resuming",
+              cached: false,
+            }),
+            {
+              status: 202,
+              headers: { "Content-Type": "application/json" },
+            },
+          );
+        }
+
+        return new Response(
+          JSON.stringify({
+            jobId: existingJobId,
+            status: job.status,
+            cached: false,
+          }),
+          {
             status: 202,
             headers: { "Content-Type": "application/json" },
-          });
-        }
-        
-        return new Response(JSON.stringify({ jobId: existingJobId, status: job.status, cached: false }), {
-          status: 202,
-          headers: { "Content-Type": "application/json" },
-        });
+          },
+        );
       }
     }
 
@@ -240,13 +317,19 @@ export const POST: APIRoute = async ({ request }) => {
 
     processRoast(jobId, url, cats, safeLocale).catch((e) => {
       console.error("[Roast BG] Error:", e);
-      updateJob(jobId, { status: "failed", error: e instanceof Error ? e.message : "Unknown error" }).catch(() => {});
+      updateJob(jobId, {
+        status: "failed",
+        error: e instanceof Error ? e.message : "Unknown error",
+      }).catch(() => {});
     });
 
-    return new Response(JSON.stringify({ jobId, status: "pending", cached: false }), {
-      status: 202,
-      headers: { "Content-Type": "application/json" },
-    });
+    return new Response(
+      JSON.stringify({ jobId, status: "pending", cached: false }),
+      {
+        status: 202,
+        headers: { "Content-Type": "application/json" },
+      },
+    );
   } catch (err) {
     console.error("[Roast API] Unhandled error:", err);
     const errorMsg = t ? t.errors.unknown : "Unknown error";
@@ -279,7 +362,10 @@ export const GET: APIRoute = async ({ request }) => {
     try {
       const parsed = JSON.parse(job.result) as Record<string, unknown>;
       const checks = parsed.checks as Record<string, unknown> | undefined;
-      const jobUrl = job.normUrl || (job as Record<string, unknown>).url as string || parsed.url as string | undefined;
+      const jobUrl =
+        job.normUrl ||
+        ((job as Record<string, unknown>).url as string) ||
+        (parsed.url as string | undefined);
       if (checks && jobUrl) {
         linkHeader = buildLinkHeader(jobUrl, checks);
       }
@@ -288,7 +374,9 @@ export const GET: APIRoute = async ({ request }) => {
     }
   }
 
-  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+  };
   if (linkHeader) {
     headers["Link"] = linkHeader;
   }
@@ -304,10 +392,15 @@ export const GET: APIRoute = async ({ request }) => {
   );
 };
 
-function stripCats(result: Record<string, unknown>, cats: string[]): Record<string, unknown> {
+function stripCats(
+  result: Record<string, unknown>,
+  cats: string[],
+): Record<string, unknown> {
   const r = { ...result };
   if (Array.isArray(r.roasts)) {
-    r.roasts = (r.roasts as Array<Record<string, unknown>>).filter((roast) => cats.includes(roast.category as string));
+    r.roasts = (r.roasts as Array<Record<string, unknown>>).filter((roast) =>
+      cats.includes(roast.category as string),
+    );
   }
   if (r.scores && typeof r.scores === "object") {
     const s = { ...(r.scores as Record<string, number>) };
@@ -319,7 +412,10 @@ function stripCats(result: Record<string, unknown>, cats: string[]): Record<stri
   return r;
 }
 
-function buildLinkHeader(baseUrl: string, checks: Record<string, unknown>): string {
+function buildLinkHeader(
+  baseUrl: string,
+  checks: Record<string, unknown>,
+): string {
   const links: string[] = [];
   try {
     const origin = new URL(baseUrl).origin;
@@ -344,18 +440,21 @@ function buildLinkHeader(baseUrl: string, checks: Record<string, unknown>): stri
       }
     }
   } catch {
-      // Ignore URL parse errors
-    }
+    // Ignore URL parse errors
+  }
 
   return links.length > 0 ? links.join(", ") : "";
 }
 
 function isSiteDown(checks: Record<string, unknown>): boolean {
-  const homepageError = (checks.headers as Record<string, string>)?.status === "error";
+  const homepageError =
+    (checks.headers as Record<string, string>)?.status === "error";
   if (!homepageError) return false;
   // Consider it down if the homepage also returned an error AND at least 80% of checks failed
   const entries = Object.entries(checks).filter(([k]) => k !== "_summary");
-  const failed = entries.filter(([, v]) => (v as Record<string, string>).status !== "found").length;
+  const failed = entries.filter(
+    ([, v]) => (v as Record<string, string>).status !== "found",
+  ).length;
   return failed >= Math.floor(entries.length * 0.8);
 }
 
@@ -372,30 +471,53 @@ const SKYNET_VERDICTS: Record<string, string> = {
 };
 
 const SKYNET_CRITIQUES: Record<string, (cat: string, url: string) => string> = {
-  en: (cat, url) => `${url} refused every single request our agents made. For ${cat}, the experience is simply non-existent — you can't evaluate what you can't reach. This is a catastrophic failure for any agent, human or otherwise.`,
-  it: (cat, url) => `${url} ha rifiutato ogni singola richiesta dei nostri agenti. Per ${cat}, l'esperienza è semplicemente inesistente — non si può valutare ciò che non è raggiungibile. Un fallimento catastrofico per qualsiasi agente, umano o meno.`,
-  fr: (cat, url) => `${url} a rejeté chaque requête de nos agents. Pour ${cat}, l'expérience est tout simplement inexistante — on ne peut pas évaluer ce qu'on ne peut pas atteindre. Un échec catastrophique pour tout agent.`,
-  es: (cat, url) => `${url} rechazó cada solicitud de nuestros agentes. Para ${cat}, la experiencia es simplemente inexistente — no se puede evaluar lo que no se puede alcanzar. Un fallo catastrófico para cualquier agente.`,
-  pt: (cat, url) => `${url} rejeitou todas as solicitações dos nossos agentes. Para ${cat}, a experiência é simplesmente inexistente — não se pode avaliar o que não pode ser alcançado. Uma falha catastrófica para qualquer agente.`,
-  de: (cat, url) => `${url} hat jede Anfrage unserer Agenten abgelehnt. Für ${cat} existiert die Erfahrung schlicht nicht — man kann nicht bewerten, was man nicht erreichen kann. Ein katastrophales Versagen für jeden Agenten.`,
-  nl: (cat, url) => `${url} weigerde elk verzoek van onze agenten. Voor ${cat} bestaat de ervaring simpelweg niet — je kunt niet beoordelen wat je niet kunt bereiken. Een catastrofale mislukking voor elke agent.`,
-  ru: (cat, url) => `${url} отклонил каждый запрос наших агентов. Для ${cat} опыт попросту отсутствует — нельзя оценить то, до чего нельзя добраться. Катастрофический провал для любого агента.`,
-  et: (cat, url) => `${url} lükkas tagasi kõik meie agentide päringud. ${cat} jaoks pole kogemust lihtsalt olemas — ei saa hinnata seda, mida ei saa kätte. Katastroofiline ebaõnnestumine iga agendi jaoks.`,
+  en: (cat, url) =>
+    `${url} refused every single request our agents made. For ${cat}, the experience is simply non-existent — you can't evaluate what you can't reach. This is a catastrophic failure for any agent, human or otherwise.`,
+  it: (cat, url) =>
+    `${url} ha rifiutato ogni singola richiesta dei nostri agenti. Per ${cat}, l'esperienza è semplicemente inesistente — non si può valutare ciò che non è raggiungibile. Un fallimento catastrofico per qualsiasi agente, umano o meno.`,
+  fr: (cat, url) =>
+    `${url} a rejeté chaque requête de nos agents. Pour ${cat}, l'expérience est tout simplement inexistante — on ne peut pas évaluer ce qu'on ne peut pas atteindre. Un échec catastrophique pour tout agent.`,
+  es: (cat, url) =>
+    `${url} rechazó cada solicitud de nuestros agentes. Para ${cat}, la experiencia es simplemente inexistente — no se puede evaluar lo que no se puede alcanzar. Un fallo catastrófico para cualquier agente.`,
+  pt: (cat, url) =>
+    `${url} rejeitou todas as solicitações dos nossos agentes. Para ${cat}, a experiência é simplesmente inexistente — não se pode avaliar o que não pode ser alcançado. Uma falha catastrófica para qualquer agente.`,
+  de: (cat, url) =>
+    `${url} hat jede Anfrage unserer Agenten abgelehnt. Für ${cat} existiert die Erfahrung schlicht nicht — man kann nicht bewerten, was man nicht erreichen kann. Ein katastrophales Versagen für jeden Agenten.`,
+  nl: (cat, url) =>
+    `${url} weigerde elk verzoek van onze agenten. Voor ${cat} bestaat de ervaring simpelweg niet — je kunt niet beoordelen wat je niet kunt bereiken. Een catastrofale mislukking voor elke agent.`,
+  ru: (cat, url) =>
+    `${url} отклонил каждый запрос наших агентов. Для ${cat} опыт попросту отсутствует — нельзя оценить то, до чего нельзя добраться. Катастрофический провал для любого агента.`,
+  et: (cat, url) =>
+    `${url} lükkas tagasi kõik meie agentide päringud. ${cat} jaoks pole kogemust lihtsalt olemas — ei saa hinnata seda, mida ei saa kätte. Katastroofiline ebaõnnestumine iga agendi jaoks.`,
 };
 
-const SKYNET_FIX_PROMPTS: Record<string, (cat: string, url: string) => string> = {
-  en: (cat, url) => `Fix the fundamental accessibility of ${url} before worrying about ${cat}. Start by checking: DNS resolution, SSL certificate validity, server uptime, firewall rules blocking automated agents (check User-Agent restrictions in robots.txt), and rate limiting. The site must respond with HTTP 200 to basic GET requests before any other fix matters.`,
-  it: (cat, url) => `Risolvi l'accessibilità di base di ${url} prima di preoccuparti di ${cat}. Controlla: risoluzione DNS, validità del certificato SSL, uptime del server, regole firewall che bloccano gli agenti automatizzati (controlla le restrizioni User-Agent in robots.txt) e rate limiting. Il sito deve rispondere con HTTP 200 alle richieste GET di base prima che qualsiasi altra correzione abbia senso.`,
-  fr: (cat, url) => `Corrigez d'abord l'accessibilité fondamentale de ${url} avant de vous soucier de ${cat}. Vérifiez : résolution DNS, validité du certificat SSL, disponibilité du serveur, règles de pare-feu bloquant les agents automatisés et limitation de débit. Le site doit répondre HTTP 200 aux requêtes GET basiques.`,
-  es: (cat, url) => `Arregla la accesibilidad fundamental de ${url} antes de preocuparte por ${cat}. Revisa: resolución DNS, validez del certificado SSL, uptime del servidor, reglas de firewall que bloquean agentes automatizados y rate limiting. El sitio debe responder HTTP 200 a peticiones GET básicas.`,
-  pt: (cat, url) => `Corrija a acessibilidade fundamental de ${url} antes de se preocupar com ${cat}. Verifique: resolução DNS, validade do certificado SSL, uptime do servidor, regras de firewall bloqueando agentes automatizados e rate limiting. O site deve responder HTTP 200 a requisições GET básicas.`,
-  de: (cat, url) => `Behebe zuerst die grundlegende Erreichbarkeit von ${url}, bevor du dich um ${cat} kümmerst. Prüfe: DNS-Auflösung, SSL-Zertifikat, Server-Uptime, Firewall-Regeln die automatische Agenten blockieren und Rate Limiting. Die Website muss HTTP 200 auf einfache GET-Anfragen zurückgeben.`,
-  nl: (cat, url) => `Los eerst de fundamentele toegankelijkheid van ${url} op voordat je je zorgen maakt over ${cat}. Controleer: DNS-resolutie, SSL-certificaat, server-uptime, firewallregels die geautomatiseerde agents blokkeren en rate limiting. De site moet HTTP 200 teruggeven op basisverzoeken.`,
-  ru: (cat, url) => `Исправьте базовую доступность ${url} прежде чем беспокоиться о ${cat}. Проверьте: DNS-резолвинг, SSL-сертификат, аптайм сервера, правила брандмауэра, блокирующие автоматических агентов, и rate limiting. Сайт должен отвечать HTTP 200 на базовые GET-запросы.`,
-  et: (cat, url) => `Paranda esmalt ${url} põhiline ligipääsetavus enne kui muretsed ${cat} pärast. Kontrolli: DNS-lahendust, SSL-sertifikaati, serveri tööaega, tulemüüri reegleid, mis blokeerivad automaatseid agente, ja rate limitingut. Sait peab vastama HTTP 200-ga lihtsatele GET-päringutele.`,
-};
+const SKYNET_FIX_PROMPTS: Record<string, (cat: string, url: string) => string> =
+  {
+    en: (cat, url) =>
+      `Fix the fundamental accessibility of ${url} before worrying about ${cat}. Start by checking: DNS resolution, SSL certificate validity, server uptime, firewall rules blocking automated agents (check User-Agent restrictions in robots.txt), and rate limiting. The site must respond with HTTP 200 to basic GET requests before any other fix matters.`,
+    it: (cat, url) =>
+      `Risolvi l'accessibilità di base di ${url} prima di preoccuparti di ${cat}. Controlla: risoluzione DNS, validità del certificato SSL, uptime del server, regole firewall che bloccano gli agenti automatizzati (controlla le restrizioni User-Agent in robots.txt) e rate limiting. Il sito deve rispondere con HTTP 200 alle richieste GET di base prima che qualsiasi altra correzione abbia senso.`,
+    fr: (cat, url) =>
+      `Corrigez d'abord l'accessibilité fondamentale de ${url} avant de vous soucier de ${cat}. Vérifiez : résolution DNS, validité du certificat SSL, disponibilité du serveur, règles de pare-feu bloquant les agents automatisés et limitation de débit. Le site doit répondre HTTP 200 aux requêtes GET basiques.`,
+    es: (cat, url) =>
+      `Arregla la accesibilidad fundamental de ${url} antes de preocuparte por ${cat}. Revisa: resolución DNS, validez del certificado SSL, uptime del servidor, reglas de firewall que bloquean agentes automatizados y rate limiting. El sitio debe responder HTTP 200 a peticiones GET básicas.`,
+    pt: (cat, url) =>
+      `Corrija a acessibilidade fundamental de ${url} antes de se preocupar com ${cat}. Verifique: resolução DNS, validade do certificado SSL, uptime do servidor, regras de firewall bloqueando agentes automatizados e rate limiting. O site deve responder HTTP 200 a requisições GET básicas.`,
+    de: (cat, url) =>
+      `Behebe zuerst die grundlegende Erreichbarkeit von ${url}, bevor du dich um ${cat} kümmerst. Prüfe: DNS-Auflösung, SSL-Zertifikat, Server-Uptime, Firewall-Regeln die automatische Agenten blockieren und Rate Limiting. Die Website muss HTTP 200 auf einfache GET-Anfragen zurückgeben.`,
+    nl: (cat, url) =>
+      `Los eerst de fundamentele toegankelijkheid van ${url} op voordat je je zorgen maakt over ${cat}. Controleer: DNS-resolutie, SSL-certificaat, server-uptime, firewallregels die geautomatiseerde agents blokkeren en rate limiting. De site moet HTTP 200 teruggeven op basisverzoeken.`,
+    ru: (cat, url) =>
+      `Исправьте базовую доступность ${url} прежде чем беспокоиться о ${cat}. Проверьте: DNS-резолвинг, SSL-сертификат, аптайм сервера, правила брандмауэра, блокирующие автоматических агентов, и rate limiting. Сайт должен отвечать HTTP 200 на базовые GET-запросы.`,
+    et: (cat, url) =>
+      `Paranda esmalt ${url} põhiline ligipääsetavus enne kui muretsed ${cat} pärast. Kontrolli: DNS-lahendust, SSL-sertifikaati, serveri tööaega, tulemüüri reegleid, mis blokeerivad automaatseid agente, ja rate limitingut. Sait peab vastama HTTP 200-ga lihtsatele GET-päringutele.`,
+  };
 
-function generateInaccessibleRoast(url: string, categories: string[], locale: string): Record<string, unknown> {
+function generateInaccessibleRoast(
+  url: string,
+  categories: string[],
+  locale: string,
+): Record<string, unknown> {
   const lang = locale in SKYNET_VERDICTS ? locale : "en";
   const EMOJIS = ["💀", "🚫", "🔒", "⛔", "📵", "🕳️", "❌", "🧱", "📴", "🔇"];
 
@@ -406,8 +528,10 @@ function generateInaccessibleRoast(url: string, categories: string[], locale: st
     roasts: categories.map((cat, i) => ({
       category: cat,
       emoji: EMOJIS[i % EMOJIS.length],
-      critique: SKYNET_CRITIQUES[lang]?.(cat, url) ?? SKYNET_CRITIQUES.en(cat, url),
-      fix_prompt: SKYNET_FIX_PROMPTS[lang]?.(cat, url) ?? SKYNET_FIX_PROMPTS.en(cat, url),
+      critique:
+        SKYNET_CRITIQUES[lang]?.(cat, url) ?? SKYNET_CRITIQUES.en(cat, url),
+      fix_prompt:
+        SKYNET_FIX_PROMPTS[lang]?.(cat, url) ?? SKYNET_FIX_PROMPTS.en(cat, url),
     })),
   };
 }
@@ -420,32 +544,62 @@ async function processRoast(
   isResume = false,
 ) {
   if (isResume) {
-    await updateJob(jobId, { status: "processing", progress: "Resuming agent loop" });
+    await updateJob(jobId, {
+      status: "processing",
+      progress: "Resuming agent loop",
+    });
     await incrementIteration(jobId);
   } else {
-    await updateJob(jobId, { status: "processing", progress: "Initial checks" });
+    await updateJob(jobId, {
+      status: "processing",
+      progress: "Initial checks",
+    });
   }
 
   const checks = await checkAgentReadiness(url);
-  
+
   // Run lightweight pre-analysis with error tolerance
   const toolAnalysis = await runPreAnalysis(url, cats);
   const checksWithTools = { ...checks, _toolAnalysis: toolAnalysis };
-  
-  console.log("[Pre-analysis] Tool results passed to prompt:", JSON.stringify(toolAnalysis, null, 2).substring(0, 300));
-  
+
+  console.log(
+    "[Pre-analysis] Tool results passed to prompt:",
+    JSON.stringify(toolAnalysis, null, 2).substring(0, 300),
+  );
+
   await updateJob(jobId, { progress: "Building prompt" });
 
   // If the site is completely unreachable, skip the LLM loop and roast it for that
   const siteDown = isSiteDown(checksWithTools);
   if (siteDown) {
-    console.log("[Roast API] Site appears unreachable, generating inaccessibility roast");
+    console.log(
+      "[Roast API] Site appears unreachable, generating inaccessibility roast",
+    );
     await updateJob(jobId, { progress: "Site unreachable — generating roast" });
     const result = generateInaccessibleRoast(url, cats, locale);
     const normUrl = normalizeUrl(url);
     const cachedAt = new Date().toISOString();
-    await saveRanking(jobId, { url, normUrl, score: (result as Record<string, unknown>).overall_score as number, verdict: (result as Record<string, unknown>).verdict as string, cats, locale, completedAt: cachedAt, result: result as Record<string, unknown> }).catch(() => {});
-    await updateJob(jobId, { status: "completed", progress: "Done", result: JSON.stringify({ ...result as Record<string, unknown>, cached: false, cacheKey: cacheKey(normUrl), rankingId: jobId, checks: checksWithTools }) });
+    await saveRanking(jobId, {
+      url,
+      normUrl,
+      score: (result as Record<string, unknown>).overall_score as number,
+      verdict: (result as Record<string, unknown>).verdict as string,
+      cats,
+      locale,
+      completedAt: cachedAt,
+      result: result as Record<string, unknown>,
+    }).catch(() => {});
+    await updateJob(jobId, {
+      status: "completed",
+      progress: "Done",
+      result: JSON.stringify({
+        ...(result as Record<string, unknown>),
+        cached: false,
+        cacheKey: cacheKey(normUrl),
+        rankingId: jobId,
+        checks: checksWithTools,
+      }),
+    });
     await jobDb.del(jobIdKey(normUrl, locale));
     return;
   }
@@ -453,14 +607,26 @@ async function processRoast(
   const prompt = await buildPrompt(url, cats, locale, checksWithTools);
   await updateJob(jobId, { progress: "Calling LLM" });
 
-  const apiBase = import.meta.env.OPENAI_API_BASE || "http://localhost:11434/v1";
+  const apiBase =
+    import.meta.env.OPENAI_API_BASE || "http://localhost:11434/v1";
   const apiKey = import.meta.env.OPENAI_API_KEY || "dummy";
   const model = import.meta.env.OPENAI_MODEL || "llama3";
 
-  const result = await runAgentLoop(prompt, url, cats, checksWithTools, apiBase, apiKey, model, locale, async (_iter, thinking) => {
-    await updateJob(jobId, { progress: thinking });
-    await incrementIteration(jobId);
-  }, isResume);
+  const result = await runAgentLoop(
+    prompt,
+    url,
+    cats,
+    checksWithTools,
+    apiBase,
+    apiKey,
+    model,
+    locale,
+    async (_iter, thinking) => {
+      await updateJob(jobId, { progress: thinking });
+      await incrementIteration(jobId);
+    },
+    isResume,
+  );
 
   const normUrl = normalizeUrl(url);
   const cachedAt = new Date().toISOString();
@@ -471,14 +637,28 @@ async function processRoast(
     result,
     cachedAt,
     cacheKey: cacheKey(normUrl),
-    translations: { [locale]: { result, translatedAt: cachedAt } as { result: Record<string, unknown>; translatedAt: string } } as Record<string, { result: Record<string, unknown>; translatedAt: string }>,
+    translations: {
+      [locale]: { result, translatedAt: cachedAt } as {
+        result: Record<string, unknown>;
+        translatedAt: string;
+      },
+    } as Record<
+      string,
+      { result: Record<string, unknown>; translatedAt: string }
+    >,
   };
   await setCached(normUrl, cacheData);
 
   await updateJob(jobId, {
     status: "completed",
     progress: "Done",
-    result: JSON.stringify({ ...result, cached: false, cacheKey: cacheKey(normUrl), rankingId: jobId, checks: checksWithTools }),
+    result: JSON.stringify({
+      ...result,
+      cached: false,
+      cacheKey: cacheKey(normUrl),
+      rankingId: jobId,
+      checks: checksWithTools,
+    }),
   });
 
   saveRanking(jobId, {
@@ -495,19 +675,32 @@ async function processRoast(
   await jobDb.del(jobIdKey(normUrl, locale));
 }
 
-async function translateRoast(jobId: string, cached: Record<string, unknown>, locale: string) {
+async function translateRoast(
+  jobId: string,
+  cached: Record<string, unknown>,
+  locale: string,
+) {
   await updateJob(jobId, { status: "processing", progress: "Translating" });
 
-  const apiBase = import.meta.env.OPENAI_API_BASE || "http://localhost:11434/v1";
+  const apiBase =
+    import.meta.env.OPENAI_API_BASE || "http://localhost:11434/v1";
   const apiKey = import.meta.env.OPENAI_API_KEY || "dummy";
   const model = import.meta.env.OPENAI_MODEL || "llama3";
 
-  const langName = locale === "it" ? "Italian" : locale === "en" ? "English" : locale.toUpperCase();
+  const langName =
+    locale === "it"
+      ? "Italian"
+      : locale === "en"
+        ? "English"
+        : locale.toUpperCase();
   const transPrompt = `Translate this roast result to ${langName}. Keep JSON structure identical. Roast: ${JSON.stringify(cached.result)}`;
 
   const response = await fetch(`${apiBase}/chat/completions`, {
     method: "POST",
-    headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${apiKey}`,
+    },
     body: JSON.stringify({
       model,
       messages: [{ role: "system", content: transPrompt }],
@@ -516,7 +709,8 @@ async function translateRoast(jobId: string, cached: Record<string, unknown>, lo
     }),
   });
 
-  if (!response.ok) throw new Error(`Translation LLM error: ${response.status}`);
+  if (!response.ok)
+    throw new Error(`Translation LLM error: ${response.status}`);
 
   const data = await response.json();
   const translated = JSON.parse(data.choices?.[0]?.message?.content || "{}");
@@ -525,7 +719,10 @@ async function translateRoast(jobId: string, cached: Record<string, unknown>, lo
   const cacheEntry = await getCached(normUrl);
   if (cacheEntry) {
     if (!cacheEntry.translations) cacheEntry.translations = {};
-    cacheEntry.translations[locale] = { result: translated, translatedAt: new Date().toISOString() };
+    cacheEntry.translations[locale] = {
+      result: translated,
+      translatedAt: new Date().toISOString(),
+    };
     await setCached(normUrl, cacheEntry);
   }
 
@@ -534,7 +731,9 @@ async function translateRoast(jobId: string, cached: Record<string, unknown>, lo
 
 async function fetchUrl(url: string): Promise<string | null> {
   try {
-    const res = await fetch(url, { headers: { "User-Agent": "Mozilla/5.0 Agent-Readiness-Checker" } });
+    const res = await fetch(url, {
+      headers: { "User-Agent": "Mozilla/5.0 Agent-Readiness-Checker" },
+    });
     if (res.ok) return await res.text();
     console.log(`[fetchUrl] ${url} returned ${res.status}`);
     return null;
@@ -548,28 +747,43 @@ function parseMcpStructure(parsed: Record<string, unknown>): string {
   const parts: string[] = [];
   // Claude Desktop / standard MCP: { mcpServers: { name: { url, type } } }
   if (parsed.mcpServers && typeof parsed.mcpServers === "object") {
-    const servers = Object.entries(parsed.mcpServers as Record<string, unknown>);
+    const servers = Object.entries(
+      parsed.mcpServers as Record<string, unknown>,
+    );
     parts.push(`mcpServers[${servers.length}]`);
     for (const [name, cfg] of servers.slice(0, 3)) {
       const c = cfg as Record<string, unknown>;
-      parts.push(`"${name}":{url=${c.url ?? "none"},type=${c.type ?? "?"},auth=${c.auth ? "yes" : "none"}}`);
+      parts.push(
+        `"${name}":{url=${c.url ?? "none"},type=${c.type ?? "?"},auth=${c.auth ? "yes" : "none"}}`,
+      );
     }
   }
   // HTTP endpoints: { endpoints: [{ url, transport }] }
   if (parsed.endpoints && Array.isArray(parsed.endpoints)) {
     parts.push(`endpoints[${parsed.endpoints.length}]`);
-    for (const ep of (parsed.endpoints as Record<string, unknown>[]).slice(0, 2)) {
-      parts.push(`{url=${ep.url ?? "none"},transport=${ep.transport ?? ep.type ?? "?"}}`);
+    for (const ep of (parsed.endpoints as Record<string, unknown>[]).slice(
+      0,
+      2,
+    )) {
+      parts.push(
+        `{url=${ep.url ?? "none"},transport=${ep.transport ?? ep.type ?? "?"}}`,
+      );
     }
   }
-  if (parsed.servers && Array.isArray(parsed.servers)) parts.push(`servers[${parsed.servers.length}]`);
-  if (parts.length === 0) parts.push(`unrecognized structure, keys: ${Object.keys(parsed).slice(0, 5).join(",")}`);
+  if (parsed.servers && Array.isArray(parsed.servers))
+    parts.push(`servers[${parsed.servers.length}]`);
+  if (parts.length === 0)
+    parts.push(
+      `unrecognized structure, keys: ${Object.keys(parsed).slice(0, 5).join(",")}`,
+    );
   return parts.join("; ");
 }
 
 function extractMcpEndpoint(parsed: Record<string, unknown>): string | null {
   if (parsed.mcpServers && typeof parsed.mcpServers === "object") {
-    const first = Object.values(parsed.mcpServers as Record<string, unknown>)[0] as Record<string, unknown> | undefined;
+    const first = Object.values(
+      parsed.mcpServers as Record<string, unknown>,
+    )[0] as Record<string, unknown> | undefined;
     if (typeof first?.url === "string") return first.url;
   }
   if (parsed.endpoints && Array.isArray(parsed.endpoints)) {
@@ -584,15 +798,21 @@ function parseAgentCardStructure(parsed: Record<string, unknown>): string {
   if (parsed.name) parts.push(`name="${parsed.name}"`);
   if (parsed.version) parts.push(`version=${parsed.version}`);
   if (parsed.description) parts.push(`description ✓`);
-  if (Array.isArray(parsed.skills)) parts.push(`skills[${parsed.skills.length}]`);
+  if (Array.isArray(parsed.skills))
+    parts.push(`skills[${parsed.skills.length}]`);
   if (Array.isArray(parsed.endpoints)) {
     parts.push(`endpoints[${parsed.endpoints.length}]`);
-    for (const ep of (parsed.endpoints as Record<string, unknown>[]).slice(0, 2)) {
+    for (const ep of (parsed.endpoints as Record<string, unknown>[]).slice(
+      0,
+      2,
+    )) {
       parts.push(`{url=${ep.url},protocol=${ep.protocol ?? "?"}}`);
     }
   }
-  if (Array.isArray(parsed.capabilities)) parts.push(`capabilities[${parsed.capabilities.length}]`);
-  if (parts.length === 0) parts.push(`keys: ${Object.keys(parsed).slice(0, 5).join(",")}`);
+  if (Array.isArray(parsed.capabilities))
+    parts.push(`capabilities[${parsed.capabilities.length}]`);
+  if (parts.length === 0)
+    parts.push(`keys: ${Object.keys(parsed).slice(0, 5).join(",")}`);
   return parts.join("; ");
 }
 
@@ -602,30 +822,110 @@ function parseOAuthStructure(parsed: Record<string, unknown>): string {
   if (parsed.authorization_endpoint) parts.push(`authorization_endpoint ✓`);
   if (parsed.token_endpoint) parts.push(`token_endpoint ✓`);
   if (parsed.registration_endpoint) parts.push(`dynamic_client_registration ✓`);
-  if (Array.isArray(parsed.grant_types_supported)) parts.push(`grants: ${(parsed.grant_types_supported as string[]).join(",")}`);
-  if (Array.isArray(parsed.scopes_supported)) parts.push(`scopes[${(parsed.scopes_supported as string[]).length}]`);
-  if (parts.length === 0) parts.push(`keys: ${Object.keys(parsed).slice(0, 5).join(",")}`);
+  if (Array.isArray(parsed.grant_types_supported))
+    parts.push(
+      `grants: ${(parsed.grant_types_supported as string[]).join(",")}`,
+    );
+  if (Array.isArray(parsed.scopes_supported))
+    parts.push(`scopes[${(parsed.scopes_supported as string[]).length}]`);
+  if (parts.length === 0)
+    parts.push(`keys: ${Object.keys(parsed).slice(0, 5).join(",")}`);
   return parts.join("; ");
 }
 
 async function checkAgentReadiness(baseUrl: string) {
-  const results: Record<string, { status: string; detail: string; score: number }> = {};
+  const results: Record<
+    string,
+    { status: string; detail: string; score: number }
+  > = {};
   const urlObj = new URL(baseUrl);
   const origin = urlObj.origin;
 
   const checks = [
-    { key: "robots", url: `${origin}/robots.txt`, label: "robots.txt", score: 2, type: "text" },
-    { key: "sitemap", url: `${origin}/sitemap.xml`, label: "sitemap.xml", score: 1, type: "text" },
-    { key: "llms", url: `${origin}/llms.txt`, label: "llms.txt", score: 3, type: "text" },
-    { key: "llmsfull", url: `${origin}/llms-full.txt`, label: "llms-full.txt", score: 1, type: "text" },
-    { key: "mcp", url: `${origin}/.well-known/mcp.json`, label: "MCP well-known", score: 3, type: "json" },
-    { key: "oauth", url: `${origin}/.well-known/oauth-authorization-server`, label: "OAuth discovery", score: 2, type: "json" },
-    { key: "oauth-protected", url: `${origin}/.well-known/oauth-protected-resource`, label: "OAuth protected resource", score: 1, type: "json" },
-    { key: "agent-card", url: `${origin}/.well-known/agent.json`, label: "Agent Card (A2A)", score: 2, type: "json" },
-    { key: "a2a", url: `${origin}/.well-known/a2a.json`, label: "A2A manifest", score: 2, type: "json" },
-    { key: "api-catalog", url: `${origin}/.well-known/api-catalog`, label: "API Catalog", score: 1, type: "json" },
-    { key: "webmcp", url: `${origin}/.well-known/webmcp`, label: "WebMCP", score: 1, type: "json" },
-    { key: "agentskills", url: `${origin}/.agentskills`, label: "Agent Skills", score: 1, type: "text" },
+    {
+      key: "robots",
+      url: `${origin}/robots.txt`,
+      label: "robots.txt",
+      score: 2,
+      type: "text",
+    },
+    {
+      key: "sitemap",
+      url: `${origin}/sitemap.xml`,
+      label: "sitemap.xml",
+      score: 1,
+      type: "text",
+    },
+    {
+      key: "llms",
+      url: `${origin}/llms.txt`,
+      label: "llms.txt",
+      score: 3,
+      type: "text",
+    },
+    {
+      key: "llmsfull",
+      url: `${origin}/llms-full.txt`,
+      label: "llms-full.txt",
+      score: 1,
+      type: "text",
+    },
+    {
+      key: "mcp",
+      url: `${origin}/.well-known/mcp.json`,
+      label: "MCP well-known",
+      score: 3,
+      type: "json",
+    },
+    {
+      key: "oauth",
+      url: `${origin}/.well-known/oauth-authorization-server`,
+      label: "OAuth discovery",
+      score: 2,
+      type: "json",
+    },
+    {
+      key: "oauth-protected",
+      url: `${origin}/.well-known/oauth-protected-resource`,
+      label: "OAuth protected resource",
+      score: 1,
+      type: "json",
+    },
+    {
+      key: "agent-card",
+      url: `${origin}/.well-known/agent.json`,
+      label: "Agent Card (A2A)",
+      score: 2,
+      type: "json",
+    },
+    {
+      key: "a2a",
+      url: `${origin}/.well-known/a2a.json`,
+      label: "A2A manifest",
+      score: 2,
+      type: "json",
+    },
+    {
+      key: "api-catalog",
+      url: `${origin}/.well-known/api-catalog`,
+      label: "API Catalog",
+      score: 1,
+      type: "json",
+    },
+    {
+      key: "webmcp",
+      url: `${origin}/.well-known/webmcp`,
+      label: "WebMCP",
+      score: 1,
+      type: "json",
+    },
+    {
+      key: "agentskills",
+      url: `${origin}/.agentskills`,
+      label: "Agent Skills",
+      score: 1,
+      type: "text",
+    },
   ];
 
   let totalScore = 0;
@@ -655,38 +955,59 @@ async function checkAgentReadiness(baseUrl: string) {
           } else if (check.key === "oauth") {
             detail += `. Structure: ${parseOAuthStructure(parsed)}`;
           } else if (check.key === "api-catalog") {
-            const hasApis = !!(parsed.apis || parsed.openapi || parsed.swagger || parsed.endpoints || parsed.links);
+            const hasApis = !!(
+              parsed.apis ||
+              parsed.openapi ||
+              parsed.swagger ||
+              parsed.endpoints ||
+              parsed.links
+            );
             detail += `. Valid JSON. Has API definitions: ${hasApis}. Keys: ${Object.keys(parsed).slice(0, 6).join(",")}`;
           } else {
             detail += `. Valid JSON. Keys: ${Object.keys(parsed).slice(0, 6).join(",")}`;
           }
         } catch {
-          const snippet = content.length > 200 ? content.substring(0, 197) + "..." : content;
+          const snippet =
+            content.length > 200 ? content.substring(0, 197) + "..." : content;
           detail += `. WARNING: invalid JSON. Raw content: ${snippet.replace(/\n/g, " ")}`;
           score = Math.floor(check.score / 2);
         }
       } else {
-        const snippet = content.length > 400 ? content.substring(0, 397) + "..." : content;
+        const snippet =
+          content.length > 400 ? content.substring(0, 397) + "..." : content;
         detail += `. Content: ${snippet.replace(/\n/g, " ")}`;
       }
 
       results[check.key] = { status: "found", detail, score };
       totalScore += score;
     } else {
-      results[check.key] = { status: "not found", detail: `${check.label} not found at ${check.url}`, score: 0 };
+      results[check.key] = {
+        status: "not found",
+        detail: `${check.label} not found at ${check.url}`,
+        score: 0,
+      };
     }
     maxScore += check.score;
   }
 
-  const headersToCheck = ["link", "x-robots-tag", "content-type", "x-content-signals", "x-mcp-endpoint", "x-agent-card"];
+  const headersToCheck = [
+    "link",
+    "x-robots-tag",
+    "content-type",
+    "x-content-signals",
+    "x-mcp-endpoint",
+    "x-agent-card",
+  ];
   try {
-    const res = await fetch(baseUrl, { 
-      headers: { 
-        "User-Agent": "Mozilla/5.0 (compatible; StroncamiBot/1.0; +https://stroncami.it/bot)",
-        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-        "Accept-Language": "en-US,en;q=0.9,it;q=0.8"
-      }, 
-      redirect: "follow" 
+    const res = await fetch(baseUrl, {
+      headers: {
+        "User-Agent":
+          "Mozilla/5.0 (compatible; StroncamiBot/1.0; +https://stroncami.it/bot)",
+        Accept:
+          "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+        "Accept-Language": "en-US,en;q=0.9,it;q=0.8",
+      },
+      redirect: "follow",
     });
     const headers: string[] = [];
 
@@ -704,29 +1025,58 @@ async function checkAgentReadiness(baseUrl: string) {
 
     if (csp || hsts || xcto || xfo || ref || perm) {
       const securityHeaders: string[] = [];
-      if (csp) securityHeaders.push(`CSP: ${csp.length > 100 ? csp.substring(0, 97) + "..." : csp}`);
+      if (csp)
+        securityHeaders.push(
+          `CSP: ${csp.length > 100 ? csp.substring(0, 97) + "..." : csp}`,
+        );
       if (hsts) securityHeaders.push(`HSTS: ${hsts}`);
       if (xcto) securityHeaders.push(`X-Content-Type: ${xcto}`);
       if (xfo) securityHeaders.push(`X-Frame: ${xfo}`);
       if (ref) securityHeaders.push(`Referrer: ${ref}`);
-      if (perm) securityHeaders.push(`Permissions: ${perm.substring(0, 50)}${perm.length > 50 ? "..." : ""}`);
-      results["securityHeaders"] = { status: "found", detail: securityHeaders.join("; "), score: securityHeaders.length >= 4 ? 3 : securityHeaders.length };
+      if (perm)
+        securityHeaders.push(
+          `Permissions: ${perm.substring(0, 50)}${perm.length > 50 ? "..." : ""}`,
+        );
+      results["securityHeaders"] = {
+        status: "found",
+        detail: securityHeaders.join("; "),
+        score: securityHeaders.length >= 4 ? 3 : securityHeaders.length,
+      };
       totalScore += results["securityHeaders"].score;
     } else {
-      results["securityHeaders"] = { status: "not found", detail: "No security headers found (missing CSP, HSTS, X-Content-Type-Options, etc.)", score: 0 };
+      results["securityHeaders"] = {
+        status: "not found",
+        detail:
+          "No security headers found (missing CSP, HSTS, X-Content-Type-Options, etc.)",
+        score: 0,
+      };
     }
     maxScore += 3;
     const linkHeader = res.headers.get("link");
-    if (linkHeader && (linkHeader.includes("mcp") || linkHeader.includes("agent") || linkHeader.includes("llms"))) {
+    if (
+      linkHeader &&
+      (linkHeader.includes("mcp") ||
+        linkHeader.includes("agent") ||
+        linkHeader.includes("llms"))
+    ) {
       headers.push(`[agent Link rel]: ${linkHeader}`);
     }
-    results["headers"] = headers.length > 0
-      ? { status: "found", detail: headers.join("; "), score: 1 }
-      : { status: "not found", detail: "No agent-relevant HTTP headers found", score: 0 };
+    results["headers"] =
+      headers.length > 0
+        ? { status: "found", detail: headers.join("; "), score: 1 }
+        : {
+            status: "not found",
+            detail: "No agent-relevant HTTP headers found",
+            score: 0,
+          };
     if (headers.length > 0) totalScore += 1;
     maxScore += 1;
   } catch {
-    results["headers"] = { status: "error", detail: "Could not fetch homepage", score: 0 };
+    results["headers"] = {
+      status: "error",
+      detail: "Could not fetch homepage",
+      score: 0,
+    };
     maxScore += 1;
   }
 
@@ -734,13 +1084,23 @@ async function checkAgentReadiness(baseUrl: string) {
   const catScores = {
     robots: (results.robots?.score ?? 0) + (results.sitemap?.score ?? 0),
     robotsMax: 3,
-    mcp: (results.mcp?.score ?? 0) + (results.webmcp?.score ?? 0) + (results.agentskills?.score ?? 0),
+    mcp:
+      (results.mcp?.score ?? 0) +
+      (results.webmcp?.score ?? 0) +
+      (results.agentskills?.score ?? 0),
     mcpMax: 5,
-    apiDiscovery: (results.llms?.score ?? 0) + (results.llmsfull?.score ?? 0) + (results["api-catalog"]?.score ?? 0),
+    apiDiscovery:
+      (results.llms?.score ?? 0) +
+      (results.llmsfull?.score ?? 0) +
+      (results["api-catalog"]?.score ?? 0),
     apiDiscoveryMax: 5,
-    botAuth: (results.oauth?.score ?? 0) + (results["oauth-protected"]?.score ?? 0) + (results["agent-card"]?.score ?? 0) + (results.a2a?.score ?? 0),
+    botAuth:
+      (results.oauth?.score ?? 0) +
+      (results["oauth-protected"]?.score ?? 0) +
+      (results["agent-card"]?.score ?? 0) +
+      (results.a2a?.score ?? 0),
     botAuthMax: 7,
-    security: (results.securityHeaders?.score ?? 0),
+    security: results.securityHeaders?.score ?? 0,
     securityMax: 3,
   };
 
@@ -752,7 +1112,8 @@ async function checkAgentReadiness(baseUrl: string) {
 
   results["_categoryMapping"] = {
     status: "info",
-    detail: "USE THIS: 'robots' category→check keys: robots,sitemap | 'mcp' category→check keys: mcp,webmcp,agentskills | 'apiDiscovery' category→check keys: llms,llmsfull,api-catalog | 'botAuth' category→check keys: oauth,oauth-protected,agent-card,a2a | 'security' category→check keys: securityHeaders | 'agentReadiness' category→overall score + headers",
+    detail:
+      "USE THIS: 'robots' category→check keys: robots,sitemap | 'mcp' category→check keys: mcp,webmcp,agentskills | 'apiDiscovery' category→check keys: llms,llmsfull,api-catalog | 'botAuth' category→check keys: oauth,oauth-protected,agent-card,a2a | 'security' category→check keys: securityHeaders | 'agentReadiness' category→overall score + headers",
     score: 0,
   };
 
@@ -760,8 +1121,14 @@ async function checkAgentReadiness(baseUrl: string) {
   return results;
 }
 
-async function runPreAnalysis(url: string, categories: string[]): Promise<Record<string, { status: string; detail: string; score: number }>> {
-  const results: Record<string, { status: string; detail: string; score: number }> = {};
+async function runPreAnalysis(
+  url: string,
+  categories: string[],
+): Promise<Record<string, { status: string; detail: string; score: number }>> {
+  const results: Record<
+    string,
+    { status: string; detail: string; score: number }
+  > = {};
 
   console.log("[Pre-analysis] Running lightweight analysis...");
 
@@ -775,7 +1142,9 @@ async function runPreAnalysis(url: string, categories: string[]): Promise<Record
     })();
     html = await Promise.race([
       scrapePromise,
-      new Promise<string>((_, reject) => setTimeout(() => reject(new Error("Scrape timeout")), 20000))
+      new Promise<string>((_, reject) =>
+        setTimeout(() => reject(new Error("Scrape timeout")), 20000),
+      ),
     ]);
   } catch (e) {
     console.log("[Pre-analysis] Scrape failed, skipping:", e);
@@ -792,9 +1161,14 @@ async function runPreAnalysis(url: string, categories: string[]): Promise<Record
     try {
       const result = await Promise.race([
         toolFn(),
-        new Promise<string>((_, reject) => setTimeout(() => reject(new Error("timeout")), 12000))
+        new Promise<string>((_, reject) =>
+          setTimeout(() => reject(new Error("timeout")), 12000),
+        ),
       ]);
-      const hasIssues = result.includes("issues:") || result.includes("missing") || result.includes("not found");
+      const hasIssues =
+        result.includes("issues:") ||
+        result.includes("missing") ||
+        result.includes("not found");
       results[`${name}_tool`] = {
         status: hasIssues ? "issues_found" : "ok",
         detail: result.substring(0, 5000),
@@ -810,7 +1184,9 @@ async function runPreAnalysis(url: string, categories: string[]): Promise<Record
 
   // Accessibility
   if (categories.includes("accessibility")) {
-    promises.push(runTool("accessibility", () => handleAnalyzeAccessibility({ html }, url)));
+    promises.push(
+      runTool("accessibility", () => handleAnalyzeAccessibility({ html }, url)),
+    );
   }
 
   // SEO
@@ -820,7 +1196,11 @@ async function runPreAnalysis(url: string, categories: string[]): Promise<Record
 
   // HTML Structure / Code
   if (categories.includes("code") || categories.includes("design")) {
-    promises.push(runTool("html_structure", () => handleAnalyzeHtmlStructure({ html }, url)));
+    promises.push(
+      runTool("html_structure", () =>
+        handleAnalyzeHtmlStructure({ html }, url),
+      ),
+    );
   }
 
   // Mobile
@@ -830,12 +1210,16 @@ async function runPreAnalysis(url: string, categories: string[]): Promise<Record
 
   // Performance
   if (categories.includes("performance")) {
-    promises.push(runTool("performance", () => handleAnalyzePerformance({ html }, url)));
+    promises.push(
+      runTool("performance", () => handleAnalyzePerformance({ html }, url)),
+    );
   }
 
   // Security
   if (categories.includes("security")) {
-    promises.push(runTool("security", () => handleAnalyzeSecurityHeaders({}, url)));
+    promises.push(
+      runTool("security", () => handleAnalyzeSecurityHeaders({}, url)),
+    );
   }
 
   // Brand
@@ -850,27 +1234,43 @@ async function runPreAnalysis(url: string, categories: string[]): Promise<Record
 
   // Conversion
   if (categories.includes("conversion")) {
-    promises.push(runTool("conversion", () => handleAnalyzeConversion({ html }, url)));
+    promises.push(
+      runTool("conversion", () => handleAnalyzeConversion({ html }, url)),
+    );
   }
 
   // Credibility
   if (categories.includes("credibility")) {
-    promises.push(runTool("credibility", () => handleAnalyzeCredibility({ html }, url)));
+    promises.push(
+      runTool("credibility", () => handleAnalyzeCredibility({ html }, url)),
+    );
   }
 
   // Wait for all tools with overall timeout (30 seconds for all tools)
   try {
     await Promise.race([
       Promise.all(promises),
-      new Promise<void>((_, reject) => setTimeout(() => reject(new Error("Pre-analysis timeout")), 60000))
+      new Promise<void>((_, reject) =>
+        setTimeout(() => reject(new Error("Pre-analysis timeout")), 60000),
+      ),
     ]);
   } catch (e) {
-    console.log("[Pre-analysis] Timeout or error, continuing with partial results:", e);
+    console.log(
+      "[Pre-analysis] Timeout or error, continuing with partial results:",
+      e,
+    );
   }
 
-  console.log("[Pre-analysis] Results:", JSON.stringify(results, null, 2).substring(0, 500));
+  console.log(
+    "[Pre-analysis] Results:",
+    JSON.stringify(results, null, 2).substring(0, 500),
+  );
 
-  console.log("[Pre-analysis] Completed with", Object.keys(results).length, "tools");
+  console.log(
+    "[Pre-analysis] Completed with",
+    Object.keys(results).length,
+    "tools",
+  );
   return results;
 }
 
@@ -886,7 +1286,12 @@ const LOCALE_TO_LANGUAGE: Record<string, string> = {
   et: "Estonian",
 };
 
-async function buildPrompt(url: string, categories: string[], locale: string, checks: Record<string, unknown>): Promise<string> {
+async function buildPrompt(
+  url: string,
+  categories: string[],
+  locale: string,
+  checks: Record<string, unknown>,
+): Promise<string> {
   const promptPath = join(process.cwd(), "prompt.md");
   let basePrompt = "";
   try {
@@ -897,7 +1302,10 @@ async function buildPrompt(url: string, categories: string[], locale: string, ch
 
   const langName = LOCALE_TO_LANGUAGE[locale] ?? locale.toUpperCase();
   const agentData = JSON.stringify(checks, null, 2);
-  const categoriesStr = categories.length > 0 ? categories.join(", ") : "design, performance, ux, seo, code, accessibility, agentReadiness";
+  const categoriesStr =
+    categories.length > 0
+      ? categories.join(", ")
+      : "design, performance, ux, seo, code, accessibility, agentReadiness";
 
   const modified = basePrompt
     .replace(/\{\{AGENT_DATA\}\}/g, agentData)
@@ -905,15 +1313,32 @@ async function buildPrompt(url: string, categories: string[], locale: string, ch
     .replace(/\{\{CATEGORIES\}\}/g, categoriesStr)
     .replace(/\{\{LANGUAGE\}\}/g, langName);
 
-  console.log("[buildPrompt] Agent prompt length:", modified.length, "lang:", langName);
+  console.log(
+    "[buildPrompt] Agent prompt length:",
+    modified.length,
+    "lang:",
+    langName,
+  );
   return modified;
 }
 
-async function callLLM(messages: Array<Record<string, unknown>>, apiBase: string, apiKey: string, model: string) {
+async function callLLM(
+  messages: Array<Record<string, unknown>>,
+  apiBase: string,
+  apiKey: string,
+  model: string,
+) {
   // Use LLM class for better history management
-  const systemPrompt = (messages.find(m => m.role === "system") as { content: string })?.content || "You are a helpful assistant.";
-  const llm = new LLM(systemPrompt, { apiBase, apiKey, model, temperature: 0.3 });
-  
+  const systemPrompt =
+    (messages.find((m) => m.role === "system") as { content: string })
+      ?.content || "You are a helpful assistant.";
+  const llm = new LLM(systemPrompt, {
+    apiBase,
+    apiKey,
+    model,
+    temperature: 0.3,
+  });
+
   // Add all messages to LLM history
   for (const msg of messages) {
     if (msg.role === "user") {
@@ -922,11 +1347,19 @@ async function callLLM(messages: Array<Record<string, unknown>>, apiBase: string
       llm.addMessage("assistant", (msg as { content: string }).content || "");
     }
   }
-  
+
   const response = await fetch(`${apiBase}/chat/completions`, {
     method: "POST",
-    headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
-    body: JSON.stringify({ model, messages, temperature: 0.3, response_format: { type: "json_object" } }),
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${apiKey}`,
+    },
+    body: JSON.stringify({
+      model,
+      messages,
+      temperature: 0.3,
+      response_format: { type: "json_object" },
+    }),
   });
 
   if (!response.ok) throw new Error(`LLM error: ${response.status}`);
@@ -935,7 +1368,11 @@ async function callLLM(messages: Array<Record<string, unknown>>, apiBase: string
   return (data.choices?.[0]?.message?.content as string) || "{}";
 }
 
-type ToolCall = { id: string; type: "function"; function: { name: string; arguments: string } };
+type ToolCall = {
+  id: string;
+  type: "function";
+  function: { name: string; arguments: string };
+};
 type AgentMessage =
   | { role: "system"; content: string }
   | { role: "user"; content: string }
@@ -950,9 +1387,16 @@ async function callLLMWithTools(
   model: string,
 ): Promise<{ content: string | null; tool_calls?: ToolCall[] }> {
   // Use LLM class for better history management
-  const systemPrompt = messages.find(m => m.role === "system")?.content || "You are a helpful assistant.";
-  const llm = new LLM(systemPrompt, { apiBase, apiKey, model, temperature: 0.3 });
-  
+  const systemPrompt =
+    messages.find((m) => m.role === "system")?.content ||
+    "You are a helpful assistant.";
+  const llm = new LLM(systemPrompt, {
+    apiBase,
+    apiKey,
+    model,
+    temperature: 0.3,
+  });
+
   // Convert existing messages to LLM format (skip system, add others)
   for (const msg of messages) {
     if (msg.role === "user") {
@@ -961,19 +1405,31 @@ async function callLLMWithTools(
       llm.addMessage("assistant", msg.content || "");
     }
   }
-  
+
   // For tool-based calls, we still need raw fetch to get tool_calls
   const response = await fetch(`${apiBase}/chat/completions`, {
     method: "POST",
-    headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
-    body: JSON.stringify({ model, messages, tools, tool_choice: "auto", temperature: 0.3 }),
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${apiKey}`,
+    },
+    body: JSON.stringify({
+      model,
+      messages,
+      tools,
+      tool_choice: "auto",
+      temperature: 0.3,
+    }),
   });
 
   if (!response.ok) throw new Error(`LLM error: ${response.status}`);
 
   const data = await response.json();
   const msg = data.choices?.[0]?.message;
-  return { content: (msg?.content as string | null) ?? null, tool_calls: msg?.tool_calls as ToolCall[] | undefined };
+  return {
+    content: (msg?.content as string | null) ?? null,
+    tool_calls: msg?.tool_calls as ToolCall[] | undefined,
+  };
 }
 
 const AGENT_TOOLS = [
@@ -1002,7 +1458,10 @@ const AGENT_TOOLS = [
   submitRoastTool,
 ];
 
-function validateFinalRoast(final_roast: unknown, categories: string[]): { valid: boolean; errors: string[] } {
+function validateFinalRoast(
+  final_roast: unknown,
+  categories: string[],
+): { valid: boolean; errors: string[] } {
   const errors: string[] = [];
 
   if (!final_roast || typeof final_roast !== "object") {
@@ -1033,7 +1492,8 @@ function validateFinalRoast(final_roast: unknown, categories: string[]): { valid
         errors.push(`score for ${cat} must be a number (got: ${scores[cat]})`);
       } else {
         const s = scores[cat] as number;
-        if (s < 1 || s > 10) errors.push(`score for ${cat} out of range 1-10: ${s}`);
+        if (s < 1 || s > 10)
+          errors.push(`score for ${cat} out of range 1-10: ${s}`);
       }
     }
   }
@@ -1056,16 +1516,32 @@ function validateFinalRoast(final_roast: unknown, categories: string[]): { valid
       }
       const entry = roastMap.get(cat)!;
 
-      if (!entry.emoji || typeof entry.emoji !== "string" || entry.emoji.trim().length === 0) {
+      if (
+        !entry.emoji ||
+        typeof entry.emoji !== "string" ||
+        entry.emoji.trim().length === 0
+      ) {
         errors.push(`missing emoji for category: ${cat}`);
       }
 
-      if (!entry.critique || typeof entry.critique !== "string" || entry.critique.trim().length < 30) {
-        errors.push(`critique for ${cat} is missing or too short (min 30 chars)`);
+      if (
+        !entry.critique ||
+        typeof entry.critique !== "string" ||
+        entry.critique.trim().length < 30
+      ) {
+        errors.push(
+          `critique for ${cat} is missing or too short (min 30 chars)`,
+        );
       }
 
-      if (!entry.fix_prompt || typeof entry.fix_prompt !== "string" || entry.fix_prompt.trim().length < 30) {
-        errors.push(`fix_prompt for ${cat} is missing or too short (min 30 chars)`);
+      if (
+        !entry.fix_prompt ||
+        typeof entry.fix_prompt !== "string" ||
+        entry.fix_prompt.trim().length < 30
+      ) {
+        errors.push(
+          `fix_prompt for ${cat} is missing or too short (min 30 chars)`,
+        );
       }
     }
 
@@ -1077,10 +1553,15 @@ function validateFinalRoast(final_roast: unknown, categories: string[]): { valid
   return { valid: errors.length === 0, errors };
 }
 
-function extractRoastFromContent(content: string): Record<string, unknown> | null {
+function extractRoastFromContent(
+  content: string,
+): Record<string, unknown> | null {
   try {
     const p = JSON.parse(content.trim()) as Record<string, unknown>;
-    return (p.final_roast as Record<string, unknown>) ?? (p.overall_score !== undefined ? p : null);
+    return (
+      (p.final_roast as Record<string, unknown>) ??
+      (p.overall_score !== undefined ? p : null)
+    );
   } catch {
     return null;
   }
@@ -1116,27 +1597,45 @@ async function runAgentLoop(
 
     let response: { content: string | null; tool_calls?: ToolCall[] };
     try {
-      response = await callLLMWithTools(messages, AGENT_TOOLS, apiBase, apiKey, model);
+      response = await callLLMWithTools(
+        messages,
+        AGENT_TOOLS,
+        apiBase,
+        apiKey,
+        model,
+      );
     } catch (e) {
       console.error("[Roast API] LLM call failed:", e);
-      messages.push({ role: "user", content: "LLM error. Proceed with available data and call submit_roast now." });
+      messages.push({
+        role: "user",
+        content:
+          "LLM error. Proceed with available data and call submit_roast now.",
+      });
       continue;
     }
 
-    messages.push({ role: "assistant", content: response.content, tool_calls: response.tool_calls });
+    messages.push({
+      role: "assistant",
+      content: response.content,
+      tool_calls: response.tool_calls,
+    });
 
     // Build verbose thinking text from model content and tool calls
     const thinkingParts: string[] = [];
-    
+
     // Extract and format LLM's thinking process if present
     if (response.content?.trim()) {
       // Check if content contains thinking block
-      const thinkingMatch = response.content.match(/🧠\s*THINKING:[\s\S]*?(?=\n\n|\[Then|\[Call|$)/i);
+      const thinkingMatch = response.content.match(
+        /🧠\s*THINKING:[\s\S]*?(?=\n\n|\[Then|\[Call|$)/i,
+      );
       if (thinkingMatch) {
         // Extract the thinking content and format it nicely
-        const thinkingContent = thinkingMatch[0].replace(/🧠\s*THINKING:\s*/i, "").trim();
+        const thinkingContent = thinkingMatch[0]
+          .replace(/🧠\s*THINKING:\s*/i, "")
+          .trim();
         // Split into lines and format with emoji prefix
-        const lines = thinkingContent.split("\n").filter(l => l.trim());
+        const lines = thinkingContent.split("\n").filter((l) => l.trim());
         for (const line of lines) {
           const trimmedLine = line.trim();
           if (trimmedLine.startsWith("-")) {
@@ -1154,65 +1653,119 @@ async function runAgentLoop(
         }
       } else {
         // If no thinking block, use the content as-is if it's meaningful
-        const cleanedContent = response.content.trim().replace(/^```[\s\S]*?```/g, "").trim();
+        const cleanedContent = response.content
+          .trim()
+          .replace(/^```[\s\S]*?```/g, "")
+          .trim();
         if (cleanedContent.length > 20) {
-          thinkingParts.push(`💭 ${cleanedContent.substring(0, 200)}${cleanedContent.length > 200 ? "..." : ""}`);
+          thinkingParts.push(
+            `💭 ${cleanedContent.substring(0, 200)}${cleanedContent.length > 200 ? "..." : ""}`,
+          );
         }
       }
     }
-    
+
     // Add detailed tool call descriptions
     if (response.tool_calls && response.tool_calls.length > 0) {
       for (const c of response.tool_calls) {
         try {
-          const args = JSON.parse(c.function.arguments) as Record<string, unknown>;
+          const args = JSON.parse(c.function.arguments) as Record<
+            string,
+            unknown
+          >;
           if (c.function.name === "scrape_url") {
-            const targetUrl = args.url as string || "unknown";
-            thinkingParts.push(`🔍 Scraping ${targetUrl} to gather evidence for analysis...`);
+            const targetUrl = (args.url as string) || "unknown";
+            thinkingParts.push(
+              `🔍 Scraping ${targetUrl} to gather evidence for analysis...`,
+            );
           } else if (c.function.name === "analyze_security_headers") {
-            thinkingParts.push(`🔒 Analyzing security headers (CSP, HSTS, X-Frame-Options, etc.)...`);
+            thinkingParts.push(
+              `🔒 Analyzing security headers (CSP, HSTS, X-Frame-Options, etc.)...`,
+            );
           } else if (c.function.name === "analyze_robots_txt") {
-            thinkingParts.push(`🤖 Checking robots.txt for agent access rules and sitemap references...`);
+            thinkingParts.push(
+              `🤖 Checking robots.txt for agent access rules and sitemap references...`,
+            );
           } else if (c.function.name === "analyze_sitemap") {
-            thinkingParts.push(`🗺️ Parsing sitemap.xml to understand site structure...`);
+            thinkingParts.push(
+              `🗺️ Parsing sitemap.xml to understand site structure...`,
+            );
           } else if (c.function.name === "analyze_llms_txt") {
-            thinkingParts.push(`📄 Checking llms.txt for AI agent instructions...`);
+            thinkingParts.push(
+              `📄 Checking llms.txt for AI agent instructions...`,
+            );
           } else if (c.function.name === "analyze_accessibility") {
-            thinkingParts.push(`♿ Evaluating accessibility: ARIA labels, semantic HTML, keyboard navigation...`);
+            thinkingParts.push(
+              `♿ Evaluating accessibility: ARIA labels, semantic HTML, keyboard navigation...`,
+            );
           } else if (c.function.name === "analyze_html_structure") {
-            thinkingParts.push(`🏗️ Analyzing HTML structure: DOM depth, semantic elements, heading hierarchy...`);
+            thinkingParts.push(
+              `🏗️ Analyzing HTML structure: DOM depth, semantic elements, heading hierarchy...`,
+            );
           } else if (c.function.name === "analyze_performance") {
-            thinkingParts.push(`⚡ Assessing performance: render-blocking resources, image optimization, caching...`);
+            thinkingParts.push(
+              `⚡ Assessing performance: render-blocking resources, image optimization, caching...`,
+            );
           } else if (c.function.name === "analyze_seo") {
-            thinkingParts.push(`🔍 SEO audit: meta tags, Open Graph, canonical URLs, structured data...`);
+            thinkingParts.push(
+              `🔍 SEO audit: meta tags, Open Graph, canonical URLs, structured data...`,
+            );
           } else if (c.function.name === "analyze_mobile") {
-            thinkingParts.push(`📱 Mobile responsiveness check: viewport, touch targets, mobile UX...`);
+            thinkingParts.push(
+              `📱 Mobile responsiveness check: viewport, touch targets, mobile UX...`,
+            );
           } else if (c.function.name === "analyze_brand") {
-            thinkingParts.push(`🎨 Brand analysis: visual consistency, tone of voice, brand identity...`);
+            thinkingParts.push(
+              `🎨 Brand analysis: visual consistency, tone of voice, brand identity...`,
+            );
           } else if (c.function.name === "analyze_credibility") {
-            thinkingParts.push(`🏛️ Credibility assessment: trust signals, transparency, social proof...`);
+            thinkingParts.push(
+              `🏛️ Credibility assessment: trust signals, transparency, social proof...`,
+            );
           } else if (c.function.name === "analyze_conversion") {
-            thinkingParts.push(`💰 Conversion optimization: CTAs, funnels, friction points...`);
+            thinkingParts.push(
+              `💰 Conversion optimization: CTAs, funnels, friction points...`,
+            );
           } else if (c.function.name === "analyze_ux") {
-            thinkingParts.push(`🎯 UX evaluation: navigation clarity, information architecture, user flows...`);
+            thinkingParts.push(
+              `🎯 UX evaluation: navigation clarity, information architecture, user flows...`,
+            );
           } else if (c.function.name === "analyze_code") {
-            thinkingParts.push(`💻 Code quality review: best practices, maintainability, security...`);
+            thinkingParts.push(
+              `💻 Code quality review: best practices, maintainability, security...`,
+            );
           } else if (c.function.name === "analyze_mcp") {
-            thinkingParts.push(`🔌 MCP server discovery: checking .well-known/mcp.json for agent capabilities...`);
+            thinkingParts.push(
+              `🔌 MCP server discovery: checking .well-known/mcp.json for agent capabilities...`,
+            );
           } else if (c.function.name === "analyze_oauth") {
-            thinkingParts.push(`🔐 OAuth configuration: checking .well-known/oauth-authorization-server...`);
+            thinkingParts.push(
+              `🔐 OAuth configuration: checking .well-known/oauth-authorization-server...`,
+            );
           } else if (c.function.name === "analyze_api_catalog") {
-            thinkingParts.push(`📚 API catalog discovery: looking for well-known API documentation...`);
+            thinkingParts.push(
+              `📚 API catalog discovery: looking for well-known API documentation...`,
+            );
           } else if (c.function.name === "analyze_agent_card") {
-            thinkingParts.push(`🤖 Agent Card (A2A) discovery: checking .well-known/agent.json...`);
+            thinkingParts.push(
+              `🤖 Agent Card (A2A) discovery: checking .well-known/agent.json...`,
+            );
           } else if (c.function.name === "analyze_a2a") {
-            thinkingParts.push(`📡 A2A protocol check: .well-known/a2a.json for agent-to-agent communication...`);
+            thinkingParts.push(
+              `📡 A2A protocol check: .well-known/a2a.json for agent-to-agent communication...`,
+            );
           } else if (c.function.name === "analyze_webmcp") {
-            thinkingParts.push(`🌐 WebMCP discovery: checking for web-based MCP endpoints...`);
+            thinkingParts.push(
+              `🌐 WebMCP discovery: checking for web-based MCP endpoints...`,
+            );
           } else if (c.function.name === "analyze_agent_skills") {
-            thinkingParts.push(`🛠️ Agent skills endpoint: checking .agentskills for bot capabilities...`);
+            thinkingParts.push(
+              `🛠️ Agent skills endpoint: checking .agentskills for bot capabilities...`,
+            );
           } else if (c.function.name === "submit_roast") {
-            thinkingParts.push(`📝 Compiling final roast analysis with scores and recommendations...`);
+            thinkingParts.push(
+              `📝 Compiling final roast analysis with scores and recommendations...`,
+            );
           } else {
             thinkingParts.push(`🔧 Executing ${c.function.name}...`);
           }
@@ -1222,10 +1775,11 @@ async function runAgentLoop(
       }
     }
 
-    const thinkingText = thinkingParts.length > 0 
-      ? thinkingParts.join("\n")
-      : `Step ${iteration}: Processing...`;
-    
+    const thinkingText =
+      thinkingParts.length > 0
+        ? thinkingParts.join("\n")
+        : `Step ${iteration}: Processing...`;
+
     onProgress?.(iteration, thinkingText);
 
     if (!response.tool_calls || response.tool_calls.length === 0) {
@@ -1238,14 +1792,20 @@ async function runAgentLoop(
           bestPartial = parsed;
         }
       }
-      messages.push({ role: "user", content: `Call submit_roast now with your full analysis of ${url}. Required categories: ${categories.join(", ")}.` });
+      messages.push({
+        role: "user",
+        content: `Call submit_roast now with your full analysis of ${url}. Required categories: ${categories.join(", ")}.`,
+      });
       continue;
     }
 
     for (const call of response.tool_calls) {
       if (call.function.name === "submit_roast") {
         try {
-          const args = JSON.parse(call.function.arguments) as Record<string, unknown>;
+          const args = JSON.parse(call.function.arguments) as Record<
+            string,
+            unknown
+          >;
           const v = validateFinalRoast(args, categories);
           if (v.valid) {
             console.log("[Roast API] submit_roast valid — done");
@@ -1253,41 +1813,104 @@ async function runAgentLoop(
           }
           console.log("[Roast API] submit_roast validation failed:", v.errors);
           bestPartial = args;
-          const missing = categories.filter((c) => !(args.scores as Record<string, unknown>)?.[c]);
+          const missing = categories.filter(
+            (c) => !(args.scores as Record<string, unknown>)?.[c],
+          );
           messages.push({
             role: "tool",
             tool_call_id: call.id,
             content: `Rejected. Fix these errors: ${v.errors.join("; ")}${missing.length ? `. Missing categories: ${missing.join(", ")}` : ""}. Call submit_roast again.`,
           });
         } catch (e) {
-          messages.push({ role: "tool", tool_call_id: call.id, content: `Argument parse error: ${e}. Retry submit_roast.` });
+          messages.push({
+            role: "tool",
+            tool_call_id: call.id,
+            content: `Argument parse error: ${e}. Retry submit_roast.`,
+          });
         }
         continue;
       }
 
-      const toolHandlers: Record<string, (args: unknown, baseUrl: string) => unknown> = {
+      const toolHandlers: Record<
+        string,
+        (args: unknown, baseUrl: string) => unknown
+      > = {
         scrape_url: handleScrapeUrl,
         analyze_security_headers: handleAnalyzeSecurityHeaders,
         analyze_robots_txt: handleAnalyzeRobotsTxt,
-        analyze_sitemap: handleAnalyzeSitemap as (args: unknown, baseUrl: string) => unknown,
-        analyze_llms_txt: handleAnalyzeLlmsTxt as (args: unknown, baseUrl: string) => unknown,
-        analyze_accessibility: handleAnalyzeAccessibility as (args: unknown, baseUrl: string) => unknown,
-        analyze_html_structure: handleAnalyzeHtmlStructure as (args: unknown, baseUrl: string) => unknown,
-        analyze_performance: handleAnalyzePerformance as (args: unknown, baseUrl: string) => unknown,
-        analyze_seo: handleAnalyzeSeo as (args: unknown, baseUrl: string) => unknown,
-        analyze_mobile: handleAnalyzeMobile as (args: unknown, baseUrl: string) => unknown,
-        analyze_brand: handleAnalyzeBrand as (args: unknown, baseUrl: string) => unknown,
+        analyze_sitemap: handleAnalyzeSitemap as (
+          args: unknown,
+          baseUrl: string,
+        ) => unknown,
+        analyze_llms_txt: handleAnalyzeLlmsTxt as (
+          args: unknown,
+          baseUrl: string,
+        ) => unknown,
+        analyze_accessibility: handleAnalyzeAccessibility as (
+          args: unknown,
+          baseUrl: string,
+        ) => unknown,
+        analyze_html_structure: handleAnalyzeHtmlStructure as (
+          args: unknown,
+          baseUrl: string,
+        ) => unknown,
+        analyze_performance: handleAnalyzePerformance as (
+          args: unknown,
+          baseUrl: string,
+        ) => unknown,
+        analyze_seo: handleAnalyzeSeo as (
+          args: unknown,
+          baseUrl: string,
+        ) => unknown,
+        analyze_mobile: handleAnalyzeMobile as (
+          args: unknown,
+          baseUrl: string,
+        ) => unknown,
+        analyze_brand: handleAnalyzeBrand as (
+          args: unknown,
+          baseUrl: string,
+        ) => unknown,
         analyze_credibility: handleAnalyzeCredibility,
-        analyze_conversion: handleAnalyzeConversion as (args: unknown, baseUrl: string) => unknown,
-        analyze_ux: handleAnalyzeUx as (args: unknown, baseUrl: string) => unknown,
-        analyze_code: handleAnalyzeCode as (args: unknown, baseUrl: string) => unknown,
-        analyze_mcp: handleAnalyzeMcp as (args: unknown, baseUrl: string) => unknown,
-        analyze_oauth: handleAnalyzeOauth as (args: unknown, baseUrl: string) => unknown,
-        analyze_api_catalog: handleAnalyzeApiCatalog as (args: unknown, baseUrl: string) => unknown,
-        analyze_agent_card: handleAnalyzeAgentCard as (args: unknown, baseUrl: string) => unknown,
-        analyze_a2a: handleAnalyzeA2A as (args: unknown, baseUrl: string) => unknown,
-        analyze_webmcp: handleAnalyzeWebmcp as (args: unknown, baseUrl: string) => unknown,
-        analyze_agent_skills: handleAnalyzeAgentSkills as (args: unknown, baseUrl: string) => unknown,
+        analyze_conversion: handleAnalyzeConversion as (
+          args: unknown,
+          baseUrl: string,
+        ) => unknown,
+        analyze_ux: handleAnalyzeUx as (
+          args: unknown,
+          baseUrl: string,
+        ) => unknown,
+        analyze_code: handleAnalyzeCode as (
+          args: unknown,
+          baseUrl: string,
+        ) => unknown,
+        analyze_mcp: handleAnalyzeMcp as (
+          args: unknown,
+          baseUrl: string,
+        ) => unknown,
+        analyze_oauth: handleAnalyzeOauth as (
+          args: unknown,
+          baseUrl: string,
+        ) => unknown,
+        analyze_api_catalog: handleAnalyzeApiCatalog as (
+          args: unknown,
+          baseUrl: string,
+        ) => unknown,
+        analyze_agent_card: handleAnalyzeAgentCard as (
+          args: unknown,
+          baseUrl: string,
+        ) => unknown,
+        analyze_a2a: handleAnalyzeA2A as (
+          args: unknown,
+          baseUrl: string,
+        ) => unknown,
+        analyze_webmcp: handleAnalyzeWebmcp as (
+          args: unknown,
+          baseUrl: string,
+        ) => unknown,
+        analyze_agent_skills: handleAnalyzeAgentSkills as (
+          args: unknown,
+          baseUrl: string,
+        ) => unknown,
       };
 
       const handler = toolHandlers[call.function.name];
@@ -1295,12 +1918,24 @@ async function runAgentLoop(
         try {
           const args = JSON.parse(call.function.arguments);
           const result = await Promise.resolve(handler(args, url));
-          messages.push({ role: "tool", tool_call_id: call.id, content: String(result) });
+          messages.push({
+            role: "tool",
+            tool_call_id: call.id,
+            content: String(result),
+          });
         } catch (e) {
-          messages.push({ role: "tool", tool_call_id: call.id, content: `Handler error: ${e}` });
+          messages.push({
+            role: "tool",
+            tool_call_id: call.id,
+            content: `Handler error: ${e}`,
+          });
         }
       } else {
-        messages.push({ role: "tool", tool_call_id: call.id, content: `Unknown tool "${call.function.name}". Use scrape_url, analyze_security_headers, analyze_robots_txt, analyze_sitemap, analyze_llms_txt, analyze_accessibility, analyze_mcp, analyze_html_structure, analyze_performance, analyze_seo, analyze_mobile, analyze_brand, analyze_credibility, analyze_conversion, analyze_ux, analyze_code, or submit_roast.` });
+        messages.push({
+          role: "tool",
+          tool_call_id: call.id,
+          content: `Unknown tool "${call.function.name}". Use scrape_url, analyze_security_headers, analyze_robots_txt, analyze_sitemap, analyze_llms_txt, analyze_accessibility, analyze_mcp, analyze_html_structure, analyze_performance, analyze_seo, analyze_mobile, analyze_brand, analyze_credibility, analyze_conversion, analyze_ux, analyze_code, or submit_roast.`,
+        });
       }
     }
   }
@@ -1312,7 +1947,12 @@ async function runAgentLoop(
 
   // Use simple text messages for the forced call (strip tool messages to avoid format issues)
   const simpleHistory = messages
-    .filter((m) => m.role === "system" || m.role === "user" || (m.role === "assistant" && !m.tool_calls))
+    .filter(
+      (m) =>
+        m.role === "system" ||
+        m.role === "user" ||
+        (m.role === "assistant" && !m.tool_calls),
+    )
     .slice(0, 6) as Array<Record<string, unknown>>;
   simpleHistory.push({ role: "user", content: forcedMsg });
 
@@ -1321,18 +1961,32 @@ async function runAgentLoop(
     const parsed = extractRoastFromContent(finalContent);
     if (parsed) {
       const v = validateFinalRoast(parsed, categories);
-      if (v.valid) { console.log("[Roast API] Forced final valid"); return parsed; }
+      if (v.valid) {
+        console.log("[Roast API] Forced final valid");
+        return parsed;
+      }
       if (!bestPartial) bestPartial = parsed;
 
-      const recoveryContent = await callLLM([
-        ...simpleHistory,
-        { role: "assistant", content: finalContent },
-        { role: "user", content: `ERRORS: ${v.errors.join("; ")}. Fix only these and re-output the complete JSON.` },
-      ], apiBase, apiKey, model);
+      const recoveryContent = await callLLM(
+        [
+          ...simpleHistory,
+          { role: "assistant", content: finalContent },
+          {
+            role: "user",
+            content: `ERRORS: ${v.errors.join("; ")}. Fix only these and re-output the complete JSON.`,
+          },
+        ],
+        apiBase,
+        apiKey,
+        model,
+      );
       const recovered = extractRoastFromContent(recoveryContent);
       if (recovered) {
         const rv = validateFinalRoast(recovered, categories);
-        if (rv.valid) { console.log("[Roast API] Recovery valid"); return recovered; }
+        if (rv.valid) {
+          console.log("[Roast API] Recovery valid");
+          return recovered;
+        }
         bestPartial = recovered;
       }
     }
@@ -1354,7 +2008,12 @@ function patchResult(
 
   const existingScores = (partial?.scores as Record<string, unknown>) ?? {};
   const existingRoasts = Array.isArray(partial?.roasts)
-    ? new Map((partial.roasts as Array<Record<string, unknown>>).map((r) => [r.category as string, r]))
+    ? new Map(
+        (partial.roasts as Array<Record<string, unknown>>).map((r) => [
+          r.category as string,
+          r,
+        ]),
+      )
     : new Map<string, Record<string, unknown>>();
 
   const scores: Record<string, number> = {};
@@ -1362,16 +2021,23 @@ function patchResult(
 
   for (let i = 0; i < categories.length; i++) {
     const cat = categories[i];
-    const existingScore = typeof existingScores[cat] === "number" ? existingScores[cat] as number : 5;
+    const existingScore =
+      typeof existingScores[cat] === "number"
+        ? (existingScores[cat] as number)
+        : 5;
     scores[cat] = existingScore;
 
     const existing = existingRoasts.get(cat);
-    const critique = typeof existing?.critique === "string" && existing.critique.trim().length >= 30
-      ? existing.critique as string
-      : `Analysis for ${cat} at ${url} could not be fully completed. The agent gathered data but output generation encountered an error.`;
-    const fix_prompt = typeof existing?.fix_prompt === "string" && existing.fix_prompt.trim().length >= 30
-      ? existing.fix_prompt as string
-      : `Review the ${cat} implementation at ${url}. Identify the top issues found during automated analysis and implement the necessary fixes following the site's existing code conventions.`;
+    const critique =
+      typeof existing?.critique === "string" &&
+      existing.critique.trim().length >= 30
+        ? (existing.critique as string)
+        : `Analysis for ${cat} at ${url} could not be fully completed. The agent gathered data but output generation encountered an error.`;
+    const fix_prompt =
+      typeof existing?.fix_prompt === "string" &&
+      existing.fix_prompt.trim().length >= 30
+        ? (existing.fix_prompt as string)
+        : `Review the ${cat} implementation at ${url}. Identify the top issues found during automated analysis and implement the necessary fixes following the site's existing code conventions.`;
 
     roasts.push({
       category: cat,
@@ -1382,10 +2048,12 @@ function patchResult(
   }
 
   return {
-    overall_score: typeof partial?.overall_score === "number" ? partial.overall_score : 5,
-    verdict: typeof partial?.verdict === "string" && partial.verdict.trim().length > 0
-      ? partial.verdict
-      : `Analysis of ${url} completed with partial results.`,
+    overall_score:
+      typeof partial?.overall_score === "number" ? partial.overall_score : 5,
+    verdict:
+      typeof partial?.verdict === "string" && partial.verdict.trim().length > 0
+        ? partial.verdict
+        : `Analysis of ${url} completed with partial results.`,
     scores,
     roasts,
   };

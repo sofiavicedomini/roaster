@@ -43,34 +43,47 @@ function innerText(html: string, tag: string): string {
 export function extractPageContent(html: string): ExtractedPage {
   const title = innerText(html, "title");
 
-  const descMatch = html.match(/<meta\s[^>]*name\s*=\s*["']description["'][^>]*>/i);
+  const descMatch = html.match(
+    /<meta\s[^>]*name\s*=\s*["']description["'][^>]*>/i,
+  );
   const description = descMatch ? attr(descMatch[0], "content") : "";
 
-  const canonicalMatch = html.match(/<link\s[^>]*rel\s*=\s*["']canonical["'][^>]*>/i);
+  const canonicalMatch = html.match(
+    /<link\s[^>]*rel\s*=\s*["']canonical["'][^>]*>/i,
+  );
   const canonical = canonicalMatch ? attr(canonicalMatch[0], "href") : "";
 
   const og: Record<string, string> = {};
-  for (const m of html.matchAll(/<meta\s[^>]*property\s*=\s*["'](og:[^"']+)["'][^>]*>/gi)) {
+  for (const m of html.matchAll(
+    /<meta\s[^>]*property\s*=\s*["'](og:[^"']+)["'][^>]*>/gi,
+  )) {
     const key = attr(m[0], "property");
     const val = attr(m[0], "content");
     if (key && val) og[key] = val.substring(0, 300);
   }
 
   const twitterCard: Record<string, string> = {};
-  for (const m of html.matchAll(/<meta\s[^>]*name\s*=\s*["'](twitter:[^"']+)["'][^>]*>/gi)) {
+  for (const m of html.matchAll(
+    /<meta\s[^>]*name\s*=\s*["'](twitter:[^"']+)["'][^>]*>/gi,
+  )) {
     const key = attr(m[0], "name");
     const val = attr(m[0], "content");
     if (key && val) twitterCard[key] = val.substring(0, 300);
   }
 
   const jsonLd: string[] = [];
-  for (const m of html.matchAll(/<script\s[^>]*type\s*=\s*["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi)) {
+  for (const m of html.matchAll(
+    /<script\s[^>]*type\s*=\s*["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi,
+  )) {
     jsonLd.push(m[1].trim().substring(0, 1000));
   }
 
   const headings: Array<{ level: number; text: string }> = [];
   for (const m of html.matchAll(/<h([1-6])[^>]*>([\s\S]*?)<\/h\1>/gi)) {
-    headings.push({ level: parseInt(m[1]), text: stripTags(m[2]).substring(0, 120) });
+    headings.push({
+      level: parseInt(m[1]),
+      text: stripTags(m[2]).substring(0, 120),
+    });
     if (headings.length >= 20) break;
   }
 
@@ -79,8 +92,13 @@ export function extractPageContent(html: string): ExtractedPage {
   const text = stripTags(bodyHtml).substring(0, 6000);
 
   const links: Array<{ href: string; text: string }> = [];
-  for (const m of html.matchAll(/<a\s[^>]*href\s*=\s*["']([^"'#][^"']*)["'][^>]*>([\s\S]*?)<\/a>/gi)) {
-    links.push({ href: m[1].substring(0, 200), text: stripTags(m[2]).substring(0, 80) });
+  for (const m of html.matchAll(
+    /<a\s[^>]*href\s*=\s*["']([^"'#][^"']*)["'][^>]*>([\s\S]*?)<\/a>/gi,
+  )) {
+    links.push({
+      href: m[1].substring(0, 200),
+      text: stripTags(m[2]).substring(0, 80),
+    });
     if (links.length >= 30) break;
   }
 
@@ -110,13 +128,17 @@ export function extractPageContent(html: string): ExtractedPage {
   }
 
   const externalScripts: string[] = [];
-  for (const m of html.matchAll(/<script\s[^>]*src\s*=\s*["']([^"']+)["'][^>]*>/gi)) {
+  for (const m of html.matchAll(
+    /<script\s[^>]*src\s*=\s*["']([^"']+)["'][^>]*>/gi,
+  )) {
     externalScripts.push(m[1].substring(0, 200));
     if (externalScripts.length >= 20) break;
   }
 
   const stylesheets: string[] = [];
-  for (const m of html.matchAll(/<link\s[^>]*rel\s*=\s*["']stylesheet["'][^>]*>/gi)) {
+  for (const m of html.matchAll(
+    /<link\s[^>]*rel\s*=\s*["']stylesheet["'][^>]*>/gi,
+  )) {
     const href = attr(m[0], "href");
     if (href) {
       stylesheets.push(href.substring(0, 200));
@@ -124,7 +146,21 @@ export function extractPageContent(html: string): ExtractedPage {
     }
   }
 
-  return { title, description, canonical, og, twitterCard, jsonLd, headings, text, links, images, forms, externalScripts, stylesheets };
+  return {
+    title,
+    description,
+    canonical,
+    og,
+    twitterCard,
+    jsonLd,
+    headings,
+    text,
+    links,
+    images,
+    forms,
+    externalScripts,
+    stylesheets,
+  };
 }
 
 export function formatExtractedPage(e: ExtractedPage): string {
@@ -142,7 +178,8 @@ export function formatExtractedPage(e: ExtractedPage): string {
 
   if (Object.keys(e.twitterCard).length > 0) {
     parts.push(`\n--- Twitter Card ---`);
-    for (const [k, v] of Object.entries(e.twitterCard)) parts.push(`${k}: ${v}`);
+    for (const [k, v] of Object.entries(e.twitterCard))
+      parts.push(`${k}: ${v}`);
   }
 
   if (e.jsonLd.length > 0) {
@@ -172,7 +209,11 @@ export function formatExtractedPage(e: ExtractedPage): string {
 
   if (e.forms.length > 0) {
     parts.push(`\n--- Forms ---`);
-    e.forms.forEach((f) => parts.push(`action="${f.action}" method="${f.method}" inputs=[${f.inputs.join(", ")}]`));
+    e.forms.forEach((f) =>
+      parts.push(
+        `action="${f.action}" method="${f.method}" inputs=[${f.inputs.join(", ")}]`,
+      ),
+    );
   }
 
   if (e.externalScripts.length > 0) {

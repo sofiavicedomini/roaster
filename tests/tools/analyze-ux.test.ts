@@ -11,19 +11,20 @@ describe("handleAnalyzeUx", () => {
   });
 
   test("should detect focus states when present", async () => {
-    const html = '<style>:focus { outline: 2px solid blue; }</style>';
+    const html = "<style>:focus { outline: 2px solid blue; }</style>";
     const result = await handleAnalyzeUx({ html }, BASE);
     expect(result).toContain("focus states");
   });
 
   test("should detect reduced motion support", async () => {
-    const html = '@media (prefers-reduced-motion: reduce) { * { animation: none; } }';
+    const html =
+      "@media (prefers-reduced-motion: reduce) { * { animation: none; } }";
     const result = await handleAnalyzeUx({ html }, BASE);
     expect(result).toContain("reduced motion");
   });
 
   test("should detect no reduced motion", async () => {
-    const html = '<div>Basic content</div>';
+    const html = "<div>Basic content</div>";
     const result = await handleAnalyzeUx({ html }, BASE);
     expect(result).toContain("no reduced motion");
   });
@@ -47,7 +48,7 @@ describe("handleAnalyzeUx", () => {
   });
 
   test("should return UX elements for minimal HTML", async () => {
-    const html = '<div>Minimal</div>';
+    const html = "<div>Minimal</div>";
     const result = await handleAnalyzeUx({ html }, BASE);
     expect(result).toContain("UX elements");
   });

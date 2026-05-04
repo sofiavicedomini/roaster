@@ -23,7 +23,7 @@ describe("handleAnalyzeAgentCard", () => {
     vi.mocked(fetchUrl).mockResolvedValueOnce(content);
 
     const result = await handleAnalyzeAgentCard({}, "https://example.com");
-    
+
     expect(result).toContain("VALID");
     expect(result).toContain("name");
     expect(result).toContain("skills:");
@@ -33,7 +33,7 @@ describe("handleAnalyzeAgentCard", () => {
     vi.mocked(fetchUrl).mockResolvedValueOnce("");
 
     const result = await handleAnalyzeAgentCard({}, "https://example.com");
-    
+
     expect(result).toContain("not found");
   });
 
@@ -41,7 +41,7 @@ describe("handleAnalyzeAgentCard", () => {
     vi.mocked(fetchUrl).mockResolvedValueOnce("{ invalid");
 
     const result = await handleAnalyzeAgentCard({}, "https://example.com");
-    
+
     expect(result).toContain("invalid JSON");
   });
 
@@ -50,7 +50,7 @@ describe("handleAnalyzeAgentCard", () => {
     vi.mocked(fetchUrl).mockResolvedValueOnce(content);
 
     const result = await handleAnalyzeAgentCard({}, "https://example.com");
-    
+
     expect(result).toContain("INCOMPLETE");
   });
 });

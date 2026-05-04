@@ -31,9 +31,7 @@ export class LLM {
 
   constructor(systemPrompt: string, config: LLMConfig) {
     this.config = config;
-    this.messages = [
-      { role: "system", content: systemPrompt }
-    ];
+    this.messages = [{ role: "system", content: systemPrompt }];
     this.tools = [];
   }
 
@@ -50,14 +48,14 @@ export class LLM {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${this.config.apiKey}`
+          Authorization: `Bearer ${this.config.apiKey}`,
         },
         body: JSON.stringify({
           model: this.config.model,
           messages: this.messages,
           temperature: this.config.temperature ?? 0.3,
-          ...(this.tools.length > 0 && { tools: this.tools })
-        })
+          ...(this.tools.length > 0 && { tools: this.tools }),
+        }),
       });
 
       if (!response.ok) {
@@ -85,11 +83,15 @@ export class LLM {
   /**
    * Add a tool to the LLM for function calling
    */
-  addTool(name: string, description: string, parameters?: {
-    type: "object";
-    properties?: Record<string, unknown>;
-    required?: string[];
-  }): void {
+  addTool(
+    name: string,
+    description: string,
+    parameters?: {
+      type: "object";
+      properties?: Record<string, unknown>;
+      required?: string[];
+    },
+  ): void {
     const tool: LLMTool = {
       type: "function",
       function: {
@@ -98,9 +100,9 @@ export class LLM {
         parameters: parameters || {
           type: "object",
           properties: {},
-          required: []
-        }
-      }
+          required: [],
+        },
+      },
     };
     this.tools.push(tool);
   }
@@ -123,14 +125,18 @@ export class LLM {
    * Clear conversation history (keeps system prompt and tools)
    */
   clearHistory(): void {
-    const systemPrompt = this.messages.find(m => m.role === "system");
+    const systemPrompt = this.messages.find((m) => m.role === "system");
     this.messages = systemPrompt ? [systemPrompt] : [];
   }
 
   /**
    * Add a custom message to history (for manual intervention)
    */
-  addMessage(role: "user" | "assistant" | "tool", content: string, tool_call_id?: string): void {
+  addMessage(
+    role: "user" | "assistant" | "tool",
+    content: string,
+    tool_call_id?: string,
+  ): void {
     const msg: LLMMessage = { role, content };
     if (tool_call_id) msg.tool_call_id = tool_call_id;
     this.messages.push(msg);
@@ -140,7 +146,7 @@ export class LLM {
    * Get message count (excluding system prompt)
    */
   getMessageCount(): number {
-    return this.messages.filter(m => m.role !== "system").length;
+    return this.messages.filter((m) => m.role !== "system").length;
   }
 
   /**

@@ -45,13 +45,14 @@ describe("handleAnalyzeConversion", () => {
   });
 
   test("should detect CTA styled", async () => {
-    const html = '<button style="background: #ff0000; color: #fff;">Submit</button>';
+    const html =
+      '<button style="background: #ff0000; color: #fff;">Submit</button>';
     const result = await handleAnalyzeConversion({ html }, BASE);
     expect(result).toContain("CTA styled");
   });
 
   test("should detect CTA not styled", async () => {
-    const html = '<button>Submit</button>';
+    const html = "<button>Submit</button>";
     const result = await handleAnalyzeConversion({ html }, BASE);
     expect(result).toContain("CTA not styled");
   });
@@ -63,7 +64,7 @@ describe("handleAnalyzeConversion", () => {
   });
 
   test("should detect no trust signals", async () => {
-    const html = '<form><input></form>';
+    const html = "<form><input></form>";
     const result = await handleAnalyzeConversion({ html }, BASE);
     expect(result).toContain("no trust signals");
   });
@@ -75,7 +76,7 @@ describe("handleAnalyzeConversion", () => {
   });
 
   test("should detect forms", async () => {
-    const html = '<form><input></form>';
+    const html = "<form><input></form>";
     const result = await handleAnalyzeConversion({ html }, BASE);
     expect(result).toContain("has forms");
   });

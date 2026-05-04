@@ -45,7 +45,8 @@ function getLocalizedPath(loc: string) {
   <body>
     <div class="heat-distortion fire"></div>
 
-    <!-- ── Desktop top-left nav ── -->
+    <header>
+      <!-- ── Desktop top-left nav ── -->
     <nav aria-label="Main navigation" class="hidden md:flex fixed top-4 left-4 z-50 items-center gap-2">
       <a href={`/${locale}/rankings`} class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-zinc-900/90 text-orange-400 border border-orange-500/25 hover:border-orange-400/50 hover:text-orange-300 hover:shadow-[0_0_12px_oklch(0.837_0.128_66.29_/_0.3)] transition-all backdrop-blur-sm">{t("rankings.navLink")}</a>
       <a href={`/${locale}/about`}    class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-zinc-900/90 text-orange-400 border border-orange-500/25 hover:border-orange-400/50 hover:text-orange-300 hover:shadow-[0_0_12px_oklch(0.837_0.128_66.29_/_0.3)] transition-all backdrop-blur-sm">{t("nav.about")}</a>
@@ -138,6 +139,7 @@ function getLocalizedPath(loc: string) {
         </div>
       </div>
     </aside>
+    </header>
 
     <GoogleAnalytics />
     <main id="main-content">

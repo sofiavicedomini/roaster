@@ -23,7 +23,7 @@ describe("handleAnalyzeA2A", () => {
     vi.mocked(fetchUrl).mockResolvedValueOnce(content);
 
     const result = await handleAnalyzeA2A({}, "https://example.com");
-    
+
     expect(result).toContain("VALID");
     expect(result).toContain("agentId");
   });
@@ -32,7 +32,7 @@ describe("handleAnalyzeA2A", () => {
     vi.mocked(fetchUrl).mockResolvedValueOnce("");
 
     const result = await handleAnalyzeA2A({}, "https://example.com");
-    
+
     expect(result).toContain("not found");
   });
 
@@ -40,7 +40,7 @@ describe("handleAnalyzeA2A", () => {
     vi.mocked(fetchUrl).mockResolvedValueOnce("not json");
 
     const result = await handleAnalyzeA2A({}, "https://example.com");
-    
+
     expect(result).toContain("invalid JSON");
   });
 
@@ -49,7 +49,7 @@ describe("handleAnalyzeA2A", () => {
     vi.mocked(fetchUrl).mockResolvedValueOnce(content);
 
     const result = await handleAnalyzeA2A({}, "https://example.com");
-    
+
     expect(result).toContain("VALID");
   });
 });

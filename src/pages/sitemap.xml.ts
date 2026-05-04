@@ -1,10 +1,10 @@
-import type { APIContext } from "astro"
+import type { APIContext } from "astro";
 
-const locales = ["en", "it", "fr", "es", "pt", "de", "nl", "ru", "et"]
+const locales = ["en", "it", "fr", "es", "pt", "de", "nl", "ru", "et"];
 
 export async function GET({ request }: APIContext) {
-  const url = new URL(request.url)
-  const baseUrl = import.meta.env.PUBLIC_URL || `${url.protocol}//${url.host}`
+  const url = new URL(request.url);
+  const baseUrl = import.meta.env.PUBLIC_URL || `${url.protocol}//${url.host}`;
 
   const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
@@ -20,11 +20,11 @@ export async function GET({ request }: APIContext) {
     ${locales
       .map(
         (alt) => `
-    <xhtml:link rel="alternate" hreflang="${alt}" href="${baseUrl}/${alt}" />`
+    <xhtml:link rel="alternate" hreflang="${alt}" href="${baseUrl}/${alt}" />`,
       )
       .join("")}
     <xhtml:link rel="alternate" hreflang="x-default" href="${baseUrl}/en" />
-  </url>`
+  </url>`,
     )
     .join("")}
   <url>
@@ -42,12 +42,12 @@ export async function GET({ request }: APIContext) {
     <changefreq>daily</changefreq>
     <priority>0.7</priority>
   </url>
-</urlset>`
+</urlset>`;
 
   return new Response(sitemap, {
     headers: {
       "Content-Type": "application/xml",
       "Cache-Control": "public, max-age=3600",
     },
-  })
+  });
 }

@@ -25,7 +25,7 @@ describe("handleAnalyzeApiCatalog", () => {
     vi.mocked(fetchUrl).mockResolvedValueOnce(content);
 
     const result = await handleAnalyzeApiCatalog({}, "https://example.com");
-    
+
     expect(result).toContain("VALID");
     expect(result).toContain("title");
     expect(result).toContain("apis:");
@@ -35,7 +35,7 @@ describe("handleAnalyzeApiCatalog", () => {
     vi.mocked(fetchUrl).mockResolvedValueOnce("");
 
     const result = await handleAnalyzeApiCatalog({}, "https://example.com");
-    
+
     expect(result).toContain("not found");
   });
 
@@ -43,7 +43,7 @@ describe("handleAnalyzeApiCatalog", () => {
     vi.mocked(fetchUrl).mockResolvedValueOnce("not valid json");
 
     const result = await handleAnalyzeApiCatalog({}, "https://example.com");
-    
+
     expect(result).toContain("invalid JSON");
   });
 
@@ -55,7 +55,7 @@ describe("handleAnalyzeApiCatalog", () => {
     vi.mocked(fetchUrl).mockResolvedValueOnce(content);
 
     const result = await handleAnalyzeApiCatalog({}, "https://example.com");
-    
+
     expect(result).toContain("VALID");
   });
 });

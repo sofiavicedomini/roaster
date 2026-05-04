@@ -46,7 +46,13 @@ interface ChatbotProps {
   locale?: Locale;
 }
 
-function ThinkingPanel({ thoughts, isLoading }: { thoughts: string[]; isLoading: boolean }) {
+function ThinkingPanel({
+  thoughts,
+  isLoading,
+}: {
+  thoughts: string[];
+  isLoading: boolean;
+}) {
   const [isExpanded, setIsExpanded] = useState(true);
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -94,18 +100,22 @@ function ThinkingPanel({ thoughts, isLoading }: { thoughts: string[]; isLoading:
             <div
               key={i}
               className={`flex gap-2.5 text-sm font-mono py-1.5 leading-relaxed rounded px-2 -mx-2 ${
-                i === thoughts.length - 1 
-                  ? "text-orange-100/90 bg-orange-500/5" 
+                i === thoughts.length - 1
+                  ? "text-orange-100/90 bg-orange-500/5"
                   : "text-orange-300/55 hover:text-orange-300/70"
               }`}
             >
-              <span className="text-orange-500/50 select-none shrink-0 font-bold">›</span>
+              <span className="text-orange-500/50 select-none shrink-0 font-bold">
+                ›
+              </span>
               <span>{thought}</span>
             </div>
           ))}
           {isLoading && (
             <div className="flex gap-2.5 text-sm font-mono py-1.5 text-orange-400/60">
-              <span className="text-orange-500/50 select-none shrink-0 font-bold">›</span>
+              <span className="text-orange-500/50 select-none shrink-0 font-bold">
+                ›
+              </span>
               <span className="animate-pulse">▋</span>
             </div>
           )}
@@ -139,30 +149,43 @@ export function Chatbot({ locale = "en" }: ChatbotProps) {
   const t = getTranslations(locale);
   const [url, setUrl] = useState("");
   const [selectedCategories, setSelectedCategories] = useState<string[]>([
-    "design", "performance", "ux", "seo", "agentReadiness",
+    "design",
+    "performance",
+    "ux",
+    "seo",
+    "agentReadiness",
   ]);
 
-  const groups = CATEGORIES.reduce((acc, cat) => {
-    if (!acc[cat.group]) acc[cat.group] = [];
-    acc[cat.group].push(cat);
-    return acc;
-  }, {} as Record<string, typeof CATEGORIES>);
+  const groups = CATEGORIES.reduce(
+    (acc, cat) => {
+      if (!acc[cat.group]) acc[cat.group] = [];
+      acc[cat.group].push(cat);
+      return acc;
+    },
+    {} as Record<string, typeof CATEGORIES>,
+  );
 
   const [isLoading, setIsLoading] = useState(false);
   const [loadingMsgIdx, setLoadingMsgIdx] = useState(0);
   const [result, setResult] = useState<RoastResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [jobId, setJobId] = useState<string | null>(null);
-  const [cacheInfo, setCacheInfo] = useState<{ cachedAt: string; cacheKey: string; translated?: boolean } | null>(null);
+  const [cacheInfo, setCacheInfo] = useState<{
+    cachedAt: string;
+    cacheKey: string;
+    translated?: boolean;
+  } | null>(null);
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
   const [isTurnstileExpired, setIsTurnstileExpired] = useState(false);
   const [isTurnstileLoading, setIsTurnstileLoading] = useState(true);
   const turnstileRef = useRef<HTMLDivElement>(null);
   const widgetIdRef = useRef<string | null>(null);
   const renderTurnstileRef = useRef<(() => void) | null>(null);
-  const turnstileSiteKey = typeof import.meta !== "undefined" && import.meta.env?.PUBLIC_TURNSTILE_SITE_KEY
-    ? import.meta.env.PUBLIC_TURNSTILE_SITE_KEY
-    : "";
+  const turnstileSiteKey =
+    typeof import.meta !== "undefined" &&
+    import.meta.env?.PUBLIC_TURNSTILE_SITE_KEY
+      ? import.meta.env.PUBLIC_TURNSTILE_SITE_KEY
+      : "";
 
   // Load Turnstile script and render widget
   useEffect(() => {
@@ -202,7 +225,9 @@ export function Chatbot({ locale = "en" }: ChatbotProps) {
           setTurnstileToken(token);
           setIsTurnstileExpired(false);
           setIsTurnstileLoading(false);
-          console.log("[Turnstile] Token received - will be invalidated after use");
+          console.log(
+            "[Turnstile] Token received - will be invalidated after use",
+          );
         },
         "expired-callback": () => {
           setTurnstileToken(null);
@@ -215,7 +240,9 @@ export function Chatbot({ locale = "en" }: ChatbotProps) {
           console.error("[Turnstile] Error:", error);
           const err = error as Record<string, unknown>;
           if (err?.code === 300030) {
-            console.error("[Turnstile] Error 300030 - Check site key and domain in Cloudflare dashboard");
+            console.error(
+              "[Turnstile] Error 300030 - Check site key and domain in Cloudflare dashboard",
+            );
           }
           setIsTurnstileExpired(true);
           setIsTurnstileLoading(false);
@@ -282,13 +309,34 @@ export function Chatbot({ locale = "en" }: ChatbotProps) {
         if (data.status === "completed") {
           const r = data.result as RoastResult;
           setResult(r);
-          setCacheInfo(r.cached ? { cachedAt: r.cachedAt!, cacheKey: r.cacheKey!, translated: r.translated } : null);
+          setCacheInfo(
+            r.cached
+              ? {
+                  cachedAt: r.cachedAt!,
+                  cacheKey: r.cacheKey!,
+                  translated: r.translated,
+                }
+              : null,
+          );
           if (r.rankingId && !r.cached) {
             try {
-              const history = JSON.parse(localStorage.getItem("roastHistory") || "[]");
-              history.unshift({ url: url, score: r.overall_score, verdict: r.verdict, rankingId: r.rankingId, date: new Date().toISOString() });
-              localStorage.setItem("roastHistory", JSON.stringify(history.slice(0, 5)));
-            } catch { /* localStorage unavailable */ }
+              const history = JSON.parse(
+                localStorage.getItem("roastHistory") || "[]",
+              );
+              history.unshift({
+                url: url,
+                score: r.overall_score,
+                verdict: r.verdict,
+                rankingId: r.rankingId,
+                date: new Date().toISOString(),
+              });
+              localStorage.setItem(
+                "roastHistory",
+                JSON.stringify(history.slice(0, 5)),
+              );
+            } catch {
+              /* localStorage unavailable */
+            }
           }
           setIsLoading(false);
           setJobId(null);
@@ -302,10 +350,13 @@ export function Chatbot({ locale = "en" }: ChatbotProps) {
           setJobStatus(data.status);
           if (data.progress) {
             // Split multi-line thinking into individual steps
-            const thinkingSteps = data.progress.split("\n").filter((line: string) => line.trim());
+            const thinkingSteps = data.progress
+              .split("\n")
+              .filter((line: string) => line.trim());
             setThoughtHistory((prev) => {
-              const newSteps = thinkingSteps.filter((step: string) =>
-                !prev.some(existing => existing.trim() === step.trim())
+              const newSteps = thinkingSteps.filter(
+                (step: string) =>
+                  !prev.some((existing) => existing.trim() === step.trim()),
               );
               return [...prev, ...newSteps];
             });
@@ -325,17 +376,26 @@ export function Chatbot({ locale = "en" }: ChatbotProps) {
     return () => clearInterval(t);
   }, [cacheInfo]);
 
-  const cachedAtMs = cacheInfo ? (typeof cacheInfo.cachedAt === "number" ? cacheInfo.cachedAt : new Date(cacheInfo.cachedAt).getTime()) : 0;
+  const cachedAtMs = cacheInfo
+    ? typeof cacheInfo.cachedAt === "number"
+      ? cacheInfo.cachedAt
+      : new Date(cacheInfo.cachedAt).getTime()
+    : 0;
   const cacheAgeMin = cacheInfo ? Math.round((now - cachedAtMs) / 60000) : 0;
-  const cacheClearInMin = cacheInfo ? Math.ceil(30 - (now - cachedAtMs) / 60000) : 0;
-  const isCacheOld = cacheInfo ? (now - cachedAtMs) >= 30 * 60 * 1000 : false;
+  const cacheClearInMin = cacheInfo
+    ? Math.ceil(30 - (now - cachedAtMs) / 60000)
+    : 0;
+  const isCacheOld = cacheInfo ? now - cachedAtMs >= 30 * 60 * 1000 : false;
   const [isCategoryDropdownOpen, setIsCategoryDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!isCategoryDropdownOpen) return;
     const handleClickOutside = (e: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(e.target as Node)
+      ) {
         setIsCategoryDropdownOpen(false);
       }
     };
@@ -345,7 +405,7 @@ export function Chatbot({ locale = "en" }: ChatbotProps) {
 
   const toggleCategory = (id: string) => {
     setSelectedCategories((prev) =>
-      prev.includes(id) ? prev.filter((c) => c !== id) : [...prev, id]
+      prev.includes(id) ? prev.filter((c) => c !== id) : [...prev, id],
     );
   };
 
@@ -365,10 +425,15 @@ export function Chatbot({ locale = "en" }: ChatbotProps) {
       const response = await fetch("/api/roast", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url, categories: selectedCategories, locale, turnstileToken }),
+        body: JSON.stringify({
+          url,
+          categories: selectedCategories,
+          locale,
+          turnstileToken,
+        }),
       });
 
-      const data = await response.json() as Record<string, unknown>;
+      const data = (await response.json()) as Record<string, unknown>;
 
       if (!response.ok) {
         // On any 403 (captcha error), invalidate token and force a fresh widget
@@ -396,7 +461,12 @@ export function Chatbot({ locale = "en" }: ChatbotProps) {
         setJobId(data.jobId as string);
       } else if (data.overall_score !== undefined) {
         setResult(data as unknown as RoastResult);
-        if (data.cached) setCacheInfo({ cachedAt: data.cachedAt as string, cacheKey: data.cacheKey as string, translated: data.translated as boolean | undefined });
+        if (data.cached)
+          setCacheInfo({
+            cachedAt: data.cachedAt as string,
+            cacheKey: data.cacheKey as string,
+            translated: data.translated as boolean | undefined,
+          });
         setIsLoading(false);
       }
     } catch (err) {
@@ -411,7 +481,8 @@ export function Chatbot({ locale = "en" }: ChatbotProps) {
       .then(() => {
         const temp = document.createElement("div");
         temp.textContent = "Copied!";
-        temp.className = "fixed top-4 right-4 bg-emerald-600 text-white text-sm px-4 py-2.5 rounded-xl shadow-xl border border-emerald-500/50 z-50";
+        temp.className =
+          "fixed top-4 right-4 bg-emerald-600 text-white text-sm px-4 py-2.5 rounded-xl shadow-xl border border-emerald-500/50 z-50";
         document.body.appendChild(temp);
         setTimeout(() => temp.remove(), 2000);
       })
@@ -424,7 +495,10 @@ export function Chatbot({ locale = "en" }: ChatbotProps) {
   const clearCache = async () => {
     if (!cacheInfo) return;
     try {
-      const res = await fetch(`/api/roast/cache?key=${encodeURIComponent(cacheInfo.cacheKey)}`, { method: "DELETE" });
+      const res = await fetch(
+        `/api/roast/cache?key=${encodeURIComponent(cacheInfo.cacheKey)}`,
+        { method: "DELETE" },
+      );
       const data = await res.json();
       if (res.ok) {
         setCacheInfo(null);
@@ -446,10 +520,19 @@ export function Chatbot({ locale = "en" }: ChatbotProps) {
 
   return (
     <div className="flex flex-col gap-6 max-w-2xl mx-auto w-full">
-       <form onSubmit={handleSubmit} aria-label={t.chatbot.urlLabel} className="flex flex-col gap-5 rounded-xl border border-orange-500/15 p-5 bg-gradient-to-br from-background to-orange-500/5 shadow-lg" aria-busy={isLoading}>
-
+      <form
+        onSubmit={handleSubmit}
+        aria-label={t.chatbot.urlLabel}
+        className="flex flex-col gap-5 rounded-xl border border-orange-500/15 p-5 bg-gradient-to-br from-background to-orange-500/5 shadow-lg"
+        aria-busy={isLoading}
+      >
         <div className="flex flex-col gap-3">
-          <label htmlFor="site-url" className="text-sm font-semibold tracking-tight text-orange-200/90">{t.chatbot.urlLabel}</label>
+          <label
+            htmlFor="site-url"
+            className="text-sm font-semibold tracking-tight text-orange-200/90"
+          >
+            {t.chatbot.urlLabel}
+          </label>
           <input
             id="site-url"
             type="url"
@@ -461,12 +544,16 @@ export function Chatbot({ locale = "en" }: ChatbotProps) {
             disabled={isLoading}
           />
           {t.chatbot.urlHint && (
-            <p className="text-xs text-orange-300/50 mt-0.5">{t.chatbot.urlHint}</p>
+            <p className="text-xs text-orange-300/50 mt-0.5">
+              {t.chatbot.urlHint}
+            </p>
           )}
         </div>
 
-          <div className="flex flex-col gap-3">
-            <label className="text-sm font-semibold tracking-tight text-orange-200/90">{t.chatbot.categoriesLabel}</label>
+        <div className="flex flex-col gap-3">
+          <label className="text-sm font-semibold tracking-tight text-orange-200/90">
+            {t.chatbot.categoriesLabel}
+          </label>
 
           {/* Mobile: dropdown with larger touch targets */}
           <div ref={dropdownRef} className="md:hidden relative">
@@ -480,7 +567,9 @@ export function Chatbot({ locale = "en" }: ChatbotProps) {
                   ? `${selectedCategories.length} selected`
                   : "Select categories"}
               </span>
-              <ChevronDown className={`w-5 h-5 transition-transform ${isCategoryDropdownOpen ? "rotate-180" : ""}`} />
+              <ChevronDown
+                className={`w-5 h-5 transition-transform ${isCategoryDropdownOpen ? "rotate-180" : ""}`}
+              />
             </button>
 
             {isCategoryDropdownOpen && (
@@ -498,7 +587,9 @@ export function Chatbot({ locale = "en" }: ChatbotProps) {
                         className="w-5 h-5 rounded border-input accent-primary"
                       />
                       <span className="text-sm font-medium">
-                        {t.chatbot.categories[cat.id as keyof typeof t.chatbot.categories] || cat.id}
+                        {t.chatbot.categories[
+                          cat.id as keyof typeof t.chatbot.categories
+                        ] || cat.id}
                       </span>
                     </label>
                   ))}
@@ -512,7 +603,8 @@ export function Chatbot({ locale = "en" }: ChatbotProps) {
             {Object.entries(groups).map(([group, cats]) => (
               <div key={group} className="flex flex-col gap-2">
                 <span className="text-[0.65rem] font-bold text-orange-300/50 uppercase tracking-widest">
-                  {t.chatbot.groups[group as keyof typeof t.chatbot.groups] || group}
+                  {t.chatbot.groups[group as keyof typeof t.chatbot.groups] ||
+                    group}
                 </span>
                 <div className="flex flex-wrap gap-2">
                   {cats.map((cat) => (
@@ -529,7 +621,9 @@ export function Chatbot({ locale = "en" }: ChatbotProps) {
                       }`}
                     >
                       <span className="font-medium">
-                        {t.chatbot.categories[cat.id as keyof typeof t.chatbot.categories] || cat.id}
+                        {t.chatbot.categories[
+                          cat.id as keyof typeof t.chatbot.categories
+                        ] || cat.id}
                       </span>
                       <Check
                         className={`w-4 h-4 transition-all duration-200 ${
@@ -547,37 +641,68 @@ export function Chatbot({ locale = "en" }: ChatbotProps) {
         </div>
 
         {turnstileSiteKey && (
-          <div ref={turnstileRef} className="flex justify-center min-h-[70px]"></div>
+          <div
+            ref={turnstileRef}
+            className="flex justify-center min-h-[70px]"
+          ></div>
         )}
 
-        {turnstileSiteKey && !turnstileToken && isTurnstileLoading && !isTurnstileExpired && (
-          <div className="text-center text-xs text-amber-300/90 font-medium" role="status" aria-live="polite">
-            ↻ {t.chatbot.verifyingRobot}
-          </div>
-        )}
+        {turnstileSiteKey &&
+          !turnstileToken &&
+          isTurnstileLoading &&
+          !isTurnstileExpired && (
+            <div
+              className="text-center text-xs text-amber-300/90 font-medium"
+              role="status"
+              aria-live="polite"
+            >
+              ↻ {t.chatbot.verifyingRobot}
+            </div>
+          )}
 
         {isTurnstileExpired && (
-          <div className="text-center text-xs text-amber-300 bg-amber-500/15 border border-amber-500/50 rounded p-2 font-medium" role="alert" aria-live="assertive">
+          <div
+            className="text-center text-xs text-amber-300 bg-amber-500/15 border border-amber-500/50 rounded p-2 font-medium"
+            role="alert"
+            aria-live="assertive"
+          >
             ↻ {t.errors.captchaExpired}
           </div>
         )}
 
         <Button
           type="submit"
-          disabled={isLoading || !url || selectedCategories.length === 0 || (turnstileSiteKey && !turnstileToken)}
-          aria-disabled={isLoading || !url || selectedCategories.length === 0 || (turnstileSiteKey && !turnstileToken)}
+          disabled={
+            isLoading ||
+            !url ||
+            selectedCategories.length === 0 ||
+            (turnstileSiteKey && !turnstileToken)
+          }
+          aria-disabled={
+            isLoading ||
+            !url ||
+            selectedCategories.length === 0 ||
+            (turnstileSiteKey && !turnstileToken)
+          }
         >
           {isLoading ? t.chatbot.buttonLoading : t.chatbot.buttonRoast}
         </Button>
 
         {isLoading && (
-          <div className="flex flex-col gap-2" aria-live="polite" aria-atomic="true">
+          <div
+            className="flex flex-col gap-2"
+            aria-live="polite"
+            aria-atomic="true"
+          >
             <ThinkingPanel thoughts={thoughtHistory} isLoading={isLoading} />
             <div className="text-center text-sm text-orange-300/90 font-medium">
               {t.chatbot.loadingMessages[loadingMsgIdx]}
             </div>
             {jobStatus === "resuming" && (
-              <div className="text-center text-xs text-amber-300/90 font-medium" role="status">
+              <div
+                className="text-center text-xs text-amber-300/90 font-medium"
+                role="status"
+              >
                 ↻ Resuming stuck analysis...
               </div>
             )}
@@ -585,36 +710,44 @@ export function Chatbot({ locale = "en" }: ChatbotProps) {
         )}
       </form>
 
-        {error && (
-          <div
-            className={`p-4 rounded-lg border text-sm ${
-              isTurnstileLoading
-                ? "bg-amber-500/10 border-amber-500/40 text-amber-200"
-                : "bg-red-500/10 border-red-500/40 text-red-200"
-            }`}
-            role="alert"
-            aria-live="assertive"
-          >
-            <p className="font-semibold">{error}</p>
-            {isTurnstileLoading && (
-              <p className="mt-1.5 text-xs text-amber-300/80 font-medium">
-                ↻ {t.errors.captchaExpired}
-              </p>
-            )}
-          </div>
-        )}
+      {error && (
+        <div
+          className={`p-4 rounded-lg border text-sm ${
+            isTurnstileLoading
+              ? "bg-amber-500/10 border-amber-500/40 text-amber-200"
+              : "bg-red-500/10 border-red-500/40 text-red-200"
+          }`}
+          role="alert"
+          aria-live="assertive"
+        >
+          <p className="font-semibold">{error}</p>
+          {isTurnstileLoading && (
+            <p className="mt-1.5 text-xs text-amber-300/80 font-medium">
+              ↻ {t.errors.captchaExpired}
+            </p>
+          )}
+        </div>
+      )}
 
       {result && (
-        <div className="flex flex-col gap-4 rounded-xl border border-orange-500/15 p-6 bg-gradient-to-br from-background to-orange-500/5 shadow-lg inferno-card" aria-live="polite" aria-atomic="true">
+        <div
+          className="flex flex-col gap-4 rounded-xl border border-orange-500/15 p-6 bg-gradient-to-br from-background to-orange-500/5 shadow-lg inferno-card"
+          aria-live="polite"
+          aria-atomic="true"
+        >
           {cacheInfo && (
             <div className="text-xs text-orange-300/50 border-b border-orange-500/10 pb-2 mb-2 flex items-center justify-between">
               <span className="font-medium">
-                {cacheInfo.translated ? "Translated" : "Cached"} result
-                {" "}from {new Date(cacheInfo.cachedAt).toLocaleString()}
-                {" "}({cacheAgeMin} min ago)
+                {cacheInfo.translated ? "Translated" : "Cached"} result from{" "}
+                {new Date(cacheInfo.cachedAt).toLocaleString()} ({cacheAgeMin}{" "}
+                min ago)
               </span>
               {isCacheOld ? (
-                <button onClick={clearCache} aria-label={`Clear cached result for ${url}`} className="text-xs font-semibold text-orange-400 hover:text-orange-300 hover:underline underline-offset-2 transition-all">
+                <button
+                  onClick={clearCache}
+                  aria-label={`Clear cached result for ${url}`}
+                  className="text-xs font-semibold text-orange-400 hover:text-orange-300 hover:underline underline-offset-2 transition-all"
+                >
                   Clear cache
                 </button>
               ) : (
@@ -626,36 +759,75 @@ export function Chatbot({ locale = "en" }: ChatbotProps) {
           )}
           <div className="flex items-center justify-between">
             <div className="flex-1 min-w-0">
-              <h2 className="text-4xl font-extrabold tracking-tight text-orange-100" aria-live="polite" aria-atomic="true">
-                {t.chatbot.overallScore.replace("{score}", String(result.overall_score))}
+              <h2
+                className="text-4xl font-extrabold tracking-tight text-orange-100"
+                aria-live="polite"
+                aria-atomic="true"
+              >
+                {t.chatbot.overallScore.replace(
+                  "{score}",
+                  String(result.overall_score),
+                )}
               </h2>
-              <p className="text-orange-200/60 mt-2 text-base" id="roast-verdict">{result.verdict}</p>
+              <p
+                className="text-orange-200/60 mt-2 text-base"
+                id="roast-verdict"
+              >
+                {result.verdict}
+              </p>
             </div>
             <div className="flex flex-col items-end gap-2 shrink-0 ml-4">
               <div className="flex gap-1 text-4xl">
                 {"🔥".repeat(Math.ceil(result.overall_score / 2))}
               </div>
-              {result.rankingId && (() => {
-                const rankingUrl = `${typeof window !== "undefined" ? window.location.origin : ""}/${locale}/rankings/${result.rankingId}`;
-                const shareText = encodeURIComponent(`${url} got ${result.overall_score}/10 🔥 ${result.verdict}`);
-                const shareUrl = encodeURIComponent(rankingUrl);
-                return (
-                  <div className="flex flex-col items-end gap-1.5">
-                    <a
-                      href={`/${locale}/rankings/${result.rankingId}`}
-                      aria-label={t.rankings.shareRoast}
-                      className="flex items-center gap-1.5 text-xs font-semibold text-orange-400/80 hover:text-orange-300 transition-colors border border-orange-500/30 hover:border-orange-400/50 rounded-md px-3 py-1.5 bg-orange-500/10 hover:bg-orange-500/15"
-                    >
-                      {t.rankings.shareRoast}
-                    </a>
-                    <div className="flex gap-2">
-                      <a href={`https://twitter.com/intent/tweet?url=${shareUrl}&text=${shareText}`} target="_blank" rel="noopener noreferrer" aria-label="Share on X / Twitter" className="text-xs px-2.5 py-1 rounded border border-orange-500/20 text-orange-300/60 hover:text-orange-300 hover:border-orange-400/40 hover:bg-orange-500/10 transition-colors font-semibold">𝕏</a>
-                      <a href={`https://wa.me/?text=${shareText}%20${shareUrl}`} target="_blank" rel="noopener noreferrer" aria-label="Share on WhatsApp" className="text-xs px-2.5 py-1 rounded border border-orange-500/20 text-orange-300/60 hover:text-orange-300 hover:border-orange-400/40 hover:bg-orange-500/10 transition-colors font-semibold">WA</a>
-                      <a href={`https://www.linkedin.com/sharing/share-offsite/?url=${shareUrl}`} target="_blank" rel="noopener noreferrer" aria-label="Share on LinkedIn" className="text-xs px-2.5 py-1 rounded border border-orange-500/20 text-orange-300/60 hover:text-orange-300 hover:border-orange-400/40 hover:bg-orange-500/10 transition-colors font-semibold">in</a>
+              {result.rankingId &&
+                (() => {
+                  const rankingUrl = `${typeof window !== "undefined" ? window.location.origin : ""}/${locale}/rankings/${result.rankingId}`;
+                  const shareText = encodeURIComponent(
+                    `${url} got ${result.overall_score}/10 🔥 ${result.verdict}`,
+                  );
+                  const shareUrl = encodeURIComponent(rankingUrl);
+                  return (
+                    <div className="flex flex-col items-end gap-1.5">
+                      <a
+                        href={`/${locale}/rankings/${result.rankingId}`}
+                        aria-label={t.rankings.shareRoast}
+                        className="flex items-center gap-1.5 text-xs font-semibold text-orange-400/80 hover:text-orange-300 transition-colors border border-orange-500/30 hover:border-orange-400/50 rounded-md px-3 py-1.5 bg-orange-500/10 hover:bg-orange-500/15"
+                      >
+                        {t.rankings.shareRoast}
+                      </a>
+                      <div className="flex gap-2">
+                        <a
+                          href={`https://twitter.com/intent/tweet?url=${shareUrl}&text=${shareText}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          aria-label="Share on X / Twitter"
+                          className="text-xs px-2.5 py-1 rounded border border-orange-500/20 text-orange-300/60 hover:text-orange-300 hover:border-orange-400/40 hover:bg-orange-500/10 transition-colors font-semibold"
+                        >
+                          𝕏
+                        </a>
+                        <a
+                          href={`https://wa.me/?text=${shareText}%20${shareUrl}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          aria-label="Share on WhatsApp"
+                          className="text-xs px-2.5 py-1 rounded border border-orange-500/20 text-orange-300/60 hover:text-orange-300 hover:border-orange-400/40 hover:bg-orange-500/10 transition-colors font-semibold"
+                        >
+                          WA
+                        </a>
+                        <a
+                          href={`https://www.linkedin.com/sharing/share-offsite/?url=${shareUrl}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          aria-label="Share on LinkedIn"
+                          className="text-xs px-2.5 py-1 rounded border border-orange-500/20 text-orange-300/60 hover:text-orange-300 hover:border-orange-400/40 hover:bg-orange-500/10 transition-colors font-semibold"
+                        >
+                          in
+                        </a>
+                      </div>
                     </div>
-                  </div>
-                );
-              })()}
+                  );
+                })()}
             </div>
           </div>
 
@@ -666,7 +838,9 @@ export function Chatbot({ locale = "en" }: ChatbotProps) {
                 className="flex items-center gap-2.5 px-3.5 py-2 rounded-lg bg-orange-500/5 border border-orange-500/10"
               >
                 <span className="text-sm font-semibold capitalize text-orange-200/80">
-                  {t.chatbot.categories[cat as keyof typeof t.chatbot.categories] || cat}
+                  {t.chatbot.categories[
+                    cat as keyof typeof t.chatbot.categories
+                  ] || cat}
                 </span>
                 <span className={`font-bold ${getScoreColor(score)}`}>
                   {score !== null ? score : "—"}
@@ -676,16 +850,25 @@ export function Chatbot({ locale = "en" }: ChatbotProps) {
           </div>
 
           <div className="flex flex-col gap-4 pt-4 border-t border-orange-500/10">
-            <h3 className="font-bold text-lg tracking-tight text-orange-100">{t.chatbot.detailedRoasts}</h3>
+            <h3 className="font-bold text-lg tracking-tight text-orange-100">
+              {t.chatbot.detailedRoasts}
+            </h3>
             {result.roasts.map((roast, i) => (
-              <div key={i} className="flex flex-col gap-2.5 p-4.5 rounded-lg bg-orange-500/5 border border-orange-500/10 hover:bg-orange-500/10 hover:border-orange-500/20 transition-all duration-200">
+              <div
+                key={i}
+                className="flex flex-col gap-2.5 p-4.5 rounded-lg bg-orange-500/5 border border-orange-500/10 hover:bg-orange-500/10 hover:border-orange-500/20 transition-all duration-200"
+              >
                 <div className="flex gap-3.5">
                   <span className="text-3xl">{roast.emoji}</span>
                   <div className="flex-1">
                     <h4 className="font-bold capitalize text-base text-orange-100">
-                      {t.chatbot.categories[roast.category as keyof typeof t.chatbot.categories] || roast.category}
+                      {t.chatbot.categories[
+                        roast.category as keyof typeof t.chatbot.categories
+                      ] || roast.category}
                     </h4>
-                    <p className="text-sm text-orange-200/60 mt-1.5 leading-relaxed">{roast.critique}</p>
+                    <p className="text-sm text-orange-200/60 mt-1.5 leading-relaxed">
+                      {roast.critique}
+                    </p>
                   </div>
                 </div>
                 {roast.fix_prompt && (
@@ -697,8 +880,12 @@ export function Chatbot({ locale = "en" }: ChatbotProps) {
                     >
                       <Copy className="w-3.5 h-3.5" />
                     </button>
-                    <p className="text-xs text-orange-300/50 mb-1.5 pr-8 font-medium">{t.chatbot.fixPrompt}</p>
-                    <code className="text-xs text-orange-300 break-all block whitespace-pre-wrap font-mono bg-orange-950/30 rounded p-2">{roast.fix_prompt}</code>
+                    <p className="text-xs text-orange-300/50 mb-1.5 pr-8 font-medium">
+                      {t.chatbot.fixPrompt}
+                    </p>
+                    <code className="text-xs text-orange-300 break-all block whitespace-pre-wrap font-mono bg-orange-950/30 rounded p-2">
+                      {roast.fix_prompt}
+                    </code>
                   </div>
                 )}
               </div>

@@ -4,7 +4,10 @@ import { fetchUrl } from "../utils";
 
 const MAX_OUTPUT = 20000;
 
-export async function handleScrapeUrl(args: unknown, baseUrl: string): Promise<string> {
+export async function handleScrapeUrl(
+  args: unknown,
+  baseUrl: string,
+): Promise<string> {
   const { url: targetUrl } = args as { url: string };
   const resolved = targetUrl.startsWith("http")
     ? targetUrl
@@ -20,7 +23,8 @@ export async function handleScrapeUrl(args: unknown, baseUrl: string): Promise<s
 
   if (rendered) {
     const { timing, resourceCount, finalUrl } = rendered;
-    if (finalUrl !== resolved) result += `\nFinal URL (after redirects): ${finalUrl}`;
+    if (finalUrl !== resolved)
+      result += `\nFinal URL (after redirects): ${finalUrl}`;
     result += `\n\n--- Browser Timing ---`;
     result += `\nTTFB: ${timing.ttfb}ms | DOMContentLoaded: ${timing.domContentLoaded}ms | Load: ${timing.load}ms`;
     result += `\n--- Network Resources ---`;
@@ -29,5 +33,7 @@ export async function handleScrapeUrl(args: unknown, baseUrl: string): Promise<s
     result += `\n(fetched via HTTP, no JS rendering)`;
   }
 
-  return result.length > MAX_OUTPUT ? result.substring(0, MAX_OUTPUT - 3) + "..." : result;
+  return result.length > MAX_OUTPUT
+    ? result.substring(0, MAX_OUTPUT - 3) + "..."
+    : result;
 }

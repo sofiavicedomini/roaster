@@ -23,7 +23,7 @@ describe("handleAnalyzeWebmcp", () => {
     vi.mocked(fetchUrl).mockResolvedValueOnce(content);
 
     const result = await handleAnalyzeWebmcp({}, "https://example.com");
-    
+
     expect(result).toContain("VALID");
     expect(result).toContain("mcpServers");
   });
@@ -32,7 +32,7 @@ describe("handleAnalyzeWebmcp", () => {
     vi.mocked(fetchUrl).mockResolvedValueOnce("");
 
     const result = await handleAnalyzeWebmcp({}, "https://example.com");
-    
+
     expect(result).toContain("not found");
   });
 
@@ -40,7 +40,7 @@ describe("handleAnalyzeWebmcp", () => {
     vi.mocked(fetchUrl).mockResolvedValueOnce("{ invalid");
 
     const result = await handleAnalyzeWebmcp({}, "https://example.com");
-    
+
     expect(result).toContain("invalid JSON");
   });
 
@@ -49,7 +49,7 @@ describe("handleAnalyzeWebmcp", () => {
     vi.mocked(fetchUrl).mockResolvedValueOnce(content);
 
     const result = await handleAnalyzeWebmcp({}, "https://example.com");
-    
+
     expect(result).toContain("EMPTY");
   });
 });

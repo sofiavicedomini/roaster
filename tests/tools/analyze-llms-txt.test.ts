@@ -22,7 +22,7 @@ describe("handleAnalyzeLlmsTxt", () => {
       .mockResolvedValueOnce("llms content");
 
     const result = await handleAnalyzeLlmsTxt({}, "https://example.com");
-    
+
     expect(result).toContain("llms-full.txt");
     expect(result).toContain("✓");
   });
@@ -33,7 +33,7 @@ describe("handleAnalyzeLlmsTxt", () => {
       .mockResolvedValueOnce("llms content here");
 
     const result = await handleAnalyzeLlmsTxt({}, "https://example.com");
-    
+
     expect(result).toContain("llms-full.txt");
     expect(result).toContain("✓");
   });
@@ -44,7 +44,7 @@ describe("handleAnalyzeLlmsTxt", () => {
       .mockResolvedValueOnce("llms content");
 
     const result = await handleAnalyzeLlmsTxt({}, "https://example.com");
-    
+
     expect(result).not.toContain("not found");
   });
 
@@ -55,7 +55,7 @@ describe("handleAnalyzeLlmsTxt", () => {
       .mockResolvedValueOnce(content);
 
     const result = await handleAnalyzeLlmsTxt({}, "https://example.com");
-    
+
     expect(result).toContain("instructions");
   });
 
@@ -66,7 +66,7 @@ describe("handleAnalyzeLlmsTxt", () => {
       .mockResolvedValueOnce(content);
 
     const result = await handleAnalyzeLlmsTxt({}, "https://example.com");
-    
+
     expect(result).toContain("API");
   });
 });

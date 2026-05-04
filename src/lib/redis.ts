@@ -34,7 +34,10 @@ export async function getCached(normUrl: string): Promise<null | {
   lang: string;
   result: Record<string, unknown>;
   cachedAt: string;
-  translations?: Record<string, { result: Record<string, unknown>; translatedAt: string }>;
+  translations?: Record<
+    string,
+    { result: Record<string, unknown>; translatedAt: string }
+  >;
 }> {
   try {
     const raw = await cacheDb.get(cacheKey(normUrl));
@@ -53,7 +56,10 @@ export async function setCached(
     lang: string;
     result: Record<string, unknown>;
     cachedAt: string;
-    translations?: Record<string, { result: Record<string, unknown>; translatedAt: string }>;
+    translations?: Record<
+      string,
+      { result: Record<string, unknown>; translatedAt: string }
+    >;
   },
 ) {
   await cacheDb.setex(cacheKey(normUrl), 7 * 24 * 3600, JSON.stringify(data));
@@ -63,7 +69,10 @@ export function jobIdKey(normUrl: string, locale: string): string {
   return `roast:active:${normUrl}:${locale}`;
 }
 
-export async function getJobId(normUrl: string, locale: string): Promise<string | null> {
+export async function getJobId(
+  normUrl: string,
+  locale: string,
+): Promise<string | null> {
   try {
     return await jobDb.get(jobIdKey(normUrl, locale));
   } catch {
@@ -77,17 +86,20 @@ export async function setJobId(normUrl: string, locale: string, jobId: string) {
 
 export async function createJob(jobId: string, fields: Record<string, string>) {
   const now = new Date().toISOString();
-  await jobDb.hset(`roast:job:${jobId}`, { 
-    ...fields, 
+  await jobDb.hset(`roast:job:${jobId}`, {
+    ...fields,
     createdAt: now,
     lastUpdate: now,
-    iterationCount: "0"
+    iterationCount: "0",
   });
   await jobDb.expire(`roast:job:${jobId}`, 3600);
 }
 
 export async function updateJob(jobId: string, fields: Record<string, string>) {
-  const updates: Record<string, string> = { ...fields, lastUpdate: new Date().toISOString() };
+  const updates: Record<string, string> = {
+    ...fields,
+    lastUpdate: new Date().toISOString(),
+  };
   if (fields.progress) {
     const job = await getJob(jobId);
     if (job) {
@@ -104,9 +116,9 @@ export async function incrementIteration(jobId: string) {
   const job = await getJob(jobId);
   if (job) {
     const currentCount = parseInt(job.iterationCount || "0", 10);
-    await jobDb.hset(`roast:job:${jobId}`, { 
+    await jobDb.hset(`roast:job:${jobId}`, {
       iterationCount: String(currentCount + 1),
-      lastUpdate: new Date().toISOString()
+      lastUpdate: new Date().toISOString(),
     });
   }
 }
@@ -114,14 +126,16 @@ export async function incrementIteration(jobId: string) {
 export async function resetJobProgress(jobId: string) {
   const job = await getJob(jobId);
   if (job) {
-    await jobDb.hset(`roast:job:${jobId}`, { 
+    await jobDb.hset(`roast:job:${jobId}`, {
       iterationCount: "0",
-      lastUpdate: new Date().toISOString()
+      lastUpdate: new Date().toISOString(),
     });
   }
 }
 
-export async function getJob(jobId: string): Promise<null | Record<string, string>> {
+export async function getJob(
+  jobId: string,
+): Promise<null | Record<string, string>> {
   try {
     const data = await jobDb.hgetall(`roast:job:${jobId}`);
     return Object.keys(data).length ? data : null;
@@ -152,21 +166,27 @@ export async function saveRanking(
 ) {
   const ts = new Date(data.completedAt).getTime();
   await cacheDb.zadd("roast:rankings", ts, uuid);
-  await cacheDb.setex(`roast:ranking:${uuid}`, 30 * 24 * 3600, JSON.stringify(data));
+  await cacheDb.setex(
+    `roast:ranking:${uuid}`,
+    30 * 24 * 3600,
+    JSON.stringify(data),
+  );
   // Keep only last 100 rankings
   await cacheDb.zremrangebyrank("roast:rankings", 0, -101);
 }
 
-export async function getRankings(limit = 20): Promise<Array<{
-  uuid: string;
-  url: string;
-  normUrl: string;
-  score: number;
-  verdict: string;
-  cats: string[];
-  locale: string;
-  completedAt: string;
-} | null>> {
+export async function getRankings(limit = 20): Promise<
+  Array<{
+    uuid: string;
+    url: string;
+    normUrl: string;
+    score: number;
+    verdict: string;
+    cats: string[];
+    locale: string;
+    completedAt: string;
+  } | null>
+> {
   try {
     const uuids = await cacheDb.zrevrange("roast:rankings", 0, limit - 1);
     if (!uuids.length) return [];
@@ -204,40 +224,46 @@ export async function getRanking(uuid: string): Promise<null | {
   }
 }
 
-export async function resumeJob(jobId: string, newCategories: string[]): Promise<{ shouldResume: boolean; job: Record<string, string> | null }> {
+export async function resumeJob(
+  jobId: string,
+  newCategories: string[],
+): Promise<{ shouldResume: boolean; job: Record<string, string> | null }> {
   const job = await getJob(jobId);
   if (!job) {
     return { shouldResume: false, job: null };
   }
-  
+
   if (job.status === "completed") {
     return { shouldResume: false, job };
   }
-  
+
   if (job.status === "failed") {
     await resetJobProgress(jobId);
-    return { shouldResume: true, job: { ...job, status: "pending", error: "" } };
+    return {
+      shouldResume: true,
+      job: { ...job, status: "pending", error: "" },
+    };
   }
-  
+
   if (job.status === "pending" || job.status === "processing") {
     const lastUpdate = new Date(job.lastUpdate || job.createdAt);
     const now = new Date();
     const minutesSinceUpdate = (now.getTime() - lastUpdate.getTime()) / 60000;
-    
+
     if (minutesSinceUpdate > 5) {
       const currentIteration = parseInt(job.iterationCount || "0", 10);
       if (currentIteration >= 3) {
         await resetJobProgress(jobId);
-        await updateJob(jobId, { 
-          status: "pending", 
+        await updateJob(jobId, {
+          status: "pending",
           progress: "Resuming from stuck state",
-          cats: newCategories.join(",")
+          cats: newCategories.join(","),
         });
         return { shouldResume: true, job: { ...job, status: "pending" } };
       }
     }
   }
-  
+
   return { shouldResume: false, job };
 }
 

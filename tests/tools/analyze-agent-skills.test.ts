@@ -26,7 +26,7 @@ describe("handleAnalyzeAgentSkills", () => {
     vi.mocked(fetchUrl).mockResolvedValueOnce(content);
 
     const result = await handleAnalyzeAgentSkills({}, "https://example.com");
-    
+
     expect(result).toContain("VALID");
     expect(result).toContain("skills");
   });
@@ -35,7 +35,7 @@ describe("handleAnalyzeAgentSkills", () => {
     vi.mocked(fetchUrl).mockResolvedValueOnce("");
 
     const result = await handleAnalyzeAgentSkills({}, "https://example.com");
-    
+
     expect(result).toContain("not found");
   });
 
@@ -44,7 +44,7 @@ describe("handleAnalyzeAgentSkills", () => {
     vi.mocked(fetchUrl).mockResolvedValueOnce(content);
 
     const result = await handleAnalyzeAgentSkills({}, "https://example.com");
-    
+
     expect(result).toContain("skills:");
   });
 });

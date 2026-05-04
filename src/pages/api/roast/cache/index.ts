@@ -28,9 +28,13 @@ export const DELETE: APIRoute = async ({ request }) => {
     const now = Date.now();
 
     if (now - cachedAt < MIN_CACHE_AGE_MS) {
-      const remaining = Math.ceil((MIN_CACHE_AGE_MS - (now - cachedAt)) / 60000);
+      const remaining = Math.ceil(
+        (MIN_CACHE_AGE_MS - (now - cachedAt)) / 60000,
+      );
       return new Response(
-        JSON.stringify({ error: `Wait ${remaining} more minutes before clearing cache` }),
+        JSON.stringify({
+          error: `Wait ${remaining} more minutes before clearing cache`,
+        }),
         { status: 403, headers: { "Content-Type": "application/json" } },
       );
     }
@@ -42,7 +46,9 @@ export const DELETE: APIRoute = async ({ request }) => {
     });
   } catch (err) {
     return new Response(
-      JSON.stringify({ error: err instanceof Error ? err.message : "Unknown error" }),
+      JSON.stringify({
+        error: err instanceof Error ? err.message : "Unknown error",
+      }),
       { status: 500, headers: { "Content-Type": "application/json" } },
     );
   }

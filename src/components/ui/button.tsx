@@ -1,15 +1,16 @@
-import * as React from "react"
-import { cva, type VariantProps } from "class-variance-authority"
-import { Slot } from "radix-ui"
+import * as React from "react";
+import { cva, type VariantProps } from "class-variance-authority";
+import { Slot } from "radix-ui";
 
-import { cn } from "@/lib/utils"
+import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
   "group/button inline-flex shrink-0 items-center justify-center rounded-xl border border-transparent bg-clip-padding text-sm font-semibold whitespace-nowrap transition-all duration-200 ease-out outline-none select-none focus-visible:border-orange-500/50 focus-visible:ring-[3px] focus-visible:ring-orange-500/30 active:not-aria-[haspopup]:translate-y-px active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
   {
     variants: {
       variant: {
-        default: "bg-gradient-to-br from-orange-500 to-orange-600 text-white hover:from-orange-400 hover:to-orange-500 hover:shadow-[0_0_24px_oklch(0.837_0.128_66.29_/_0.5)] hover:scale-[1.02] active:scale-[0.98]",
+        default:
+          "bg-gradient-to-br from-orange-500 to-orange-600 text-white hover:from-orange-400 hover:to-orange-500 hover:shadow-[0_0_24px_oklch(0.837_0.128_66.29_/_0.5)] hover:scale-[1.02] active:scale-[0.98]",
         outline:
           "border-orange-500/30 bg-orange-500/5 hover:bg-orange-500/15 hover:text-orange-200 hover:border-orange-400/50 hover:shadow-[0_0_16px_oklch(0.837_0.128_66.29_/_0.3)] aria-expanded:bg-orange-500/10 aria-expanded:text-orange-100",
         secondary:
@@ -36,8 +37,8 @@ const buttonVariants = cva(
       variant: "default",
       size: "default",
     },
-  }
-)
+  },
+);
 
 function Button({
   className,
@@ -47,9 +48,9 @@ function Button({
   ...props
 }: React.ComponentProps<"button"> &
   VariantProps<typeof buttonVariants> & {
-    asChild?: boolean
+    asChild?: boolean;
   }) {
-  const Comp = asChild ? Slot.Root : "button"
+  const Comp = asChild ? Slot.Root : "button";
 
   return (
     <Comp
@@ -59,7 +60,7 @@ function Button({
       className={cn(buttonVariants({ variant, size, className }))}
       {...props}
     />
-  )
+  );
 }
 
-export { Button }
+export { Button };

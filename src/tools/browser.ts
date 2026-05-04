@@ -20,10 +20,18 @@ export interface RenderResult {
   html: string;
   finalUrl: string;
   timing: { ttfb: number; domContentLoaded: number; load: number };
-  resourceCount: { scripts: number; stylesheets: number; images: number; total: number };
+  resourceCount: {
+    scripts: number;
+    stylesheets: number;
+    images: number;
+    total: number;
+  };
 }
 
-export async function renderPage(url: string, timeoutMs = 15000): Promise<RenderResult | null> {
+export async function renderPage(
+  url: string,
+  timeoutMs = 15000,
+): Promise<RenderResult | null> {
   let page;
   try {
     const browser = await getBrowser();
@@ -31,14 +39,15 @@ export async function renderPage(url: string, timeoutMs = 15000): Promise<Render
 
     await page.setViewport({ width: 1440, height: 900, deviceScaleFactor: 2 });
     await page.setUserAgent(
-      "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+      "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
     );
     await page.setExtraHTTPHeaders({
       "Accept-Language": "en-US,en;q=0.9",
-      "Sec-CH-UA": '"Chromium";v="120", "Google Chrome";v="120", "Not-A.Brand";v="99"',
+      "Sec-CH-UA":
+        '"Chromium";v="120", "Google Chrome";v="120", "Not-A.Brand";v="99"',
       "Sec-CH-UA-Mobile": "?0",
       "Sec-CH-UA-Platform": '"macOS"',
-      "DNT": "1",
+      DNT: "1",
     });
 
     await page.goto(url, { waitUntil: "networkidle2", timeout: timeoutMs });
@@ -48,20 +57,28 @@ export async function renderPage(url: string, timeoutMs = 15000): Promise<Render
 
     const timing = await page.evaluate(() => {
       const nav = performance.getEntriesByType(
-        "navigation"
+        "navigation",
       )[0] as PerformanceNavigationTiming;
       if (!nav) return { ttfb: 0, domContentLoaded: 0, load: 0 };
       return {
         ttfb: Math.round(nav.responseStart - nav.requestStart),
-        domContentLoaded: Math.round(nav.domContentLoadedEventEnd - nav.startTime),
+        domContentLoaded: Math.round(
+          nav.domContentLoadedEventEnd - nav.startTime,
+        ),
         load: Math.round(nav.loadEventEnd - nav.startTime),
       };
     });
 
     const resourceCount = await page.evaluate(() => {
-      const entries = performance.getEntriesByType("resource") as PerformanceResourceTiming[];
-      const scripts = entries.filter((e) => e.initiatorType === "script").length;
-      const stylesheets = entries.filter((e) => e.initiatorType === "link" || e.initiatorType === "css").length;
+      const entries = performance.getEntriesByType(
+        "resource",
+      ) as PerformanceResourceTiming[];
+      const scripts = entries.filter(
+        (e) => e.initiatorType === "script",
+      ).length;
+      const stylesheets = entries.filter(
+        (e) => e.initiatorType === "link" || e.initiatorType === "css",
+      ).length;
       const images = entries.filter((e) => e.initiatorType === "img").length;
       return { scripts, stylesheets, images, total: entries.length };
     });

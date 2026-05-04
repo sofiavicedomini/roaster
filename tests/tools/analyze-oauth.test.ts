@@ -27,7 +27,7 @@ describe("handleAnalyzeOauth", () => {
     vi.mocked(fetchUrl).mockResolvedValueOnce(content);
 
     const result = await handleAnalyzeOauth({}, "https://example.com");
-    
+
     expect(result).toContain("VALID");
     expect(result).toContain("auth_endpoint ✓");
     expect(result).toContain("token_endpoint ✓");
@@ -38,7 +38,7 @@ describe("handleAnalyzeOauth", () => {
     vi.mocked(fetchUrl).mockResolvedValueOnce("");
 
     const result = await handleAnalyzeOauth({}, "https://example.com");
-    
+
     expect(result).toContain("not found");
   });
 
@@ -46,7 +46,7 @@ describe("handleAnalyzeOauth", () => {
     vi.mocked(fetchUrl).mockResolvedValueOnce("{ invalid json");
 
     const result = await handleAnalyzeOauth({}, "https://example.com");
-    
+
     expect(result).toContain("invalid JSON");
   });
 
@@ -57,7 +57,7 @@ describe("handleAnalyzeOauth", () => {
     vi.mocked(fetchUrl).mockResolvedValueOnce(content);
 
     const result = await handleAnalyzeOauth({}, "https://example.com");
-    
+
     expect(result).toContain("INCOMPLETE");
   });
 
@@ -70,7 +70,7 @@ describe("handleAnalyzeOauth", () => {
     vi.mocked(fetchUrl).mockResolvedValueOnce(content);
 
     const result = await handleAnalyzeOauth({}, "https://example.com");
-    
+
     expect(result).toContain("dynamic_registration ✓");
   });
 });

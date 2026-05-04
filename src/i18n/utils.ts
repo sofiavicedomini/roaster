@@ -8,9 +8,28 @@ import nl from "@/locales/nl.json";
 import ru from "@/locales/ru.json";
 import et from "@/locales/et.json";
 
-export type Locale = "en" | "it" | "fr" | "es" | "pt" | "de" | "nl" | "ru" | "et";
+export type Locale =
+  | "en"
+  | "it"
+  | "fr"
+  | "es"
+  | "pt"
+  | "de"
+  | "nl"
+  | "ru"
+  | "et";
 
-export const locales: Locale[] = ["en", "it", "fr", "es", "pt", "de", "nl", "ru", "et"];
+export const locales: Locale[] = [
+  "en",
+  "it",
+  "fr",
+  "es",
+  "pt",
+  "de",
+  "nl",
+  "ru",
+  "et",
+];
 
 export const localeNames: Record<Locale, string> = {
   en: "English",
@@ -123,7 +142,17 @@ export interface Translation {
   };
 }
 
-export const translations = { en, it, fr, es, pt, de, nl, ru, et } as unknown as Record<Locale, Translation>;
+export const translations = {
+  en,
+  it,
+  fr,
+  es,
+  pt,
+  de,
+  nl,
+  ru,
+  et,
+} as unknown as Record<Locale, Translation>;
 
 export function getLocaleFromURL(url: URL, request?: Request): Locale {
   const pathLocale = url.pathname.split("/")[1];
@@ -156,7 +185,7 @@ export function useTranslations(locale: Locale) {
   const t = (key: string, params?: Record<string, string | number>): string => {
     const keys = key.split(".");
     let value: unknown = translations[locale] || translations.en;
-    
+
     for (const k of keys) {
       if (value && typeof value === "object" && k in value) {
         value = (value as Record<string, unknown>)[k];
@@ -164,15 +193,15 @@ export function useTranslations(locale: Locale) {
         return key;
       }
     }
-    
+
     if (typeof value !== "string") return key;
-    
+
     if (params) {
       return value.replace(/\{(\w+)\}/g, (_, p) => String(params[p] ?? p));
     }
-    
+
     return value;
   };
-  
+
   return { t, locale, translations: translations[locale] || translations.en };
 }
