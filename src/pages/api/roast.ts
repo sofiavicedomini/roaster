@@ -3,6 +3,41 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { getTranslations, type Locale } from "@/i18n/utils";
 import {
+  scrapeUrlTool,
+  analyzeSecurityHeadersTool,
+  analyzeRobotsTxtTool,
+  analyzeSitemapTool,
+  analyzeLlmsTxtTool,
+  analyzeAccessibilityTool,
+  analyzeHtmlStructureTool,
+  analyzePerformanceTool,
+  analyzeSeoTool,
+  analyzeMobileTool,
+  analyzeBrandTool,
+  analyzeCredibilityTool,
+  analyzeConversionTool,
+  analyzeUxTool,
+  analyzeCodeTool,
+  submitRoastTool,
+} from "@/tools";
+import {
+  handleScrapeUrl,
+  handleAnalyzeSecurityHeaders,
+  handleAnalyzeRobotsTxt,
+  handleAnalyzeSitemap,
+  handleAnalyzeLlmsTxt,
+  handleAnalyzeAccessibility,
+  handleAnalyzeHtmlStructure,
+  handleAnalyzePerformance,
+  handleAnalyzeSeo,
+  handleAnalyzeMobile,
+  handleAnalyzeBrand,
+  handleAnalyzeCredibility,
+  handleAnalyzeConversion,
+  handleAnalyzeUx,
+  handleAnalyzeCode,
+} from "@/tools/handlers";
+import {
   jobDb,
   normalizeUrl,
   cacheKey,
@@ -771,68 +806,22 @@ async function callLLMWithTools(
 }
 
 const AGENT_TOOLS = [
-  {
-    type: "function",
-    function: {
-      name: "scrape_url",
-      description: "Fetch the content of a URL to gather real evidence: homepage HTML, robots.txt, sitemap.xml, llms.txt, CSS, JS, etc. Returns raw content (truncated if large). Call this multiple times to build evidence.",
-      parameters: {
-        type: "object",
-        properties: {
-          url: { type: "string", description: "Absolute URL to fetch" },
-        },
-        required: ["url"],
-      },
-    },
-  },
-  {
-    type: "function",
-    function: {
-      name: "analyze_security_headers",
-      description: "Fetch and analyze security headers of a URL: CSP, HSTS, X-Content-Type-Options, X-Frame-Options, Referrer-Policy, Permissions-Policy. Returns which headers are present/missing and recommendations.",
-      parameters: {
-        type: "object",
-        properties: {
-          url: { type: "string", description: "Target URL to analyze" },
-        },
-        required: ["url"],
-      },
-    },
-  },
-  {
-    type: "function",
-    function: {
-      name: "submit_roast",
-      description: "Submit the complete roast analysis. Call when you have gathered enough evidence for ALL requested categories. All text must be in the user's language.",
-      parameters: {
-        type: "object",
-        properties: {
-          overall_score: { type: "number", description: "Honest average score 1-10 (integer or .5)" },
-          verdict: { type: "string", description: "One brutal, punchy sentence summarizing the site. In the user's language." },
-          scores: {
-            type: "object",
-            description: "Numeric score 1-10 for EVERY requested category. No nulls.",
-            additionalProperties: { type: "number" },
-          },
-          roasts: {
-            type: "array",
-            description: "Exactly one entry per requested category.",
-            items: {
-              type: "object",
-              properties: {
-                category: { type: "string", description: "Exact category name as requested" },
-                emoji: { type: "string", description: "Relevant emoji" },
-                critique: { type: "string", description: "3-5 sentences. Brutal, specific, evidence-based. Cite real things you observed." },
-                fix_prompt: { type: "string", description: "Self-contained AI-agent prompt: what to fix, which file/URL, correct implementation, success criteria. Min 2 sentences." },
-              },
-              required: ["category", "emoji", "critique", "fix_prompt"],
-            },
-          },
-        },
-        required: ["overall_score", "verdict", "scores", "roasts"],
-      },
-    },
-  },
+  scrapeUrlTool,
+  analyzeSecurityHeadersTool,
+  analyzeRobotsTxtTool,
+  analyzeSitemapTool,
+  analyzeLlmsTxtTool,
+  analyzeAccessibilityTool,
+  analyzeHtmlStructureTool,
+  analyzePerformanceTool,
+  analyzeSeoTool,
+  analyzeMobileTool,
+  analyzeBrandTool,
+  analyzeCredibilityTool,
+  analyzeConversionTool,
+  analyzeUxTool,
+  analyzeCodeTool,
+  submitRoastTool,
 ];
 
 function validateFinalRoast(final_roast: unknown, categories: string[]): { valid: boolean; errors: string[] } {
@@ -1005,50 +994,38 @@ async function runAgentLoop(
         } catch (e) {
           messages.push({ role: "tool", tool_call_id: call.id, content: `Argument parse error: ${e}. Retry submit_roast.` });
         }
-      } else if (call.function.name === "scrape_url") {
+        continue;
+      }
+
+      const toolHandlers: Record<string, (args: unknown, baseUrl: string) => unknown> = {
+        scrape_url: handleScrapeUrl,
+        analyze_security_headers: handleAnalyzeSecurityHeaders,
+        analyze_robots_txt: handleAnalyzeRobotsTxt,
+        analyze_sitemap: handleAnalyzeSitemap as (args: unknown, baseUrl: string) => unknown,
+        analyze_llms_txt: handleAnalyzeLlmsTxt as (args: unknown, baseUrl: string) => unknown,
+        analyze_accessibility: handleAnalyzeAccessibility as (args: unknown, baseUrl: string) => unknown,
+        analyze_html_structure: handleAnalyzeHtmlStructure as (args: unknown, baseUrl: string) => unknown,
+        analyze_performance: handleAnalyzePerformance as (args: unknown, baseUrl: string) => unknown,
+        analyze_seo: handleAnalyzeSeo as (args: unknown, baseUrl: string) => unknown,
+        analyze_mobile: handleAnalyzeMobile as (args: unknown, baseUrl: string) => unknown,
+        analyze_brand: handleAnalyzeBrand as (args: unknown, baseUrl: string) => unknown,
+        analyze_credibility: handleAnalyzeCredibility,
+        analyze_conversion: handleAnalyzeConversion as (args: unknown, baseUrl: string) => unknown,
+        analyze_ux: handleAnalyzeUx as (args: unknown, baseUrl: string) => unknown,
+        analyze_code: handleAnalyzeCode as (args: unknown, baseUrl: string) => unknown,
+      };
+
+      const handler = toolHandlers[call.function.name];
+      if (handler) {
         try {
-          const { url: scrapeUrl } = JSON.parse(call.function.arguments) as { url: string };
-          const resolved = scrapeUrl.startsWith("http") ? scrapeUrl : new URL(scrapeUrl, new URL(url).origin).toString();
-          const content = await fetchUrl(resolved);
-          console.log(`[Roast API] Scraped ${resolved}: ${content ? content.length + " chars" : "not found"}`);
-          const result = content
-            ? (content.length > 600 ? content.substring(0, 597) + "..." : content)
-            : `Not found at ${resolved}`;
-          messages.push({ role: "tool", tool_call_id: call.id, content: result });
+          const args = JSON.parse(call.function.arguments);
+          const result = await Promise.resolve(handler(args, url));
+          messages.push({ role: "tool", tool_call_id: call.id, content: String(result) });
         } catch (e) {
-          messages.push({ role: "tool", tool_call_id: call.id, content: `Fetch error: ${e}` });
-        }
-      } else if (call.function.name === "analyze_security_headers") {
-        try {
-          const { url: targetUrl } = JSON.parse(call.function.arguments) as { url: string };
-          const resolved = targetUrl.startsWith("http") ? targetUrl : new URL(targetUrl, new URL(url).origin).toString();
-          const response = await fetch(resolved, { method: "HEAD", redirect: "manual" });
-          const headers: string[] = [];
-          for (const [key, value] of response.headers.entries()) {
-            if (key.toLowerCase().includes("content-security") ||
-                key.toLowerCase().includes("strict-transport") ||
-                key.toLowerCase().startsWith("x-") ||
-                key.toLowerCase() === "referrer-policy" ||
-                key.toLowerCase() === "permissions-policy") {
-              headers.push(`${key}: ${value}`);
-            }
-          }
-          const missing: string[] = [];
-          if (!headers.some(h => h.startsWith("content-security-policy:"))) missing.push("Content-Security-Policy");
-          if (!headers.some(h => h.startsWith("strict-transport-security:"))) missing.push("Strict-Transport-Security");
-          if (!headers.some(h => h.startsWith("x-content-type-options:"))) missing.push("X-Content-Type-Options");
-          if (!headers.some(h => h.startsWith("x-frame-options:"))) missing.push("X-Frame-Options");
-          if (!headers.some(h => h.startsWith("referrer-policy:"))) missing.push("Referrer-Policy");
-          if (!headers.some(h => h.startsWith("permissions-policy:"))) missing.push("Permissions-Policy");
-          const result = headers.length > 0
-            ? `Security headers found (${headers.length}): ${headers.join("; ")}${missing.length > 0 ? `. Missing: ${missing.join(", ")}` : ""}`
-            : `No security headers found. Missing: ${missing.length > 0 ? missing.join(", ") : "all"}`;
-          messages.push({ role: "tool", tool_call_id: call.id, content: result });
-        } catch (e) {
-          messages.push({ role: "tool", tool_call_id: call.id, content: `Fetch error: ${e}` });
+          messages.push({ role: "tool", tool_call_id: call.id, content: `Handler error: ${e}` });
         }
       } else {
-        messages.push({ role: "tool", tool_call_id: call.id, content: `Unknown tool "${call.function.name}". Use scrape_url, analyze_security_headers, or submit_roast.` });
+        messages.push({ role: "tool", tool_call_id: call.id, content: `Unknown tool "${call.function.name}". Use scrape_url, analyze_security_headers, analyze_robots_txt, analyze_sitemap, analyze_llms_txt, analyze_accessibility, analyze_html_structure, analyze_performance, analyze_seo, analyze_mobile, analyze_brand, analyze_credibility, analyze_conversion, analyze_ux, analyze_code, or submit_roast.` });
       }
     }
   }
