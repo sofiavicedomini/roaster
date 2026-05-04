@@ -676,7 +676,14 @@ async function checkAgentReadiness(baseUrl: string) {
 
   const headersToCheck = ["link", "x-robots-tag", "content-type", "x-content-signals", "x-mcp-endpoint", "x-agent-card"];
   try {
-    const res = await fetch(baseUrl, { headers: { "User-Agent": "Mozilla/5.0 Agent-Readiness-Checker" }, redirect: "follow" });
+    const res = await fetch(baseUrl, { 
+      headers: { 
+        "User-Agent": "Mozilla/5.0 (compatible; StroncamiBot/1.0; +https://stroncami.it/bot)",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+        "Accept-Language": "en-US,en;q=0.9,it;q=0.8"
+      }, 
+      redirect: "follow" 
+    });
     const headers: string[] = [];
 
     for (const h of headersToCheck) {
