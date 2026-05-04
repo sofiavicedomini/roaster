@@ -1,5 +1,8 @@
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import { Copy, Check, ChevronDown } from "lucide-react";
 import { getTranslations, type Locale } from "@/i18n/utils";
 
@@ -155,6 +158,9 @@ export function Chatbot({ locale = "en" }: ChatbotProps) {
     "seo",
     "agentReadiness",
   ]);
+
+  const [email, setEmail] = useState("");
+  const [privacyAccepted, setPrivacyAccepted] = useState(false);
 
   const groups = CATEGORIES.reduce(
     (acc, cat) => {
@@ -411,7 +417,10 @@ export function Chatbot({ locale = "en" }: ChatbotProps) {
 
   const handleSubmit = async (e: React.SyntheticEvent) => {
     e.preventDefault();
-    if (!url) return;
+    if (!url || !email.trim() || !privacyAccepted) {
+      setError(t.errors.privacyRequired || "Privacy policy and marketing consent are required");
+      return;
+    }
 
     setIsLoading(true);
     setLoadingMsgIdx(0);
@@ -429,6 +438,9 @@ export function Chatbot({ locale = "en" }: ChatbotProps) {
           url,
           categories: selectedCategories,
           locale,
+          email,
+          privacyAccepted,
+          marketingOptIn: privacyAccepted, // combined consent
           turnstileToken,
         }),
       });
@@ -522,7 +534,8 @@ export function Chatbot({ locale = "en" }: ChatbotProps) {
     <div className="flex flex-col gap-6 max-w-2xl mx-auto w-full">
       <form
         onSubmit={handleSubmit}
-        aria-label={t.chatbot.urlLabel}
+        role="form"
+        aria-label="Website roast form - email and consents required"
         className="flex flex-col gap-5 rounded-xl border border-orange-500/15 p-5 bg-gradient-to-br from-background to-orange-500/5 shadow-lg"
         aria-busy={isLoading}
       >
@@ -574,7 +587,7 @@ export function Chatbot({ locale = "en" }: ChatbotProps) {
 
             {isCategoryDropdownOpen && (
               <div className="absolute z-50 w-full mt-2 p-3 rounded-lg border bg-background shadow-lg max-h-80 overflow-y-auto">
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-1 gap-2">
                   {CATEGORIES.map((cat) => (
                     <label
                       key={cat.id}
@@ -640,6 +653,48 @@ export function Chatbot({ locale = "en" }: ChatbotProps) {
           </div>
         </div>
 
+        {/* Email + Privacy and Marketing consent (both required to roast) */}
+        <div className="flex flex-col gap-3 pt-4 border-t border-orange-500/10">
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="user-email" className="text-sm font-semibold tracking-tight text-orange-200/90">
+              {t.chatbot.emailLabel}
+            </Label>
+            <Input
+              id="user-email"
+              type="email"
+              required
+              aria-required="true"
+              aria-describedby="email-hint"
+              placeholder="you@example.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              disabled={isLoading}
+              className="rounded-lg border border-orange-500/20 bg-background/80 px-4 py-3 text-sm placeholder:text-orange-300/40 focus:outline-none focus:ring-2 focus:ring-orange-500/40 transition-all"
+            />
+             <p id="email-hint" className="text-xs text-orange-300/50 mt-0.5">Required for roast history and mailing list</p>
+           </div>
+
+          <div className="space-y-3 text-sm">
+            <div className="flex items-start gap-3 p-3 rounded-lg bg-orange-500/5 border border-orange-500/10">
+              <Checkbox
+                id="privacy-marketing"
+                checked={privacyAccepted}
+                onCheckedChange={(checked) => setPrivacyAccepted(!!checked)}
+                disabled={isLoading}
+                required
+                aria-required="true"
+                aria-label={t.chatbot.privacyMarketingAriaLabel}
+              />
+              <div>
+                <Label htmlFor="privacy-marketing" className="font-medium text-orange-100/90 cursor-pointer select-none leading-relaxed" dangerouslySetInnerHTML={{ __html:
+                    `<span> ${t.chatbot.privacyMarketingLabel} </span>`
+                }} />
+              </div>
+            </div>
+          </div>
+        </div>
+
+
         {turnstileSiteKey && (
           <div
             ref={turnstileRef}
@@ -647,40 +702,44 @@ export function Chatbot({ locale = "en" }: ChatbotProps) {
           ></div>
         )}
 
-        {turnstileSiteKey &&
-          !turnstileToken &&
-          isTurnstileLoading &&
-          !isTurnstileExpired && (
-            <div
-              className="text-center text-xs text-amber-300/90 font-medium"
-              role="status"
-              aria-live="polite"
-            >
-              ↻ {t.chatbot.verifyingRobot}
-            </div>
-          )}
+         {turnstileSiteKey &&
+           !turnstileToken &&
+           isTurnstileLoading &&
+           !isTurnstileExpired && (
+             <div
+               className="text-center text-xs text-amber-300/90 font-medium"
+               role="status"
+               aria-live="polite"
+             >
+               ↻ {t.chatbot.verifyingRobot}
+             </div>
+           )}
 
-        {isTurnstileExpired && (
-          <div
-            className="text-center text-xs text-amber-300 bg-amber-500/15 border border-amber-500/50 rounded p-2 font-medium"
-            role="alert"
-            aria-live="assertive"
-          >
-            ↻ {t.errors.captchaExpired}
-          </div>
-        )}
+         {isTurnstileExpired && (
+           <div
+             className="text-center text-xs text-amber-300 bg-amber-500/15 border border-amber-500/50 rounded p-2 font-medium"
+             role="alert"
+             aria-live="assertive"
+           >
+             ↻ {t.errors.captchaExpired}
+           </div>
+         )}
 
-        <Button
-          type="submit"
+         <Button
+           type="submit"
           disabled={
             isLoading ||
             !url ||
+            !email.trim() ||
+            !privacyAccepted ||
             selectedCategories.length === 0 ||
             (turnstileSiteKey && !turnstileToken)
           }
           aria-disabled={
             isLoading ||
             !url ||
+            !email.trim() ||
+            !privacyAccepted ||
             selectedCategories.length === 0 ||
             (turnstileSiteKey && !turnstileToken)
           }

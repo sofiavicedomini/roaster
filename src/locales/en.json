@@ -74,7 +74,11 @@
       "Final validation: 'Shut up and take my bandwidth!'",
       "Last check. Almost done. Bite my shiny metal report."
     ],
-    "verifyingRobot": "Verifying you are not a robot..."
+    "verifyingRobot": "Verifying you are not a robot...",
+    "emailLabel": "Your email (required for roast + newsletter)",
+    "privacyMarketingLabel": "I accept the <a href=\"https://vicedominisoftworks.com/privacy\" target=\"_blank\" rel=\"noopener noreferrer\" class=\"underline hover:no-underline\">privacy policy</a> and agree to receive marketing emails (weekly or less) *",
+    "privacyMarketingAriaLabel": "I accept the privacy policy and agree to receive marketing emails",
+    "privacyRequired": "Privacy policy acceptance is required"
   },
   "privacy": {
     "message": "We use cookies to analyze site traffic and improve your experience. Your data stays private and is not shared.",
@@ -105,7 +109,8 @@
     "invalidJson": "Invalid JSON response from AI",
     "unknown": "Unknown error",
     "aiApi": "AI API error: ",
-    "captchaExpired": "CAPTCHA expired or already used. A new one is loading — please try again in a moment."
+    "captchaExpired": "CAPTCHA expired or already used. A new one is loading — please try again in a moment.",
+    "privacyRequired": "Privacy policy acceptance is required"
   },
   "nav": {
     "about": "About",

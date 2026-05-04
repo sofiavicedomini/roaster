@@ -1,6 +1,7 @@
 ---
 import Layout from "@/layouts/main.astro"
 import ChatbotForm from "@/components/ChatbotForm.astro"
+import NewsletterForm from "@/components/NewsletterForm.astro"
 import { Chatbot } from "@/components/chatbot"
 import { RoastHistory } from "@/components/RoastHistory"
 import { useTranslations, locales, type Locale } from "@/i18n/utils"
@@ -40,28 +41,31 @@ function scoreColor(score: number) {
       <!-- Hydrate React component on top of SSR form for interactivity -->
       <Chatbot client:load locale={locale} />
 
-      {recentRoasts.length > 0 && (
-        <div class="mt-12">
-          <h2 class="text-xs font-bold text-orange-400/50 uppercase tracking-widest mb-4">{t("home.recentRoasts")}</h2>
-          <div class="flex flex-col gap-2.5">
-            {recentRoasts.map((r) => (
-              <a
-                href={`/${locale}/rankings/${r.uuid}`}
-                class="flex items-center gap-3.5 p-3.5 rounded-lg border border-orange-500/10 bg-gradient-to-br from-orange-500/5 to-transparent hover:from-orange-500/10 hover:border-orange-500/25 transition-all duration-200 no-underline group"
-              >
-                <span class={`text-lg font-bold tabular-nums shrink-0 px-2 py-1 rounded bg-orange-500/10 ${scoreColor(r.score)}`}>{r.score}<span class="text-sm font-normal opacity-60">/10</span></span>
-                <div class="flex-1 min-w-0">
-                  <div class="text-sm font-medium text-orange-100/80 truncate group-hover:text-orange-100 transition-colors">{r.normUrl || r.url}</div>
-                  <div class="text-xs text-orange-300/50 truncate mt-0.5">{r.verdict}</div>
-                </div>
-                <span class="text-xs text-orange-300/40 shrink-0">{new Date(r.completedAt).toLocaleDateString(locale, { day: "2-digit", month: "short" })}</span>
-              </a>
-            ))}
-          </div>
-        </div>
-      )}
+       {recentRoasts.length > 0 && (
+         <div class="mt-12">
+           <h2 class="text-xs font-bold text-orange-400/50 uppercase tracking-widest mb-4">{t("home.recentRoasts")}</h2>
+           <div class="flex flex-col gap-2.5">
+             {recentRoasts.map((r) => (
+               <a
+                 href={`/${locale}/rankings/${r.uuid}`}
+                 class="flex items-center gap-3.5 p-3.5 rounded-lg border border-orange-500/10 bg-gradient-to-br from-orange-500/5 to-transparent hover:from-orange-500/10 hover:border-orange-500/25 transition-all duration-200 no-underline group"
+               >
+                 <span class={`text-lg font-bold tabular-nums shrink-0 px-2 py-1 rounded bg-orange-500/10 ${scoreColor(r.score)}`}>{r.score}<span class="text-sm font-normal opacity-60">/10</span></span>
+                 <div class="flex-1 min-w-0">
+                   <div class="text-sm font-medium text-orange-100/80 truncate group-hover:text-orange-100 transition-colors">{r.normUrl || r.url}</div>
+                   <div class="text-xs text-orange-300/50 truncate mt-0.5">{r.verdict}</div>
+                 </div>
+                 <span class="text-xs text-orange-300/40 shrink-0">{new Date(r.completedAt).toLocaleDateString(locale, { day: "2-digit", month: "short" })}</span>
+               </a>
+             ))}
+           </div>
+         </div>
+       )}
 
-      <RoastHistory client:only="react" locale={locale} />
+       <NewsletterForm locale={locale} />
+
+       <RoastHistory client:only="react" locale={locale} />
+
     </div>
   </div>
 </Layout>

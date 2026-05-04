@@ -64,7 +64,11 @@
       "Обнаружение API: многовато эндпоинтов, детка.",
       "OAuth-сканирование. Доступ запрещён. Как всегда."
     ],
-    "verifyingRobot": "Проверка, что вы не робот..."
+    "verifyingRobot": "Проверка, что вы не робот...",
+    "emailLabel": "Ваш email (обязательно для roast + рассылки)",
+    "privacyMarketingLabel": "Я принимаю <a href=\"https://vicedominisoftworks.com/privacy\" target=\"_blank\" rel=\"noopener noreferrer\" class=\"underline hover:no-underline\">политику конфиденциальности</a> и согласен получать маркетинговые emails (еженедельно или реже) *",
+    "privacyMarketingAriaLabel": "Я принимаю политику конфиденциальности и согласен получать маркетинговые emails",
+    "privacyRequired": "Принятие политики конфиденциальности обязательно"
   },
   "privacy": {
     "message": "Мы используем файлы cookie для анализа трафика сайта и улучшения вашего опыта. Ваши данные остаются приватными и не передаются третьим лицам.",

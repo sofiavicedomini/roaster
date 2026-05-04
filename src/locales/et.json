@@ -64,7 +64,11 @@
       "API avastamine: see on palju lõpp-punkte, kallis.",
       "OAuth-i skannimine. Juurdepääs keelatud. Alati keelatud."
     ],
-    "verifyingRobot": "Kontrollimine, et sa ei ole robot..."
+    "verifyingRobot": "Kontrollimine, et sa ei ole robot...",
+    "emailLabel": "Sinu email (kohustuslik roast + uudiskirja jaoks)",
+    "privacyMarketingLabel": "Nõustun <a href=\"https://vicedominisoftworks.com/privacy\" target=\"_blank\" rel=\"noopener noreferrer\" class=\"underline hover:no-underline\">privaatsuspoliitikaga</a> ja nõustun turunduslike e-kirjade saamisega (nädalas või harvem) *",
+    "privacyMarketingAriaLabel": "Nõustun privaatsuspoliitikaga ja nõustun turunduslike e-kirjade saamisega",
+    "privacyRequired": "Privaatsuspoliitika aktsepteerimine on kohustuslik"
   },
   "privacy": {
     "message": "Kasutame küpsiseid, et analüüsida saida liiklust ja parandada sinu kogemust. Sinu andmed jäävad privaatseks ja neid ei jagata.",

@@ -65,6 +65,10 @@ export interface Translation {
     categories: Record<string, string>;
     loadingMessages: string[];
     verifyingRobot: string;
+    emailLabel: string;
+    privacyMarketingLabel: string;
+    privacyMarketingAriaLabel: string;
+    privacyRequired: string;
   };
   privacy: {
     message: string;
@@ -96,6 +100,7 @@ export interface Translation {
     unknown: string;
     aiApi: string;
     captchaExpired: string;
+    privacyRequired: string;
   };
   nav: {
     about: string;

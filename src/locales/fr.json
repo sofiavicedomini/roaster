@@ -64,7 +64,11 @@
       "Découverte d'API : c'est beaucoup d'endpoints, bébé.",
       "Scan OAuth. Accès refusé. Toujours refusé."
     ],
-    "verifyingRobot": "Vérification que vous n'êtes pas un robot..."
+    "verifyingRobot": "Vérification que vous n'êtes pas un robot...",
+    "emailLabel": "Votre email (obligatoire pour le roast + newsletter)",
+    "privacyMarketingLabel": "J'accepte la <a href=\"https://vicedominisoftworks.com/privacy\" target=\"_blank\" rel=\"noopener noreferrer\" class=\"underline hover:no-underline\">politique de confidentialité</a> et consens à recevoir des emails marketing (hebdomadaires ou moins) *",
+    "privacyMarketingAriaLabel": "J'accepte la politique de confidentialité et consens à recevoir des emails marketing",
+    "privacyRequired": "L'acceptation de la politique de confidentialité est obligatoire"
   },
   "privacy": {
     "message": "Nous utilisons des cookies pour analyser le trafic du site et améliorer votre expérience. Vos données restent privées et ne sont pas partagées.",

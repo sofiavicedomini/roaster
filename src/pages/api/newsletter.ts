@@ -15,6 +15,10 @@ export async function POST({ request }: APIContext) {
     typeof (body as Record<string, unknown>).email === "string"
       ? ((body as Record<string, unknown>).email as string).trim().toLowerCase()
       : "";
+  const lang =
+    typeof (body as Record<string, unknown>).lang === "string"
+      ? (body as Record<string, unknown>).lang as string
+      : "en";
 
   if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     return new Response(JSON.stringify({ error: "Invalid email" }), {
@@ -42,7 +46,7 @@ export async function POST({ request }: APIContext) {
         "Content-Type": "application/json",
         Authorization: `Bearer ${accessToken}`,
       },
-      body: JSON.stringify({ properties: { email } }),
+      body: JSON.stringify({ properties: { email, language: lang } }),
     },
   );
 

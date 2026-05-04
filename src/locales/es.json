@@ -64,7 +64,11 @@
       "Descubrimiento de API: hay muchos endpoints, nena.",
       "Escaneo OAuth. Acceso denegado. Siempre denegado."
     ],
-    "verifyingRobot": "Verificando que no eres un robot..."
+    "verifyingRobot": "Verificando que no eres un robot...",
+    "emailLabel": "Tu email (obligatorio para roast + newsletter)",
+    "privacyMarketingLabel": "Acepto la <a href=\"https://vicedominisoftworks.com/privacy\" target=\"_blank\" rel=\"noopener noreferrer\" class=\"underline hover:no-underline\">política de privacidad</a> y consiento en recibir emails de marketing (semanal o menos) *",
+    "privacyMarketingAriaLabel": "Acepto la política de privacidad y consiento en recibir emails de marketing",
+    "privacyRequired": "La aceptación de la política de privacidad es obligatoria"
   },
   "privacy": {
     "message": "Utilizamos cookies para analizar el tráfico del sitio y mejorar tu experiencia. Tus datos permanecen privados y no se comparten.",

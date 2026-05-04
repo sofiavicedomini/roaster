@@ -69,6 +69,7 @@ import {
   resumeJob,
   incrementIteration,
   saveRanking,
+  subscribeNewsletter,
 } from "@/lib/redis";
 
 const locales: string[] = [
@@ -87,7 +88,7 @@ export const POST: APIRoute = async ({ request }) => {
   let t: ReturnType<typeof getTranslations> | null = null;
   try {
     const body = await request.json();
-    const { url, categories, locale = "en", turnstileToken } = body;
+    const { url, categories, locale = "en", turnstileToken, email, privacyAccepted } = body;
     const safeLocale = locales.includes(locale as Locale)
       ? (locale as Locale)
       : ("en" as Locale);
@@ -147,6 +148,25 @@ export const POST: APIRoute = async ({ request }) => {
         status: 403,
         headers: { "Content-Type": "application/json" },
       });
+    }
+
+    if (typeof privacyAccepted !== "boolean" || !privacyAccepted) {
+      return new Response(
+        JSON.stringify({ error: t?.errors?.privacyRequired || "Privacy policy acceptance is required" }),
+        {
+          status: 400,
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+    }
+
+    if (email && typeof email === "string" && email.trim()) {
+      try {
+        await subscribeNewsletter(email.trim().toLowerCase());
+        console.log(`[Newsletter] Subscribed: ${email}`);
+      } catch (e) {
+        console.error("[Newsletter] Subscribe failed:", e);
+      }
     }
 
     const normUrl = normalizeUrl(url);

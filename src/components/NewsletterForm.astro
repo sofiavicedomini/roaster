@@ -1,0 +1,102 @@
+---
+import { useTranslations, type Locale } from "@/i18n/utils"
+
+interface Props {
+  locale: Locale
+}
+
+const { locale } = Astro.props
+const { t } = useTranslations(locale)
+---
+
+<div class="newsletter-form mt-12 p-8 rounded-3xl border border-orange-500/10 bg-gradient-to-br from-orange-500/5 to-transparent">
+  <div class="max-w-md mx-auto text-center">
+    <h3 class="text-2xl font-bold text-orange-100 mb-2">{t("newsletter.title")}</h3>
+    <p class="text-orange-300/70 mb-6">{t("newsletter.description")}</p>
+
+    <form id="newsletter-form" class="flex flex-col gap-4">
+      <div class="relative">
+        <input
+          type="email"
+          id="newsletter-email"
+          name="email"
+          required
+          aria-required="true"
+          placeholder={t("newsletter.placeholder")}
+          class="w-full rounded-2xl border border-orange-500/20 bg-background/90 px-5 py-4 text-sm placeholder:text-orange-300/50 focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/30 transition-all"
+        />
+      </div>
+
+      <input type="hidden" name="lang" value={locale} />
+
+      <div class="flex items-start gap-3 text-left text-sm">
+        <input
+          type="checkbox"
+          id="newsletter-privacy"
+          name="privacyAccepted"
+          required
+          aria-required="true"
+          aria-label={t("chatbot.privacyMarketingAriaLabel")}
+          class="mt-1 w-5 h-5 accent-orange-500 border-orange-500/30 rounded"
+        />
+        <label for="newsletter-privacy" class="cursor-pointer text-orange-200/90 leading-tight" set:html={t("chatbot.privacyMarketingLabel")} />
+      </div>
+
+      <button
+        type="submit"
+        class="h-12 rounded-2xl bg-gradient-to-br from-orange-500 to-orange-600 font-semibold text-white hover:brightness-110 transition-all active:scale-[0.985]"
+      >
+        {t("newsletter.submit")}
+      </button>
+    </form>
+
+    <p id="newsletter-status" class="mt-4 text-xs hidden"></p>
+  </div>
+</div>
+
+<script is:inline define:vars={{ locale }}>
+  const form = document.getElementById('newsletter-form')
+  const status = document.getElementById('newsletter-status')
+
+  if (form && status) {
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault()
+      const emailInput = form.querySelector('input[type="email"]')
+      const email = emailInput ? emailInput.value.trim() : ''
+      const privacyInput = form.querySelector('#newsletter-privacy')
+      const privacyChecked = privacyInput ? privacyInput.checked : false
+
+      if (!email || !privacyChecked) {
+        status.textContent = 'Email and privacy acceptance required'
+        status.className = 'mt-4 text-xs text-red-400'
+        status.classList.remove('hidden')
+        return
+      }
+
+      status.textContent = 'Subscribing...'
+      status.className = 'mt-4 text-xs text-orange-400'
+      status.classList.remove('hidden')
+
+      try {
+        const res = await fetch('/api/newsletter', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, lang: locale })
+        })
+
+        if (res.ok) {
+          status.textContent = '✅ Subscribed successfully!'
+          status.className = 'mt-4 text-xs text-emerald-400'
+          form.reset()
+        } else {
+          const data = await res.json()
+          status.textContent = data.error || 'Subscription failed'
+          status.className = 'mt-4 text-xs text-red-400'
+        }
+      } catch (err) {
+        status.textContent = 'Connection error. Please try again.'
+        status.className = 'mt-4 text-xs text-red-400'
+      }
+    })
+  }
+</script>

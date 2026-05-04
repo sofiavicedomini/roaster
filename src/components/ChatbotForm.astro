@@ -39,8 +39,9 @@ const groups = categories.reduce((acc, cat) => {
 
 <form
   id="chatbot-form"
+  role="form"
   class="flex flex-col gap-5 rounded-xl border border-orange-500/15 p-5 bg-gradient-to-br from-background to-orange-500/5 shadow-lg"
-  aria-label={t("chatbot.urlLabel")}
+  aria-label={t("chatbot.urlLabel") || "Website roast form - email and consents required"}
 >
   <div class="flex flex-col gap-3">
     <label for="site-url" class="text-sm font-semibold tracking-tight text-orange-200/90">{t("chatbot.urlLabel")}</label>
@@ -96,7 +97,7 @@ const groups = categories.reduce((acc, cat) => {
           <span class="text-[0.65rem] font-bold text-orange-300/50 uppercase tracking-widest">
             {(t(`chatbot.groups.${group}`) as string) || group}
           </span>
-          <div class="flex flex-wrap gap-2">
+          <div class="flex flex-col gap-2">
             {cats.map((cat) => (
               <label class={`flex items-center gap-2 px-3.5 py-2 rounded-lg border cursor-pointer transition-all duration-200 text-sm ${
                 defaultCategories.includes(cat.id)

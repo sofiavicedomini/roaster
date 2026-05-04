@@ -34,7 +34,8 @@ function getLocalizedPath(loc: string) {
       try {
         const theme = localStorage.getItem('theme') || 'dark';
         document.documentElement.classList.add(theme);
-        if (localStorage.getItem('fire-disabled') === 'true') {
+        const fireEnabled = localStorage.getItem('fire-enabled') !== 'false';
+        if (!fireEnabled) {
           document.documentElement.classList.add('no-fire');
         }
       } catch (e) {
@@ -163,6 +164,91 @@ function getLocalizedPath(loc: string) {
           document.documentElement.classList.add('dark');
           document.documentElement.classList.add('no-fire');
         }
+
+        // Mobile menu functionality
+        const menuOpenBtn = document.getElementById('menu-open');
+        const menuCloseBtn = document.getElementById('menu-close');
+        const mobileSidebar = document.getElementById('mobile-sidebar');
+        const sidebarOverlay = document.getElementById('sidebar-overlay');
+
+        function openMenu() {
+          mobileSidebar?.classList.remove('translate-x-full');
+          sidebarOverlay?.classList.remove('hidden');
+          menuOpenBtn?.setAttribute('aria-expanded', 'true');
+          document.body.style.overflow = 'hidden';
+        }
+
+        function closeMenu() {
+          mobileSidebar?.classList.add('translate-x-full');
+          sidebarOverlay?.classList.add('hidden');
+          menuOpenBtn?.setAttribute('aria-expanded', 'false');
+          document.body.style.overflow = '';
+        }
+
+        menuOpenBtn?.addEventListener('click', openMenu);
+        menuCloseBtn?.addEventListener('click', closeMenu);
+        sidebarOverlay?.addEventListener('click', closeMenu);
+
+        // Theme toggle functionality
+        function toggleTheme() {
+          const html = document.documentElement;
+          const isDark = html.classList.contains('dark');
+          if (isDark) {
+            html.classList.remove('dark');
+            html.classList.add('light');
+            localStorage.setItem('theme', 'light');
+          } else {
+            html.classList.remove('light');
+            html.classList.add('dark');
+            localStorage.setItem('theme', 'dark');
+          }
+          updateThemeIcons();
+        }
+
+        // Fire/animation toggle functionality
+        function toggleFire() {
+          const html = document.documentElement;
+          const isEnabled = html.classList.contains('fire-enabled');
+          if (isEnabled) {
+            html.classList.remove('fire-enabled');
+            html.classList.add('no-fire');
+            localStorage.setItem('fire-enabled', 'false');
+          } else {
+            html.classList.remove('no-fire');
+            html.classList.add('fire-enabled');
+            localStorage.setItem('fire-enabled', 'true');
+          }
+          updateFireIcons();
+        }
+
+        function updateThemeIcons() {
+          const isDark = document.documentElement.classList.contains('dark');
+          document.querySelectorAll('.theme-icon').forEach(icon => {
+            icon.textContent = isDark ? '☀️' : '🌙';
+          });
+          document.querySelectorAll('.theme-label').forEach(label => {
+            label.textContent = isDark ? 'Light' : 'Dark';
+          });
+        }
+
+        function updateFireIcons() {
+          const isEnabled = document.documentElement.classList.contains('fire-enabled');
+          document.querySelectorAll('.fire-icon').forEach(icon => {
+            icon.textContent = isEnabled ? '🔥' : '❄️';
+          });
+        }
+
+        // Initialize icons
+        updateThemeIcons();
+        updateFireIcons();
+
+        // Add event listeners to all toggle buttons
+        document.querySelectorAll('[data-action="toggle-theme"]').forEach(btn => {
+          btn.addEventListener('click', toggleTheme);
+        });
+        document.querySelectorAll('[data-action="toggle-fire"]').forEach(btn => {
+          btn.addEventListener('click', toggleFire);
+        });
     </script>
   </body>
 </html>

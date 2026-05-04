@@ -64,7 +64,11 @@
       "API-Entdeckung: das sind viele Endpunkte, Baby.",
       "OAuth-Scan. Zugriff verweigert. Immer verweigert."
     ],
-    "verifyingRobot": "Überprüfung, dass Sie kein Roboter sind..."
+    "verifyingRobot": "Überprüfung, dass Sie kein Roboter sind...",
+    "emailLabel": "Ihre E-Mail (erforderlich für Roast + Newsletter)",
+    "privacyMarketingLabel": "Ich akzeptiere die <a href=\"https://vicedominisoftworks.com/privacy\" target=\"_blank\" rel=\"noopener noreferrer\" class=\"underline hover:no-underline\">Datenschutzrichtlinie</a> und stimme zu, Marketing-E-Mails zu erhalten (wöchentlich oder weniger) *",
+    "privacyMarketingAriaLabel": "Ich akzeptiere die Datenschutzrichtlinie und stimme zu, Marketing-E-Mails zu erhalten",
+    "privacyRequired": "Die Zustimmung zur Datenschutzrichtlinie ist erforderlich"
   },
   "privacy": {
     "message": "Wir verwenden Cookies, um den Site-Traffic zu analysieren und Ihre Erfahrung zu verbessern. Ihre Daten bleiben privat und werden nicht geteilt.",

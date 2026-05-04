@@ -74,7 +74,11 @@
       "Validazione finale: 'Taci e prenditi la mia banda larga!'",
       "Ultimo controllo. Quasi finito. Mordi il mio rapporto metallico."
     ],
-    "verifyingRobot": "Verifica che non sei un robot..."
+    "verifyingRobot": "Verifica che non sei un robot...",
+    "emailLabel": "La tua email (obbligatoria per roast + newsletter)",
+    "privacyMarketingLabel": "Accetto la <a href=\"https://vicedominisoftworks.com/privacy\" target=\"_blank\" rel=\"noopener noreferrer\" class=\"underline hover:no-underline\">privacy policy</a> e acconsento a ricevere email di marketing (settimanali o meno) *",
+    "privacyMarketingAriaLabel": "Accetto la privacy policy e acconsento a ricevere email di marketing",
+    "privacyRequired": "L'accettazione della privacy policy è obbligatoria"
   },
   "privacy": {
     "message": "Utilizziamo i cookie per analizzare il traffico del sito e migliorare la tua esperienza. I tuoi dati rimangono privati e non vengono condivisi.",
@@ -101,12 +105,14 @@
   },
   "errors": {
     "urlRequired": "L'URL è obbligatorio",
-    "highTraffic": "C'è molto traffico in questo momento. Riprova tra qualche istante.",
+    "highTraffic": "Stiamo avendo alto traffico in questo momento. Riprova tra qualche istante.",
     "invalidJson": "Risposta JSON non valida dall'AI",
     "unknown": "Errore sconosciuto",
     "aiApi": "Errore API AI: ",
-    "captchaExpired": "Il CAPTCHA è scaduto o già utilizzato. Ne sta arrivando uno nuovo — riprova tra un momento."
+    "captchaExpired": "CAPTCHA scaduto o già utilizzato. Ne sta caricando uno nuovo — riprova tra un momento.",
+    "privacyRequired": "L'accettazione della privacy policy è obbligatoria"
   },
+
   "nav": {
     "about": "Chi siamo",
     "howItWorks": "Come funziona"

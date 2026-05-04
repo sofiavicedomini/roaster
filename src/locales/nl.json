@@ -64,7 +64,11 @@
       "API-ontdekking: dat zijn veel eindpunten, schat.",
       "OAuth-scan. Toegang geweigerd. Altijd geweigerd."
     ],
-    "verifyingRobot": "Verifiëren dat u geen robot bent..."
+    "verifyingRobot": "Verifiëren dat u geen robot bent...",
+    "emailLabel": "Uw e-mail (verplicht voor roast + nieuwsbrief)",
+    "privacyMarketingLabel": "Ik accepteer het <a href=\"https://vicedominisoftworks.com/privacy\" target=\"_blank\" rel=\"noopener noreferrer\" class=\"underline hover:no-underline\">privacybeleid</a> en stem in met het ontvangen van marketing e-mails (wekelijks of minder) *",
+    "privacyMarketingAriaLabel": "Ik accepteer het privacybeleid en stem in met het ontvangen van marketing e-mails",
+    "privacyRequired": "Acceptatie van het privacybeleid is verplicht"
   },
   "privacy": {
     "message": "We gebruiken cookies om siteverkeer te analyseren en je ervaring te verbeteren. Je gegevens blijven privé en worden niet gedeeld.",

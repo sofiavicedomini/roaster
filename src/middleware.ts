@@ -6,14 +6,18 @@ const ALLOWED_ORIGINS = (import.meta.env.ALLOWED_ORIGINS || "")
   .filter(Boolean);
 
 export const onRequest = defineMiddleware(async ({ request }, next) => {
+  const host = request.headers.get("host") || "";
+  const isLocalhost =
+    host.startsWith("localhost") || host.startsWith("127.0.0.1");
+
   const protocol =
     request.headers.get("x-forwarded-proto") || new URL(request.url).protocol;
   const isHttps =
+    isLocalhost ||
     protocol === "https:" ||
     request.headers.get("x-forwarded-proto") === "https";
 
   if (!isHttps) {
-    const host = request.headers.get("host");
     if (host) {
       const httpsUrl = `https://${host}${new URL(request.url).pathname}${new URL(request.url).search}`;
       return Response.redirect(httpsUrl, 301);
@@ -92,10 +96,12 @@ export const onRequest = defineMiddleware(async ({ request }, next) => {
   response.headers.set("X-Content-Type-Options", "nosniff");
   response.headers.set("X-Frame-Options", "SAMEORIGIN");
   response.headers.set("X-XSS-Protection", "1; mode=block");
-  response.headers.set(
-    "Strict-Transport-Security",
-    "max-age=31536000; includeSubDomains; preload",
-  );
+  if (!isLocalhost) {
+    response.headers.set(
+      "Strict-Transport-Security",
+      "max-age=31536000; includeSubDomains; preload",
+    );
+  }
 
   return response;
 });
