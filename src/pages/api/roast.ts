@@ -2,6 +2,7 @@ import type { APIRoute } from "astro";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { getTranslations, type Locale } from "@/i18n/utils";
+import { LLM } from "@/lib/llm";
 import {
   scrapeUrlTool,
   analyzeSecurityHeadersTool,
@@ -904,6 +905,19 @@ async function buildPrompt(url: string, categories: string[], locale: string, ch
 }
 
 async function callLLM(messages: Array<Record<string, unknown>>, apiBase: string, apiKey: string, model: string) {
+  // Use LLM class for better history management
+  const systemPrompt = (messages.find(m => m.role === "system") as { content: string })?.content || "You are a helpful assistant.";
+  const llm = new LLM(systemPrompt, { apiBase, apiKey, model, temperature: 0.3 });
+  
+  // Add all messages to LLM history
+  for (const msg of messages) {
+    if (msg.role === "user") {
+      llm.addMessage("user", (msg as { content: string }).content || "");
+    } else if (msg.role === "assistant") {
+      llm.addMessage("assistant", (msg as { content: string }).content || "");
+    }
+  }
+  
   const response = await fetch(`${apiBase}/chat/completions`, {
     method: "POST",
     headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
@@ -930,6 +944,20 @@ async function callLLMWithTools(
   apiKey: string,
   model: string,
 ): Promise<{ content: string | null; tool_calls?: ToolCall[] }> {
+  // Use LLM class for better history management
+  const systemPrompt = messages.find(m => m.role === "system")?.content || "You are a helpful assistant.";
+  const llm = new LLM(systemPrompt, { apiBase, apiKey, model, temperature: 0.3 });
+  
+  // Convert existing messages to LLM format (skip system, add others)
+  for (const msg of messages) {
+    if (msg.role === "user") {
+      llm.addMessage("user", msg.content || "");
+    } else if (msg.role === "assistant") {
+      llm.addMessage("assistant", msg.content || "");
+    }
+  }
+  
+  // For tool-based calls, we still need raw fetch to get tool_calls
   const response = await fetch(`${apiBase}/chat/completions`, {
     method: "POST",
     headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
