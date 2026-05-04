@@ -114,7 +114,21 @@ function scoreFlames(score: number) {
 <script is:inline define:vars={{ successMsg: t("newsletter.success"), errorMsg: t("newsletter.error") }}>
   const form = document.getElementById("newsletter-form");
   const msg = document.getElementById("newsletter-msg");
-  if (form && msg) {
+
+  // Check if already subscribed
+  const isSubscribed = document.cookie
+    .split("; ")
+    .some((row) => row.startsWith("newsletter_subscribed="));
+
+  if (isSubscribed) {
+    if (form) form.style.display = "none";
+    if (msg) {
+      msg.textContent = "Già iscritto alla newsletter";
+      msg.className = "text-xs mt-2 text-orange-400";
+    }
+  }
+
+  if (form && msg && !isSubscribed) {
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
       const email = new FormData(form).get("email");

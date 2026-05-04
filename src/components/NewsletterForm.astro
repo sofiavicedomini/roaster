@@ -58,7 +58,20 @@ const { t } = useTranslations(locale)
   const form = document.getElementById('newsletter-form')
   const status = document.getElementById('newsletter-status')
 
-  if (form && status) {
+  // Check if already subscribed
+  const isSubscribed = document.cookie
+    .split("; ")
+    .some((row) => row.startsWith("newsletter_subscribed="));
+
+  if (isSubscribed) {
+    if (form) form.style.display = "none";
+    if (status) {
+      status.textContent = "Già iscritto alla newsletter";
+      status.className = "mt-4 text-xs text-orange-400";
+    }
+  }
+
+  if (form && status && !isSubscribed) {
     form.addEventListener('submit', async (e) => {
       e.preventDefault()
       const emailInput = form.querySelector('input[type="email"]')

@@ -161,11 +161,19 @@ export const POST: APIRoute = async ({ request }) => {
     }
 
     if (email && typeof email === "string" && email.trim()) {
-      try {
-        await subscribeNewsletter(email.trim().toLowerCase());
-        console.log(`[Newsletter] Subscribed: ${email}`);
-      } catch (e) {
-        console.error("[Newsletter] Subscribe failed:", e);
+      const cookieHeader = request.headers.get("cookie") || "";
+      const isSubscribed = cookieHeader.includes("newsletter_subscribed=1");
+
+      if (isSubscribed) {
+        console.log(`[Newsletter] User already subscribed: ${email}`);
+        // Skip subscription, no error shown
+      } else {
+        try {
+          await subscribeNewsletter(email.trim().toLowerCase());
+          console.log(`[Newsletter] Subscribed: ${email}`);
+        } catch (e) {
+          console.error("[Newsletter] Subscribe failed:", e);
+        }
       }
     }
 
