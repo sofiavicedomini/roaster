@@ -425,10 +425,15 @@ async function processRoast(
   }
 
   const checks = await checkAgentReadiness(url);
+  
+  // Run pre-analysis with tools to get accurate category data
+  const toolAnalysis = await runPreAnalysis(url, cats);
+  const checksWithTools = { ...checks, _toolAnalysis: toolAnalysis };
+  
   await updateJob(jobId, { progress: "Building prompt" });
 
   // If the site is completely unreachable, skip the LLM loop and roast it for that
-  const siteDown = isSiteDown(checks);
+  const siteDown = isSiteDown(checksWithTools);
   if (siteDown) {
     console.log("[Roast API] Site appears unreachable, generating inaccessibility roast");
     await updateJob(jobId, { progress: "Site unreachable — generating roast" });
@@ -436,19 +441,19 @@ async function processRoast(
     const normUrl = normalizeUrl(url);
     const cachedAt = new Date().toISOString();
     await saveRanking(jobId, { url, normUrl, score: (result as Record<string, unknown>).overall_score as number, verdict: (result as Record<string, unknown>).verdict as string, cats, locale, completedAt: cachedAt, result: result as Record<string, unknown> }).catch(() => {});
-    await updateJob(jobId, { status: "completed", progress: "Done", result: JSON.stringify({ ...result as Record<string, unknown>, cached: false, cacheKey: cacheKey(normUrl), rankingId: jobId, checks }) });
+    await updateJob(jobId, { status: "completed", progress: "Done", result: JSON.stringify({ ...result as Record<string, unknown>, cached: false, cacheKey: cacheKey(normUrl), rankingId: jobId, checks: checksWithTools }) });
     await jobDb.del(jobIdKey(normUrl, locale));
     return;
   }
 
-  const prompt = await buildPrompt(url, cats, locale, checks);
+  const prompt = await buildPrompt(url, cats, locale, checksWithTools);
   await updateJob(jobId, { progress: "Calling LLM" });
 
   const apiBase = import.meta.env.OPENAI_API_BASE || "http://localhost:11434/v1";
   const apiKey = import.meta.env.OPENAI_API_KEY || "dummy";
   const model = import.meta.env.OPENAI_MODEL || "llama3";
 
-  const result = await runAgentLoop(prompt, url, cats, checks, apiBase, apiKey, model, locale, async (_iter, thinking) => {
+  const result = await runAgentLoop(prompt, url, cats, checksWithTools, apiBase, apiKey, model, locale, async (_iter, thinking) => {
     await updateJob(jobId, { progress: thinking });
     await incrementIteration(jobId);
   }, isResume);
@@ -469,7 +474,7 @@ async function processRoast(
   await updateJob(jobId, {
     status: "completed",
     progress: "Done",
-    result: JSON.stringify({ ...result, cached: false, cacheKey: cacheKey(normUrl), rankingId: jobId, checks }),
+    result: JSON.stringify({ ...result, cached: false, cacheKey: cacheKey(normUrl), rankingId: jobId, checks: checksWithTools }),
   });
 
   saveRanking(jobId, {
@@ -741,6 +746,173 @@ async function checkAgentReadiness(baseUrl: string) {
   };
 
   console.log("[Agent Readiness]", results["_summary"].detail);
+  return results;
+}
+
+async function runPreAnalysis(url: string, categories: string[]): Promise<Record<string, { status: string; detail: string; score: number }>> {
+  const results: Record<string, { status: string; detail: string; score: number }> = {};
+
+  console.log("[Pre-analysis] Running tool-based analysis for categories:", categories.join(", "));
+
+  // Scrape homepage first
+  const html = await handleScrapeUrl({ url }, url);
+  const hasContent = html && html.length > 100 && !html.includes("Not found");
+
+  if (hasContent) {
+    // Run accessibility analysis
+    if (categories.includes("accessibility")) {
+      try {
+        const accessibilityResult = await handleAnalyzeAccessibility({ html }, url);
+        const hasIssues = accessibilityResult.includes("issues:");
+        results["accessibility_tool"] = {
+          status: hasIssues ? "issues_found" : "ok",
+          detail: accessibilityResult.substring(0, 500),
+          score: hasIssues ? 4 : 8,
+        };
+      } catch (e) {
+        results["accessibility_tool"] = { status: "error", detail: `Error: ${e}`, score: 0 };
+      }
+    }
+
+    // Run HTML structure analysis
+    if (categories.includes("code") || categories.includes("design")) {
+      try {
+        const htmlResult = await handleAnalyzeHtmlStructure({ html }, url);
+        const hasIssues = htmlResult.includes("issues:");
+        results["html_structure_tool"] = {
+          status: hasIssues ? "issues_found" : "ok",
+          detail: htmlResult.substring(0, 500),
+          score: hasIssues ? 4 : 8,
+        };
+      } catch (e) {
+        results["html_structure_tool"] = { status: "error", detail: `Error: ${e}`, score: 0 };
+      }
+    }
+
+    // Run SEO analysis
+    if (categories.includes("seo")) {
+      try {
+        const seoResult = await handleAnalyzeSeo({ html }, url);
+        const hasIssues = seoResult.includes("issues:");
+        results["seo_tool"] = {
+          status: hasIssues ? "issues_found" : "ok",
+          detail: seoResult.substring(0, 500),
+          score: hasIssues ? 4 : 8,
+        };
+      } catch (e) {
+        results["seo_tool"] = { status: "error", detail: `Error: ${e}`, score: 0 };
+      }
+    }
+
+    // Run mobile analysis
+    if (categories.includes("mobile")) {
+      try {
+        const mobileResult = await handleAnalyzeMobile({ html }, url);
+        const hasIssues = mobileResult.includes("issues:");
+        results["mobile_tool"] = {
+          status: hasIssues ? "issues_found" : "ok",
+          detail: mobileResult.substring(0, 500),
+          score: hasIssues ? 4 : 8,
+        };
+      } catch (e) {
+        results["mobile_tool"] = { status: "error", detail: `Error: ${e}`, score: 0 };
+      }
+    }
+
+    // Run brand analysis
+    if (categories.includes("brand")) {
+      try {
+        const brandResult = await handleAnalyzeBrand({ html }, url);
+        const hasIssues = brandResult.includes("issues:");
+        results["brand_tool"] = {
+          status: hasIssues ? "issues_found" : "ok",
+          detail: brandResult.substring(0, 500),
+          score: hasIssues ? 4 : 8,
+        };
+      } catch (e) {
+        results["brand_tool"] = { status: "error", detail: `Error: ${e}`, score: 0 };
+      }
+    }
+
+    // Run UX analysis
+    if (categories.includes("ux")) {
+      try {
+        const uxResult = await handleAnalyzeUx({ html }, url);
+        const hasIssues = uxResult.includes("issues:");
+        results["ux_tool"] = {
+          status: hasIssues ? "issues_found" : "ok",
+          detail: uxResult.substring(0, 500),
+          score: hasIssues ? 4 : 8,
+        };
+      } catch (e) {
+        results["ux_tool"] = { status: "error", detail: `Error: ${e}`, score: 0 };
+      }
+    }
+
+    // Run conversion analysis
+    if (categories.includes("conversion")) {
+      try {
+        const convResult = await handleAnalyzeConversion({ html }, url);
+        const hasIssues = convResult.includes("issues:");
+        results["conversion_tool"] = {
+          status: hasIssues ? "issues_found" : "ok",
+          detail: convResult.substring(0, 500),
+          score: hasIssues ? 4 : 8,
+        };
+      } catch (e) {
+        results["conversion_tool"] = { status: "error", detail: `Error: ${e}`, score: 0 };
+      }
+    }
+
+    // Run performance analysis
+    if (categories.includes("performance")) {
+      try {
+        const perfResult = await handleAnalyzePerformance({ html }, url);
+        const hasIssues = perfResult.includes("issues:");
+        results["performance_tool"] = {
+          status: hasIssues ? "issues_found" : "ok",
+          detail: perfResult.substring(0, 500),
+          score: hasIssues ? 4 : 8,
+        };
+      } catch (e) {
+        results["performance_tool"] = { status: "error", detail: `Error: ${e}`, score: 0 };
+      }
+    }
+
+    // Run security headers analysis
+    if (categories.includes("security")) {
+      try {
+        const secResult = await handleAnalyzeSecurityHeaders({}, url);
+        const hasIssues = secResult.includes("issues:") || secResult.includes("missing");
+        results["security_tool"] = {
+          status: hasIssues ? "issues_found" : "ok",
+          detail: secResult.substring(0, 500),
+          score: hasIssues ? 4 : 8,
+        };
+      } catch (e) {
+        results["security_tool"] = { status: "error", detail: `Error: ${e}`, score: 0 };
+      }
+    }
+
+    // Run credibility analysis
+    if (categories.includes("credibility")) {
+      try {
+        const credResult = await handleAnalyzeCredibility({}, url);
+        const hasIssues = credResult.includes("issues:") || credResult.includes("missing");
+        results["credibility_tool"] = {
+          status: hasIssues ? "issues_found" : "ok",
+          detail: credResult.substring(0, 500),
+          score: hasIssues ? 4 : 8,
+        };
+      } catch (e) {
+        results["credibility_tool"] = { status: "error", detail: `Error: ${e}`, score: 0 };
+      }
+    }
+  } else {
+    results["preanalysis_error"] = { status: "error", detail: "Could not fetch homepage for analysis", score: 0 };
+  }
+
+  console.log("[Pre-analysis] Completed:", Object.keys(results).join(", "));
   return results;
 }
 
