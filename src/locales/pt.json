@@ -1,8 +1,8 @@
 {
   "site": {
     "title": "Róast-me 🔥",
-    "description": "Obtenha uma crítica honesta e sem filtros de qualquer site",
-    "seoDescription": "Obtenha uma crítica brutal e honesta de qualquer site com Róast-me. Análise por IA de design, performance, SEO, UX, acessibilidade, segurança e muito mais. Descubra o que está errado com seu site.",
+    "description": "Exponha as falhas do seu site sem filtros",
+    "seoDescription": "Exponemos as falhas do seu site com Róast-me. Análise IA brutal de design, performance, SEO, UX, acessibilidade e mais. Descubra o que está errado.",
     "keywords": "crítica site web, análise site web, verificador SEO, auditoria performance, revisão UX, avaliador web, análise IA sites web, roast site",
     "footer": "Precisa de uma app Web, Site ou Software? <span class=\"font-semibold\">Contacte Vicedomini Softworks →</span>"
   },
@@ -110,12 +110,12 @@
   "about": {
     "title": "Sobre nós",
     "subtitle": "Os humanos por trás das chamas",
-    "intro": "Somos a Vicedomini Softworks — uma empresa italiana de software que constrói coisas que as pessoas realmente usam. Criámos esta ferramenta porque a internet está cheia de sites terríveis, e a maioria deles nunca saberá.",
-    "mission": "A nossa missão: honestidade brutal com precisão de IA. Sem rodeios. Sem adornos. Apenas a verdade sobre o seu site, queira ou não ouvi-la.",
-    "team": "Sediados em Itália. Movidos por curiosidade, café forte e um profundo desprezo pela má UX. Construímos apps web, sites e software personalizado para clientes que não têm medo da verdade.",
-    "cta": "Precisa de algo bem construído? Contacte-nos →",
+    "intro": "Somos a Vicedomini Softworks — uma empresa italiana de software que constrói coisas que as pessoas realmente usam. Criamos esta ferramenta porque a internet está chie de sites terríveis e a maioria deles nunca saberá.",
+    "mission": "Nossa missão: honestidade brutal com precisão de IA. Sem firulas. Sem edulcorações. Apenas a verdade sobre seu site, queira ouvir ou não.",
+    "team": "Sediada na Itália. Movidos por curiosidade, café forte e um profundo desprezo pelo mau UX. Construímos aplicativos web, sites e software sob medida para clientes que não têm medo da verdade.",
+    "cta": "Quer criar algo espantoso? Contacte Vicedomini Softworks →",
     "statsSites": "sites analisados sem piedade",
-    "statsSubtitle": "e a contar — a internet continua péssima"
+    "statsSubtitle": "e a contagem continua — a internet ainda é ruim"
   },
   "howItWorks": {
     "title": "Como Funciona",

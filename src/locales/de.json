@@ -1,8 +1,8 @@
 {
   "site": {
     "title": "Röst mich 🔥",
-    "description": "Erhalte eine ehrliche, schonungslose Kritik jeder Webseite",
-    "seoDescription": "Erhalte eine brutale, ehrliche Kritik jeder Webseite mit Röst mich. KI-gestützte Analyse von Design, Performance, SEO, UX, Barrierefreiheit, Sicherheit und mehr. Finde heraus, was mit deiner Seite nicht stimmt.",
+    "description": "Leg deine Seite nackt und deck jeden Fehler auf",
+    "seoDescription": "Wir legen die Mängel deiner Seite nackt offen mit Röst mich. KI-gestützte brutale Analyse von Design, Performance, SEO, UX, Barrierefreiheit und mehr. Finde heraus, was nicht stimmt.",
     "keywords": "Webseite Kritik, Seitenanalyse, SEO Checker, Performance Audit, UX Bewertung, Webseiten Bewertung, KI Webseiten Analyse, Webseite rösten",
     "footer": "Web-App, Website oder Software gesucht? <span class=\"font-semibold\">Vicedomini Softworks kontaktieren →</span>"
   },
@@ -110,12 +110,12 @@
   "about": {
     "title": "Über uns",
     "subtitle": "Die Menschen hinter den Flammen",
-    "intro": "Wir sind Vicedomini Softworks — ein italienisches Softwareunternehmen, das Dinge baut, die Menschen tatsächlich nutzen. Wir haben dieses Tool entwickelt, weil das Internet voller schrecklicher Websites ist, und die meisten davon werden es nie erfahren.",
-    "mission": "Unsere Mission: brutale Ehrlichkeit mit KI-Präzision. Kein Blabla. Keine Schönrednerei. Nur die Wahrheit über deine Website, ob du sie hören willst oder nicht.",
-    "team": "In Italien ansässig. Angetrieben von Neugier, starkem Kaffee und einer tiefen Verachtung für schlechte UX. Wir bauen Web-Apps, Websites und maßgeschneiderte Software für Kunden, die keine Angst vor der Wahrheit haben.",
-    "cta": "Brauchen Sie etwas gut Gebautes? Kontaktieren Sie uns →",
-    "statsSites": "Websites gnadenlos analysiert",
-    "statsSubtitle": "und es werden mehr — das Internet ist immer noch schlecht"
+    "intro": "Wir sind Vicedomini Softworks — ein italienisches Softwareunternehmen, das Dinge baut, die Menschen wirklich nutzen. Wir haben dieses Werkzeug gebaut, weil das Internet voller schrecklicher Websites ist und die meisten davon nie erfahren werden.",
+    "mission": "Unsere Mission: brutale Ehrlichkeit mit KI-Präzision. Kein Brimborium. Keine Beschönigung. Nur die Wahrheit über deine Website, ob du sie hören willst oder nicht.",
+    "team": "In Italien ansässig. Angetrieben von Neugier, starkem Kaffee und tiefem Verachtung für schlechte UX. Wir bauen Web-Apps, Websites und Maßsoftware für Kunden, die keine Angst vor der Wahrheit haben.",
+    "cta": "Willst du etwas Erstaunliches erschaffen? Kontaktiere Vicedomini Softworks →",
+    "statsSites": "websites schonungslos analysiert",
+    "statsSubtitle": "und die Zählung läuft weiter — das Internet ist immer noch schlecht"
   },
   "howItWorks": {
     "title": "So funktioniert es",

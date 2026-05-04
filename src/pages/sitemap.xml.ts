@@ -27,6 +27,21 @@ export async function GET({ request }: APIContext) {
   </url>`
     )
     .join("")}
+  <url>
+    <loc>${baseUrl}/en/about</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>${baseUrl}/en/how-it-works</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>${baseUrl}/en/rankings</loc>
+    <changefreq>daily</changefreq>
+    <priority>0.7</priority>
+  </url>
 </urlset>`
 
   return new Response(sitemap, {

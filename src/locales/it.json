@@ -1,8 +1,8 @@
 {
   "site": {
     "title": "Stroncami 🔥",
-    "description": "Ottieni una critica onesta e senza filtri per qualsiasi sito web",
-    "seoDescription": "Ottieni una stroncatura brutale e onesta di qualsiasi sito web con Stroncami. Analisi AI di design, performance, SEO, UX, accessibilità, sicurezza e altro. Scopri cosa non va nel tuo sito.",
+    "description": "Metti a nudo i fallimenti del tuo sito",
+    "seoDescription": "Mettiamo a nudo i fallimenti del tuo sito con Stroncami. Analisi AI brutale di design, performance, SEO, UX, accessibilità e sicurezza. Scopri cosa non va.",
     "keywords": "stroncatura sito web, critica sito, analisi web, controllo SEO, audit performance, recensione UX, valutazione sito, analisi AI siti web",
     "footer": "Vuoi realizzare un'app Web, Sito o Software? <span class=\"font-semibold\">Contatta Vicedomini Softworks →</span>"
   },
@@ -130,11 +130,11 @@
   "about": {
     "title": "Chi siamo",
     "subtitle": "Gli umani dietro alle fiamme",
-    "intro": "Siamo Vicedomini Softworks — una software house italiana che costruisce cose che la gente usa davvero. Abbiamo creato questo strumento perché internet è pieno di siti web orribili, e la maggior parte di loro non lo saprà mai.",
-    "mission": "La nostra missione: onestà brutale con precisione AI. Niente fronzoli. Niente smielature. Solo la verità sul tuo sito, che tu voglia sentirla o no.",
-    "team": "Con sede in Italia. Alimentati da curiosità, caffè forte e un profondo disprezzo per la cattiva UX. Costruiamo app web, siti e software personalizzati per clienti che non hanno paura della verità.",
-    "cta": "Hai bisogno di qualcosa costruito bene? Contattaci →",
-    "statsSites": "siti stroncati senza pietà",
+    "intro": "Siamo Vicedomini Softworks — una software house italiana che costruisce cose che le persone usano davvero. Abbiamo creato questo strumento perché internet è pieno di siti terribili, e la maggioranza di essi non lo saprà mai.",
+    "mission": "La nostra missione: onestà brutale con precisione AI. Niente fronzoli. Niente edulcorazioni. Solo la verità sul tuo sito, che tu voglia sentirla o meno.",
+    "team": "Basi in Italia. Alimentati da curiosità, caffè forte e un profondo disprezzo per la cattiva UX. Costruiamo web app, siti e software su misura per clienti che non hanno paura della verità.",
+    "cta": "Vuoi creare qualcosa di stupefacente? Contatta Vicedomini Softworks →",
+    "statsSites": "siti analizzati senza pietà",
     "statsSubtitle": "e il conteggio continua — internet fa ancora schifo"
   },
   "howItWorks": {

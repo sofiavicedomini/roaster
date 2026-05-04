@@ -1,8 +1,8 @@
 {
   "site": {
     "title": "Grille-moi 🔥",
-    "description": "Obtenez une critique honnête et sans filtre de n'importe quel site web",
-    "seoDescription": "Obtenez une critique brutale et honnête de n'importe quel site web avec Grille-moi. Analyse par IA du design, des performances, du SEO, de l'UX, de l'accessibilité, de la sécurité et plus encore. Découvrez ce qui ne va pas avec votre site.",
+    "description": "Mets à nu les failles de ton site",
+    "seoDescription": "On met à nu les échecs de ton site avec Grille-moi. Analyse IA brutale de design, performance, SEO, UX, accessibilité et plus. Découvre ce qui cloche.",
     "keywords": "critique site web, analyse site web, vérificateur SEO, audit performance, avis UX, notation site web, analyse IA sites web, griller site",
     "footer": "Besoin d'une app Web, Site ou Logiciel ? <span class=\"font-semibold\">Contactez Vicedomini Softworks →</span>"
   },
@@ -110,12 +110,12 @@
   "about": {
     "title": "Qui sommes-nous",
     "subtitle": "Les humains derrière les flammes",
-    "intro": "Nous sommes Vicedomini Softworks — une société italienne de logiciels qui construit des choses que les gens utilisent vraiment. Nous avons créé cet outil parce qu'internet est plein de sites web terribles, et la plupart d'entre eux ne le sauront jamais.",
-    "mission": "Notre mission : l'honnêteté brutale avec la précision de l'IA. Pas de rembourrage. Pas d'embellissement. Juste la vérité sur votre site, que vous vouliez l'entendre ou non.",
+    "intro": "Nous sommes Vicedomini Softworks — une société italienne de logiciels qui construit des choses que les gens utilisent vraiment. Nous avons créé cet outil parce que l'internet est plein de sites terribles, et la plupart ne le sauront jamais.",
+    "mission": "Notre mission : une honnêteté brutale avec la précision de l'IA. Pas de fioritures. Pas d'embelissements. Juste la vérité sur votre site, que vous vouliez l'entendre ou non.",
     "team": "Basés en Italie. Alimentés par la curiosité, le café fort et un profond mépris pour la mauvaise UX. Nous construisons des applications web, des sites et des logiciels sur mesure pour des clients qui n'ont pas peur de la vérité.",
-    "cta": "Besoin de quelque chose de bien construit ? Contactez-nous →",
+    "cta": "Vous voulez créer quelque chose de stupéfiant ? Contactez Vicedomini Softworks →",
     "statsSites": "sites analysés sans pitié",
-    "statsSubtitle": "et le décompte continue — internet est toujours mauvais"
+    "statsSubtitle": "et le comptage continue — internet est toujours mauvais"
   },
   "howItWorks": {
     "title": "Comment ça marche",

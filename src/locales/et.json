@@ -1,9 +1,9 @@
 {
   "site": {
     "title": "Prae mind 🔥",
-    "description": "Saa aus ehtne, järeleandmatu kriitika ükskõik millise veebisaidi kohta",
-    "seoDescription": "Saa julm, aus kriitika ükskõik millise veebisaidi kohta saidiga Prae mind. AI-toega analüüs disaini, jõudluse, SEO, UX, juurdepääsetavuse, turvalisuse ja muu kohta. Avasta, mis sinu saidiga valesti on.",
-    "keywords": "veebisaidi kriitika, saidi analüüs, SEO kontroll, jõudluse audit, UX ülevaade, veebisaidi hindamine, AI veebisaidi analüüs, saiti praadima",
+    "description": "Tonga oma saidi vigad paljast ja nae palja",
+    "seoDescription": "Me paneme su saidi vigad paljale Prae mind abil. Tehisarunduse brutaalne analüüs disaini, jõudluse, SEO, UX, ligipääsetavuse ja muu kohta. Tea, mis valesti on.",
+    "keywords": "veebisaidi kriitika, saidi analüüs, SEO kontroll, jõudluse audit, UX ülevaade, veebisaidi hindamine, TI veebisaidi analüüs, saiti praadima",
     "footer": "Vajad veebirakendust, saiti või tarkvara? <span class=\"font-semibold\">Võta ühendust Vicedomini Softworksiga →</span>"
   },
   "chatbot": {
@@ -110,11 +110,11 @@
   "about": {
     "title": "Meist",
     "subtitle": "Inimesed leekide taga",
-    "intro": "Me oleme Vicedomini Softworks — Itaalia tarkvarafirma, mis ehitab asju, mida inimesed päriselt kasutavad. Lõime selle tööriista, sest internet on täis kohutavaid veebisaite, ja enamik neist ei saa sellest kunagi teada.",
+    "intro": "Oleme Vicedomini Softworks — itaalia tarkvarafirma, mis ehitab asju, mida inimesed päriselt kasutavad. Lõime selle tööriista, sest internet on täis kohutavaid veebisaite, ja enamik neist ei saa sellest kunagi teada.",
     "mission": "Meie missioon: brutaalne ausus tehisintellekti täpsusega. Ei jura. Ei ilustamist. Ainult tõde teie saidi kohta, kas soovite seda kuulda või mitte.",
     "team": "Asume Itaalias. Töötame uudishimu, tugeva kohvi ja sügava põlguse toel halva UX vastu. Ehitame veebirakendusi, saite ja kohandatud tarkvara klientidele, kes ei karda tõde.",
-    "cta": "Vajad midagi hästi ehitatut? Võta meiega ühendust →",
-    "statsSites": "saidid halastamata analüüsitud",
+    "cta": "Kas tahad luua midagi imetlusväärset? Võta ühendust Vicedomini Softworksiga →",
+    "statsSites": "saite halastamata analüüsitud",
     "statsSubtitle": "ja arv kasvab — internet on endiselt halb"
   },
   "howItWorks": {

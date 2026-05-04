@@ -643,6 +643,14 @@ export function Chatbot({ locale = "en" }: ChatbotProps) {
           </div>
         </div>
       )}
+
+      {result && (
+        <div className="mt-6 pt-6 border-t text-center">
+          <p className="text-sm text-orange-400/80">
+            {t.about?.cta || "Want something built right? Contact us →"}
+          </p>
+        </div>
+      )}
     </div>
   );
 }

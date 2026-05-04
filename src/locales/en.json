@@ -1,10 +1,10 @@
 {
   "site": {
     "title": "Roast Me 🔥",
-    "description": "Get an honest, no-BS critique of any website",
-    "seoDescription": "Get a brutal, honest critique of any website with Roast Me. AI-powered analysis of design, performance, SEO, UX, accessibility, security and more. Discover what's wrong with your site.",
-    "keywords": "website roast, site critique, web analysis, SEO checker, performance audit, UX review, website grader, AI website analysis",
-    "footer": "Need a Web App, Site or Software? <span class=\"font-semibold\">Contact Vicedomini Softworks →</span>"
+    "description": "Strip your site naked and expose every flaw",
+    "seoDescription": "Mettiamo a nudo i fallimenti del tuo sito con Stroncami. Analisi AI brutale di design, performance, SEO, UX, accessibilità e sicurezza. Scopri cosa non va.",
+    "keywords": "stroncatura sito web, critica sito, analisi web, controllo SEO, audit performance, recensione UX, valutazione sito, analisi AI siti web",
+    "footer": "Vuoi realizzare un'app Web, Sito o Software? <span class=\"font-semibold\">Contatta Vicedomini Softworks →</span>"
   },
   "chatbot": {
     "urlLabel": "Website URL",
@@ -133,7 +133,7 @@
     "intro": "We are Vicedomini Softworks — an Italian software company that builds things people actually use. We built this tool because the internet is full of terrible websites, and most of them will never know it.",
     "mission": "Our mission: brutal honesty delivered with AI precision. No fluff. No sugar-coating. Just the truth about your site, whether you want to hear it or not.",
     "team": "Based in Italy. Powered by curiosity, strong coffee, and a deep contempt for bad UX. We build web apps, sites, and custom software for clients who aren't afraid of the truth.",
-    "cta": "Need something built right? Contact us →",
+    "cta": "Want something built right? Contact us →",
     "statsSites": "websites brutally analyzed",
     "statsSubtitle": "and counting — the internet is still bad"
   },
