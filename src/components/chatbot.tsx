@@ -319,9 +319,10 @@ export function Chatbot({ locale = "en" }: ChatbotProps) {
     return () => clearInterval(t);
   }, [cacheInfo]);
 
-  const cacheAgeMin = cacheInfo ? Math.round((now - new Date(cacheInfo.cachedAt).getTime()) / 60000) : 0;
-  const cacheClearInMin = cacheInfo ? Math.ceil(30 - (now - new Date(cacheInfo.cachedAt).getTime()) / 60000) : 0;
-  const isCacheOld = cacheInfo ? now - new Date(cacheInfo.cachedAt).getTime() >= 30 * 60 * 1000 : false;
+  const cachedAtMs = cacheInfo ? (typeof cacheInfo.cachedAt === "number" ? cacheInfo.cachedAt : new Date(cacheInfo.cachedAt).getTime()) : 0;
+  const cacheAgeMin = cacheInfo ? Math.round((now - cachedAtMs) / 60000) : 0;
+  const cacheClearInMin = cacheInfo ? Math.ceil(30 - (now - cachedAtMs) / 60000) : 0;
+  const isCacheOld = cacheInfo ? (now - cachedAtMs) >= 30 * 60 * 1000 : false;
   const [isCategoryDropdownOpen, setIsCategoryDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
