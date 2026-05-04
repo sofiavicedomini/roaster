@@ -299,16 +299,20 @@ export function Chatbot({ locale = "en" }: ChatbotProps) {
         } else {
           setJobStatus(data.status);
           if (data.progress) {
+            // Split multi-line thinking into individual steps
+            const thinkingSteps = data.progress.split("\n").filter(line => line.trim());
             setThoughtHistory((prev) => {
-              if (prev[prev.length - 1] === data.progress) return prev;
-              return [...prev, data.progress];
+              const newSteps = thinkingSteps.filter(step => 
+                !prev.some(existing => existing.trim() === step.trim())
+              );
+              return [...prev, ...newSteps];
             });
           }
         }
       } catch {
         console.error("[Poll] Error");
       }
-    }, 2000);
+    }, 1500);
     return () => clearInterval(timer);
   }, [jobId, isLoading, url]);
 

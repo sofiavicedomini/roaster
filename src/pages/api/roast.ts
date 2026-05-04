@@ -1120,17 +1120,107 @@ async function runAgentLoop(
 
     messages.push({ role: "assistant", content: response.content, tool_calls: response.tool_calls });
 
-    // Build the thinking text: prefer the model's own content, fall back to tool call description
-    const thinkingText = response.content?.trim()
-      || response.tool_calls?.map((c) => {
-          if (c.function.name === "scrape_url") {
-            try { return `Fetching ${(JSON.parse(c.function.arguments) as { url: string }).url}`; }
-            catch { return "Fetching URL..."; }
+    // Build verbose thinking text from model content and tool calls
+    const thinkingParts: string[] = [];
+    
+    // Extract and format LLM's thinking process if present
+    if (response.content?.trim()) {
+      // Check if content contains thinking block
+      const thinkingMatch = response.content.match(/🧠\s*THINKING:[\s\S]*?(?=\n\n|\[Then|\[Call|$)/i);
+      if (thinkingMatch) {
+        // Extract the thinking content and format it nicely
+        const thinkingContent = thinkingMatch[0].replace(/🧠\s*THINKING:\s*/i, "").trim();
+        // Split into lines and format with emoji prefix
+        const lines = thinkingContent.split("\n").filter(l => l.trim());
+        for (const line of lines) {
+          const trimmedLine = line.trim();
+          if (trimmedLine.startsWith("-")) {
+            const key = trimmedLine.substring(1).split(":")[0];
+            const value = trimmedLine.split(":").slice(1).join(":").trim();
+            let emoji = "•";
+            if (key?.toLowerCase().includes("know")) emoji = "📋";
+            else if (key?.toLowerCase().includes("need")) emoji = "🎯";
+            else if (key?.toLowerCase().includes("strategy")) emoji = "📝";
+            else if (key?.toLowerCase().includes("hypothesis")) emoji = "💡";
+            thinkingParts.push(`${emoji} ${value}`);
+          } else if (trimmedLine) {
+            thinkingParts.push(trimmedLine);
           }
-          if (c.function.name === "submit_roast") return "Writing final analysis...";
-          return c.function.name;
-        }).join(" · ")
-      || `Step ${iteration}`;
+        }
+      } else {
+        // If no thinking block, use the content as-is if it's meaningful
+        const cleanedContent = response.content.trim().replace(/^```[\s\S]*?```/g, "").trim();
+        if (cleanedContent.length > 20) {
+          thinkingParts.push(`💭 ${cleanedContent.substring(0, 200)}${cleanedContent.length > 200 ? "..." : ""}`);
+        }
+      }
+    }
+    
+    // Add detailed tool call descriptions
+    if (response.tool_calls && response.tool_calls.length > 0) {
+      for (const c of response.tool_calls) {
+        try {
+          const args = JSON.parse(c.function.arguments) as Record<string, unknown>;
+          if (c.function.name === "scrape_url") {
+            const targetUrl = args.url as string || "unknown";
+            thinkingParts.push(`🔍 Scraping ${targetUrl} to gather evidence for analysis...`);
+          } else if (c.function.name === "analyze_security_headers") {
+            thinkingParts.push(`🔒 Analyzing security headers (CSP, HSTS, X-Frame-Options, etc.)...`);
+          } else if (c.function.name === "analyze_robots_txt") {
+            thinkingParts.push(`🤖 Checking robots.txt for agent access rules and sitemap references...`);
+          } else if (c.function.name === "analyze_sitemap") {
+            thinkingParts.push(`🗺️ Parsing sitemap.xml to understand site structure...`);
+          } else if (c.function.name === "analyze_llms_txt") {
+            thinkingParts.push(`📄 Checking llms.txt for AI agent instructions...`);
+          } else if (c.function.name === "analyze_accessibility") {
+            thinkingParts.push(`♿ Evaluating accessibility: ARIA labels, semantic HTML, keyboard navigation...`);
+          } else if (c.function.name === "analyze_html_structure") {
+            thinkingParts.push(`🏗️ Analyzing HTML structure: DOM depth, semantic elements, heading hierarchy...`);
+          } else if (c.function.name === "analyze_performance") {
+            thinkingParts.push(`⚡ Assessing performance: render-blocking resources, image optimization, caching...`);
+          } else if (c.function.name === "analyze_seo") {
+            thinkingParts.push(`🔍 SEO audit: meta tags, Open Graph, canonical URLs, structured data...`);
+          } else if (c.function.name === "analyze_mobile") {
+            thinkingParts.push(`📱 Mobile responsiveness check: viewport, touch targets, mobile UX...`);
+          } else if (c.function.name === "analyze_brand") {
+            thinkingParts.push(`🎨 Brand analysis: visual consistency, tone of voice, brand identity...`);
+          } else if (c.function.name === "analyze_credibility") {
+            thinkingParts.push(`🏛️ Credibility assessment: trust signals, transparency, social proof...`);
+          } else if (c.function.name === "analyze_conversion") {
+            thinkingParts.push(`💰 Conversion optimization: CTAs, funnels, friction points...`);
+          } else if (c.function.name === "analyze_ux") {
+            thinkingParts.push(`🎯 UX evaluation: navigation clarity, information architecture, user flows...`);
+          } else if (c.function.name === "analyze_code") {
+            thinkingParts.push(`💻 Code quality review: best practices, maintainability, security...`);
+          } else if (c.function.name === "analyze_mcp") {
+            thinkingParts.push(`🔌 MCP server discovery: checking .well-known/mcp.json for agent capabilities...`);
+          } else if (c.function.name === "analyze_oauth") {
+            thinkingParts.push(`🔐 OAuth configuration: checking .well-known/oauth-authorization-server...`);
+          } else if (c.function.name === "analyze_api_catalog") {
+            thinkingParts.push(`📚 API catalog discovery: looking for well-known API documentation...`);
+          } else if (c.function.name === "analyze_agent_card") {
+            thinkingParts.push(`🤖 Agent Card (A2A) discovery: checking .well-known/agent.json...`);
+          } else if (c.function.name === "analyze_a2a") {
+            thinkingParts.push(`📡 A2A protocol check: .well-known/a2a.json for agent-to-agent communication...`);
+          } else if (c.function.name === "analyze_webmcp") {
+            thinkingParts.push(`🌐 WebMCP discovery: checking for web-based MCP endpoints...`);
+          } else if (c.function.name === "analyze_agent_skills") {
+            thinkingParts.push(`🛠️ Agent skills endpoint: checking .agentskills for bot capabilities...`);
+          } else if (c.function.name === "submit_roast") {
+            thinkingParts.push(`📝 Compiling final roast analysis with scores and recommendations...`);
+          } else {
+            thinkingParts.push(`🔧 Executing ${c.function.name}...`);
+          }
+        } catch {
+          thinkingParts.push(`🔧 ${c.function.name}...`);
+        }
+      }
+    }
+
+    const thinkingText = thinkingParts.length > 0 
+      ? thinkingParts.join("\n")
+      : `Step ${iteration}: Processing...`;
+    
     onProgress?.(iteration, thinkingText);
 
     if (!response.tool_calls || response.tool_calls.length === 0) {
