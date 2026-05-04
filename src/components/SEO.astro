@@ -18,14 +18,13 @@ const canonicalURL = new URL(currentPath, baseUrl).toString()
 const { t } = useTranslations(locale)
 const seoTitle = title || t("site.title")
 const seoDescription = description || t("site.seoDescription")
-const keywords = t("site.keywords")
 const adsenseId = import.meta.env.ADSENSE_ACCOUNT_ID || ""
 ---
 
 <!-- Primary Meta Tags -->
 <title>{seoTitle}</title>
 <meta name="description" content={seoDescription} />
-<meta name="keywords" content={keywords} />
+<meta name="keywords" content={t("site.metaKeywords")} />
 <link rel="canonical" href={canonicalURL} />
 
 <!-- Robots -->
@@ -66,8 +65,7 @@ const adsenseId = import.meta.env.ADSENSE_ACCOUNT_ID || ""
 <!-- Structured Data (JSON-LD) -->
 <script is:inline type="application/ld+json" set:html={JSON.stringify({
   "@context": "https://schema.org",
-  "@type": "SoftwareApplication",
-  "applicationSubCategory": "WebApplication",
+  "@type": "WebApplication",
   "name": seoTitle,
   "description": seoDescription,
   "url": canonicalURL,
@@ -78,8 +76,13 @@ const adsenseId = import.meta.env.ADSENSE_ACCOUNT_ID || ""
     "price": "0",
     "priceCurrency": "USD"
   },
-  "inLanguage": locale,
+  "inLanguage": [locale],
   "author": {
+    "@type": "Organization",
+    "name": "Vicedomini Softworks",
+    "url": "https://vicedominisoftworks.com"
+  },
+  "creator": {
     "@type": "Organization",
     "name": "Vicedomini Softworks",
     "url": "https://vicedominisoftworks.com"

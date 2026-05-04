@@ -18,6 +18,7 @@ import {
   analyzeConversionTool,
   analyzeUxTool,
   analyzeCodeTool,
+  analyzeMcpTool,
   submitRoastTool,
 } from "@/tools";
 import {
@@ -36,6 +37,7 @@ import {
   handleAnalyzeConversion,
   handleAnalyzeUx,
   handleAnalyzeCode,
+  handleAnalyzeMcp,
 } from "@/tools/handlers";
 import {
   jobDb,
@@ -821,6 +823,7 @@ const AGENT_TOOLS = [
   analyzeConversionTool,
   analyzeUxTool,
   analyzeCodeTool,
+  analyzeMcpTool,
   submitRoastTool,
 ];
 
@@ -1013,6 +1016,7 @@ async function runAgentLoop(
         analyze_conversion: handleAnalyzeConversion as (args: unknown, baseUrl: string) => unknown,
         analyze_ux: handleAnalyzeUx as (args: unknown, baseUrl: string) => unknown,
         analyze_code: handleAnalyzeCode as (args: unknown, baseUrl: string) => unknown,
+        analyze_mcp: handleAnalyzeMcp as (args: unknown, baseUrl: string) => unknown,
       };
 
       const handler = toolHandlers[call.function.name];
@@ -1025,7 +1029,7 @@ async function runAgentLoop(
           messages.push({ role: "tool", tool_call_id: call.id, content: `Handler error: ${e}` });
         }
       } else {
-        messages.push({ role: "tool", tool_call_id: call.id, content: `Unknown tool "${call.function.name}". Use scrape_url, analyze_security_headers, analyze_robots_txt, analyze_sitemap, analyze_llms_txt, analyze_accessibility, analyze_html_structure, analyze_performance, analyze_seo, analyze_mobile, analyze_brand, analyze_credibility, analyze_conversion, analyze_ux, analyze_code, or submit_roast.` });
+        messages.push({ role: "tool", tool_call_id: call.id, content: `Unknown tool "${call.function.name}". Use scrape_url, analyze_security_headers, analyze_robots_txt, analyze_sitemap, analyze_llms_txt, analyze_accessibility, analyze_mcp, analyze_html_structure, analyze_performance, analyze_seo, analyze_mobile, analyze_brand, analyze_credibility, analyze_conversion, analyze_ux, analyze_code, or submit_roast.` });
       }
     }
   }

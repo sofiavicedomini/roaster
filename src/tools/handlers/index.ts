@@ -13,3 +13,4 @@ export { handleAnalyzeCredibility } from "./analyze-credibility";
 export { handleAnalyzeConversion } from "./analyze-conversion";
 export { handleAnalyzeUx } from "./analyze-ux";
 export { handleAnalyzeCode } from "./analyze-code";
+export { handleAnalyzeMcp } from "./analyze-mcp";

@@ -13,4 +13,5 @@ export { analyzeCredibilityTool } from "./analyze-credibility";
 export { analyzeConversionTool } from "./analyze-conversion";
 export { analyzeUxTool } from "./analyze-ux";
 export { analyzeCodeTool } from "./analyze-code";
+export { analyzeMcpTool } from "./analyze-mcp";
 export { submitRoastTool } from "./submit-roast";
