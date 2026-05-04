@@ -19,6 +19,12 @@ import {
   analyzeUxTool,
   analyzeCodeTool,
   analyzeMcpTool,
+  analyzeOauthTool,
+  analyzeApiCatalogTool,
+  analyzeAgentCardTool,
+  analyzeA2ATool,
+  analyzeWebmcpTool,
+  analyzeAgentSkillsTool,
   submitRoastTool,
 } from "@/tools";
 import {
@@ -38,6 +44,12 @@ import {
   handleAnalyzeUx,
   handleAnalyzeCode,
   handleAnalyzeMcp,
+  handleAnalyzeOauth,
+  handleAnalyzeApiCatalog,
+  handleAnalyzeAgentCard,
+  handleAnalyzeA2A,
+  handleAnalyzeWebmcp,
+  handleAnalyzeAgentSkills,
 } from "@/tools/handlers";
 import {
   jobDb,
@@ -824,6 +836,12 @@ const AGENT_TOOLS = [
   analyzeUxTool,
   analyzeCodeTool,
   analyzeMcpTool,
+  analyzeOauthTool,
+  analyzeApiCatalogTool,
+  analyzeAgentCardTool,
+  analyzeA2ATool,
+  analyzeWebmcpTool,
+  analyzeAgentSkillsTool,
   submitRoastTool,
 ];
 
@@ -1017,6 +1035,12 @@ async function runAgentLoop(
         analyze_ux: handleAnalyzeUx as (args: unknown, baseUrl: string) => unknown,
         analyze_code: handleAnalyzeCode as (args: unknown, baseUrl: string) => unknown,
         analyze_mcp: handleAnalyzeMcp as (args: unknown, baseUrl: string) => unknown,
+        analyze_oauth: handleAnalyzeOauth as (args: unknown, baseUrl: string) => unknown,
+        analyze_api_catalog: handleAnalyzeApiCatalog as (args: unknown, baseUrl: string) => unknown,
+        analyze_agent_card: handleAnalyzeAgentCard as (args: unknown, baseUrl: string) => unknown,
+        analyze_a2a: handleAnalyzeA2A as (args: unknown, baseUrl: string) => unknown,
+        analyze_webmcp: handleAnalyzeWebmcp as (args: unknown, baseUrl: string) => unknown,
+        analyze_agent_skills: handleAnalyzeAgentSkills as (args: unknown, baseUrl: string) => unknown,
       };
 
       const handler = toolHandlers[call.function.name];
