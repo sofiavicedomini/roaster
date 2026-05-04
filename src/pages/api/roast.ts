@@ -426,8 +426,9 @@ async function processRoast(
 
   const checks = await checkAgentReadiness(url);
   
-  // Skip pre-analysis - let the LLM call tools as needed based on updated prompt
-  const checksWithTools = checks;
+  // Run lightweight pre-analysis with error tolerance
+  const toolAnalysis = await runPreAnalysis(url, cats);
+  const checksWithTools = { ...checks, _toolAnalysis: toolAnalysis };
   
   await updateJob(jobId, { progress: "Building prompt" });
 
@@ -751,172 +752,75 @@ async function checkAgentReadiness(baseUrl: string) {
 async function runPreAnalysis(url: string, categories: string[]): Promise<Record<string, { status: string; detail: string; score: number }>> {
   const results: Record<string, { status: string; detail: string; score: number }> = {};
 
-  console.log("[Pre-analysis] Running tool-based analysis for categories:", categories.join(", "));
+  console.log("[Pre-analysis] Running lightweight analysis...");
 
-  // Scrape homepage first
-  const html = await handleScrapeUrl({ url }, url);
+  // Scrape homepage first with timeout
+  let html = "";
+  try {
+    const scrapePromise = handleScrapeUrl({ url }, url);
+    html = await Promise.race([
+      scrapePromise,
+      new Promise<string>((_, reject) => setTimeout(() => reject(new Error("Scrape timeout")), 8000))
+    ]);
+  } catch (e) {
+    console.log("[Pre-analysis] Scrape failed, skipping:", e);
+    return {}; // Return empty if scrape fails
+  }
+
   const hasContent = html && html.length > 100 && !html.includes("Not found");
-
   if (!hasContent) {
-    console.log("[Pre-analysis] Could not scrape homepage, skipping pre-analysis");
     return {};
   }
 
-  if (hasContent) {
-    // Run accessibility analysis
-    if (categories.includes("accessibility")) {
-      try {
-        const accessibilityResult = await handleAnalyzeAccessibility({ html }, url);
-        const hasIssues = accessibilityResult.includes("issues:");
-        results["accessibility_tool"] = {
-          status: hasIssues ? "issues_found" : "ok",
-          detail: accessibilityResult.substring(0, 500),
-          score: hasIssues ? 4 : 8,
-        };
-      } catch (e) {
-        results["accessibility_tool"] = { status: "error", detail: `Error: ${e}`, score: 0 };
-      }
+  // Helper to run a tool with timeout
+  const runTool = async (name: string, toolFn: () => Promise<string>) => {
+    try {
+      const result = await Promise.race([
+        toolFn(),
+        new Promise<string>((_, reject) => setTimeout(() => reject(new Error("timeout")), 5000))
+      ]);
+      const hasIssues = result.includes("issues:") || result.includes("missing") || result.includes("not found");
+      results[`${name}_tool`] = {
+        status: hasIssues ? "issues_found" : "ok",
+        detail: result.substring(0, 400),
+        score: hasIssues ? 4 : 8,
+      };
+    } catch (e) {
+      // Silently skip failed tools
+      console.log(`[Pre-analysis] ${name} tool skipped: ${e}`);
     }
+  };
 
-    // Run HTML structure analysis
-    if (categories.includes("code") || categories.includes("design")) {
-      try {
-        const htmlResult = await handleAnalyzeHtmlStructure({ html }, url);
-        const hasIssues = htmlResult.includes("issues:");
-        results["html_structure_tool"] = {
-          status: hasIssues ? "issues_found" : "ok",
-          detail: htmlResult.substring(0, 500),
-          score: hasIssues ? 4 : 8,
-        };
-      } catch (e) {
-        results["html_structure_tool"] = { status: "error", detail: `Error: ${e}`, score: 0 };
-      }
-    }
+  // Run only essential tools that are less likely to fail
+  const promises: Promise<void>[] = [];
 
-    // Run SEO analysis
-    if (categories.includes("seo")) {
-      try {
-        const seoResult = await handleAnalyzeSeo({ html }, url);
-        const hasIssues = seoResult.includes("issues:");
-        results["seo_tool"] = {
-          status: hasIssues ? "issues_found" : "ok",
-          detail: seoResult.substring(0, 500),
-          score: hasIssues ? 4 : 8,
-        };
-      } catch (e) {
-        results["seo_tool"] = { status: "error", detail: `Error: ${e}`, score: 0 };
-      }
-    }
-
-    // Run mobile analysis
-    if (categories.includes("mobile")) {
-      try {
-        const mobileResult = await handleAnalyzeMobile({ html }, url);
-        const hasIssues = mobileResult.includes("issues:");
-        results["mobile_tool"] = {
-          status: hasIssues ? "issues_found" : "ok",
-          detail: mobileResult.substring(0, 500),
-          score: hasIssues ? 4 : 8,
-        };
-      } catch (e) {
-        results["mobile_tool"] = { status: "error", detail: `Error: ${e}`, score: 0 };
-      }
-    }
-
-    // Run brand analysis
-    if (categories.includes("brand")) {
-      try {
-        const brandResult = await handleAnalyzeBrand({ html }, url);
-        const hasIssues = brandResult.includes("issues:");
-        results["brand_tool"] = {
-          status: hasIssues ? "issues_found" : "ok",
-          detail: brandResult.substring(0, 500),
-          score: hasIssues ? 4 : 8,
-        };
-      } catch (e) {
-        results["brand_tool"] = { status: "error", detail: `Error: ${e}`, score: 0 };
-      }
-    }
-
-    // Run UX analysis
-    if (categories.includes("ux")) {
-      try {
-        const uxResult = await handleAnalyzeUx({ html }, url);
-        const hasIssues = uxResult.includes("issues:");
-        results["ux_tool"] = {
-          status: hasIssues ? "issues_found" : "ok",
-          detail: uxResult.substring(0, 500),
-          score: hasIssues ? 4 : 8,
-        };
-      } catch (e) {
-        results["ux_tool"] = { status: "error", detail: `Error: ${e}`, score: 0 };
-      }
-    }
-
-    // Run conversion analysis
-    if (categories.includes("conversion")) {
-      try {
-        const convResult = await handleAnalyzeConversion({ html }, url);
-        const hasIssues = convResult.includes("issues:");
-        results["conversion_tool"] = {
-          status: hasIssues ? "issues_found" : "ok",
-          detail: convResult.substring(0, 500),
-          score: hasIssues ? 4 : 8,
-        };
-      } catch (e) {
-        results["conversion_tool"] = { status: "error", detail: `Error: ${e}`, score: 0 };
-      }
-    }
-
-    // Run performance analysis
-    if (categories.includes("performance")) {
-      try {
-        const perfResult = await handleAnalyzePerformance({ html }, url);
-        const hasIssues = perfResult.includes("issues:");
-        results["performance_tool"] = {
-          status: hasIssues ? "issues_found" : "ok",
-          detail: perfResult.substring(0, 500),
-          score: hasIssues ? 4 : 8,
-        };
-      } catch (e) {
-        results["performance_tool"] = { status: "error", detail: `Error: ${e}`, score: 0 };
-      }
-    }
-
-    // Run security headers analysis
-    if (categories.includes("security")) {
-      try {
-        const secResult = await handleAnalyzeSecurityHeaders({}, url);
-        const hasIssues = secResult.includes("issues:") || secResult.includes("missing");
-        results["security_tool"] = {
-          status: hasIssues ? "issues_found" : "ok",
-          detail: secResult.substring(0, 500),
-          score: hasIssues ? 4 : 8,
-        };
-      } catch (e) {
-        results["security_tool"] = { status: "error", detail: `Error: ${e}`, score: 0 };
-      }
-    }
-
-    // Run credibility analysis
-    if (categories.includes("credibility")) {
-      try {
-        const credResult = await handleAnalyzeCredibility({}, url);
-        const hasIssues = credResult.includes("issues:") || credResult.includes("missing");
-        results["credibility_tool"] = {
-          status: hasIssues ? "issues_found" : "ok",
-          detail: credResult.substring(0, 500),
-          score: hasIssues ? 4 : 8,
-        };
-      } catch (e) {
-        results["credibility_tool"] = { status: "error", detail: `Error: ${e}`, score: 0 };
-      }
-    }
-  } else {
-    results["preanalysis_error"] = { status: "error", detail: "Could not fetch homepage for analysis", score: 0 };
+  if (categories.includes("accessibility")) {
+    promises.push(runTool("accessibility", () => handleAnalyzeAccessibility({ html }, url)));
   }
 
-  console.log("[Pre-analysis] Completed:", Object.keys(results).join(", "));
+  if (categories.includes("seo")) {
+    promises.push(runTool("seo", () => handleAnalyzeSeo({ html }, url)));
+  }
+
+  if (categories.includes("code") || categories.includes("design")) {
+    promises.push(runTool("html_structure", () => handleAnalyzeHtmlStructure({ html }, url)));
+  }
+
+  if (categories.includes("mobile")) {
+    promises.push(runTool("mobile", () => handleAnalyzeMobile({ html }, url)));
+  }
+
+  // Wait for all tools with overall timeout
+  try {
+    await Promise.race([
+      Promise.all(promises),
+      new Promise<void>((_, reject) => setTimeout(() => reject(new Error("Pre-analysis timeout")), 25000))
+    ]);
+  } catch (e) {
+    console.log("[Pre-analysis] Timeout or error, continuing with partial results");
+  }
+
+  console.log("[Pre-analysis] Completed with", Object.keys(results).length, "tools");
   return results;
 }
 
