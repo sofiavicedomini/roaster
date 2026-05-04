@@ -55,7 +55,7 @@ Check keys: `robots`, `sitemap`
 ### `mcp` — MCP & Agent Skills
 Check keys: `mcp`, `webmcp`, `agentskills`
 
-**MCP** = Model Context Protocol (Anthropic). Valid `.well-known/mcp` has `mcpServers` or `endpoints`:
+**MCP** = Model Context Protocol (Anthropic). Valid `.well-known/mcp.json` has `mcpServers` or `endpoints`:
 ```json
 { "mcpServers": { "name": { "url": "https://…/mcp", "type": "sse" } } }
 ```

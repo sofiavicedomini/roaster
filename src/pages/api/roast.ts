@@ -609,7 +609,7 @@ async function checkAgentReadiness(baseUrl: string) {
     { key: "sitemap", url: `${origin}/sitemap.xml`, label: "sitemap.xml", score: 1, type: "text" },
     { key: "llms", url: `${origin}/llms.txt`, label: "llms.txt", score: 3, type: "text" },
     { key: "llmsfull", url: `${origin}/llms-full.txt`, label: "llms-full.txt", score: 1, type: "text" },
-    { key: "mcp", url: `${origin}/.well-known/mcp`, label: "MCP well-known", score: 3, type: "json" },
+    { key: "mcp", url: `${origin}/.well-known/mcp.json`, label: "MCP well-known", score: 3, type: "json" },
     { key: "oauth", url: `${origin}/.well-known/oauth-authorization-server`, label: "OAuth discovery", score: 2, type: "json" },
     { key: "oauth-protected", url: `${origin}/.well-known/oauth-protected-resource`, label: "OAuth protected resource", score: 1, type: "json" },
     { key: "agent-card", url: `${origin}/.well-known/agent.json`, label: "Agent Card (A2A)", score: 2, type: "json" },
@@ -671,7 +671,7 @@ async function checkAgentReadiness(baseUrl: string) {
 
   const headersToCheck = ["link", "x-robots-tag", "content-type", "x-content-signals", "x-mcp-endpoint", "x-agent-card"];
   try {
-    const res = await fetch(baseUrl, { headers: { "User-Agent": "Mozilla/5.0 Agent-Readiness-Checker" } });
+    const res = await fetch(baseUrl, { headers: { "User-Agent": "Mozilla/5.0 Agent-Readiness-Checker" }, redirect: "follow" });
     const headers: string[] = [];
 
     for (const h of headersToCheck) {
