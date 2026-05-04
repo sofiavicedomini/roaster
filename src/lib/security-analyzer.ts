@@ -1,5 +1,3 @@
-import { defineMiddleware } from "astro:middleware"
-
 export function analyzeSecurityHeaders(headers: Headers): {
   present: string[];
   missing: string[];

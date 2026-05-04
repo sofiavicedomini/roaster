@@ -46,14 +46,14 @@ function getLocalizedPath(loc: string) {
     <div class="heat-distortion fire"></div>
 
     <!-- ── Desktop top-left nav ── -->
-    <div class="hidden md:flex fixed top-4 left-4 z-50 items-center gap-2">
+    <nav aria-label="Main navigation" class="hidden md:flex fixed top-4 left-4 z-50 items-center gap-2">
       <a href={`/${locale}/rankings`} class="px-2.5 py-1 text-xs font-semibold rounded-md bg-zinc-900/90 text-orange-400/80 border border-orange-500/20 hover:border-orange-400/50 hover:text-orange-300 hover:shadow-[0_0_12px_theme(colors.orange.500/0.3)] transition-all duration-150 backdrop-blur-sm">{t("rankings.navLink")}</a>
       <a href={`/${locale}/about`}    class="px-2.5 py-1 text-xs font-semibold rounded-md bg-zinc-900/90 text-orange-400/80 border border-orange-500/20 hover:border-orange-400/50 hover:text-orange-300 hover:shadow-[0_0_12px_theme(colors.orange.500/0.3)] transition-all duration-150 backdrop-blur-sm">{t("nav.about")}</a>
       <a href={`/${locale}/how-it-works`} class="px-2.5 py-1 text-xs font-semibold rounded-md bg-zinc-900/90 text-orange-400/80 border border-orange-500/20 hover:border-orange-400/50 hover:text-orange-300 hover:shadow-[0_0_12px_theme(colors.orange.500/0.3)] transition-all duration-150 backdrop-blur-sm">{t("nav.howItWorks")}</a>
-    </div>
+    </nav>
 
     <!-- ── Desktop top-right controls ── -->
-    <div class="hidden md:flex fixed top-4 right-4 z-50 items-center gap-1.5">
+    <nav aria-label="Settings" class="hidden md:flex fixed top-4 right-4 z-50 items-center gap-1.5">
       <button data-action="toggle-theme" aria-label="Toggle theme" class="p-1.5 rounded-md bg-zinc-900/90 border border-orange-500/20 hover:border-orange-400/50 text-orange-400/80 hover:text-orange-300 hover:shadow-[0_0_12px_theme(colors.orange.500/0.3)] hover:scale-105 active:scale-95 transition-all duration-150 backdrop-blur-sm text-sm leading-none">
         <span class="theme-icon">☀️</span>
       </button>
@@ -61,7 +61,7 @@ function getLocalizedPath(loc: string) {
         <span class="fire-icon">🔥</span>
       </button>
       <LanguageSwitcher />
-    </div>
+    </nav>
 
 <!-- ── Mobile hamburger ── -->
     <div class="md:hidden fixed top-4 right-4 z-50">
@@ -94,7 +94,7 @@ function getLocalizedPath(loc: string) {
       </div>
 
       <!-- Nav links -->
-      <nav class="flex flex-col gap-1 px-3 pt-3">
+      <nav aria-label="Mobile menu" class="flex flex-col gap-1 px-3 pt-3">
         <a href={`/${locale}/rankings`}    class="flex items-center gap-2.5 px-3 py-2.5 rounded-md text-sm text-orange-400/80 hover:text-orange-300 hover:bg-orange-500/8 transition-colors">{t("rankings.navLink")}</a>
         <a href={`/${locale}/about`}       class="flex items-center gap-2.5 px-3 py-2.5 rounded-md text-sm text-orange-400/80 hover:text-orange-300 hover:bg-orange-500/8 transition-colors">{t("nav.about")}</a>
         <a href={`/${locale}/how-it-works`} class="flex items-center gap-2.5 px-3 py-2.5 rounded-md text-sm text-orange-400/80 hover:text-orange-300 hover:bg-orange-500/8 transition-colors">{t("nav.howItWorks")}</a>
@@ -140,13 +140,15 @@ function getLocalizedPath(loc: string) {
     </aside>
 
     <GoogleAnalytics />
-    <slot />
+    <main id="main-content">
+      <slot />
+    </main>
 
     <!-- Footer with company legal info -->
     <Footer locale={locale} />
 
-    <script is:inline>
-      (function () {
+    <script>
+      document.addEventListener('DOMContentLoaded', function() { (function () {
         // ── Theme & fire state ──────────────────────────────
         function updateAll() {
           var isDark = document.documentElement.classList.contains('dark');
@@ -252,7 +254,7 @@ function getLocalizedPath(loc: string) {
             }
           });
         }
-      })();
+      })(); });
     </script>
   </body>
 </html>
