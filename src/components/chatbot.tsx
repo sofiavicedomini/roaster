@@ -135,7 +135,7 @@ const CATEGORIES = [
 
 export function Chatbot({ locale = "en" }: ChatbotProps) {
   const t = getTranslations(locale);
-  const [url] = useState("");
+  const [url, setUrl] = useState("");
   const [selectedCategories, setSelectedCategories] = useState<string[]>([
     "design", "performance", "ux", "seo", "agentReadiness",
   ]);
