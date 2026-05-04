@@ -30,76 +30,68 @@ export async function POST({ request }: APIContext) {
     });
   }
 
-  const accessToken = import.meta.env.HUBSPOT_ACCESS_TOKEN;
-  const listId = import.meta.env.HUBSPOT_LIST_ID;
+  const apiKey = import.meta.env.BREVO_API_KEY;
+  const listId = import.meta.env.BREVO_LIST_ID;
 
-  console.log(`[Newsletter] HubSpot config - token: ${!!accessToken}, listId: ${listId || 'none'}`);
+  console.log(`[Newsletter] Brevo config - apiKey: ${!!apiKey}, listId: ${listId || 'none'}`);
 
-  if (!accessToken) {
-    console.log(`[Newsletter] Missing HubSpot access token`);
+  if (!apiKey) {
+    console.log(`[Newsletter] Missing Brevo API key`);
     return new Response(
       JSON.stringify({ error: "Newsletter not configured" }),
       { status: 503, headers: { "Content-Type": "application/json" } },
     );
   }
 
-  // 1. Create or update contact in HubSpot CRM
-  console.log(`[Newsletter] Creating/updating HubSpot contact for: ${email}`);
+  // 1. Create or update contact in Brevo
+  console.log(`[Newsletter] Creating/updating Brevo contact for: ${email}`);
   const contactRes = await fetch(
-    "https://api.hubapi.com/crm/v3/objects/contacts",
+    "https://api.brevo.com/v3/contacts",
     {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${accessToken}`,
+        "api-key": apiKey,
       },
-      body: JSON.stringify({ properties: { email, language: lang } }),
+      body: JSON.stringify({ email, lang }),
     },
   );
 
-  console.log(`[Newsletter] HubSpot contact creation response: ${contactRes.status} ${contactRes.statusText}`);
+  console.log(`[Newsletter] Brevo contact creation response: ${contactRes.status} ${contactRes.statusText}`);
 
-  // 409 = contact already exists — that's fine
-  if (!contactRes.ok && contactRes.status !== 409) {
+  // 201 = created, 204 = updated (contact exists)
+  if (!contactRes.ok) {
     const err = await contactRes.text();
-    console.error(`[Newsletter] HubSpot contact creation failed (${contactRes.status}):`, err);
+    console.error(`[Newsletter] Brevo contact creation failed (${contactRes.status}):`, err);
     return new Response(JSON.stringify({ error: "Subscription failed" }), {
       status: 502,
       headers: { "Content-Type": "application/json" },
     });
   }
 
-  console.log(`[Newsletter] HubSpot contact created/updated successfully`);
+  console.log(`[Newsletter] Brevo contact created/updated successfully`);
 
   // 2. If a list ID is configured, add the contact to it
   if (listId) {
-    console.log(`[Newsletter] Adding contact to HubSpot list: ${listId}`);
-    const vid =
-      contactRes.status === 409
-        ? await getContactVid(email, accessToken)
-        : (await contactRes.json()).id;
+    console.log(`[Newsletter] Adding contact to Brevo list: ${listId}`);
+    const listRes = await fetch(`https://api.brevo.com/v3/contacts/lists/${listId}/members`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "api-key": apiKey,
+      },
+      body: JSON.stringify({
+        contact: { email },
+        optInStatus: "subscribed"
+      }),
+    });
 
-    console.log(`[Newsletter] Contact VID: ${vid}`);
-
-    if (vid) {
-      const listRes = await fetch(`https://api.hubapi.com/contacts/v1/lists/${listId}/add`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${accessToken}`,
-        },
-        body: JSON.stringify({ vids: [vid] }),
-      });
-
-      console.log(`[Newsletter] HubSpot list addition response: ${listRes.status} ${listRes.statusText}`);
-      if (!listRes.ok) {
-        const listErr = await listRes.text();
-        console.error(`[Newsletter] Failed to add contact to list (${listRes.status}):`, listErr);
-      } else {
-        console.log(`[Newsletter] Contact successfully added to list`);
-      }
+    console.log(`[Newsletter] Brevo list addition response: ${listRes.status} ${listRes.statusText}`);
+    if (!listRes.ok) {
+      const listErr = await listRes.text();
+      console.error(`[Newsletter] Failed to add contact to list (${listRes.status}):`, listErr);
     } else {
-      console.error(`[Newsletter] Could not get contact VID for list addition`);
+      console.log(`[Newsletter] Contact successfully added to list`);
     }
   } else {
     console.log(`[Newsletter] No list ID configured, skipping list addition`);
@@ -116,29 +108,4 @@ export async function POST({ request }: APIContext) {
   });
 }
 
-async function getContactVid(
-  email: string,
-  token: string,
-): Promise<string | null> {
-  try {
-    console.log(`[Newsletter] Getting VID for existing contact: ${email}`);
-    const res = await fetch(
-      `https://api.hubapi.com/crm/v3/objects/contacts/${encodeURIComponent(email)}?idProperty=email`,
-      {
-        headers: { Authorization: `Bearer ${token}` },
-      },
-    );
-    console.log(`[Newsletter] Get VID response: ${res.status} ${res.statusText}`);
-    if (!res.ok) {
-      console.error(`[Newsletter] Failed to get contact VID (${res.status})`);
-      return null;
-    }
-    const data = await res.json();
-    const vid = data.id ?? null;
-    console.log(`[Newsletter] Retrieved VID: ${vid}`);
-    return vid;
-  } catch (error) {
-    console.error(`[Newsletter] Error getting contact VID:`, error);
-    return null;
-  }
-}
+

@@ -46,6 +46,14 @@ API route uses OpenAI-compatible endpoint. Defaults to local Ollama:
 
 See `.env.example` for setup.
 
+## Newsletter Integration
+
+Newsletter subscriptions use Brevo (ex Sendinblue) API:
+- `BREVO_API_KEY` - API key for newsletter operations (contacts, lists)
+- `BREVO_LIST_ID` - optional list ID to add subscribers to
+
+See `.env.example` for setup instructions.
+
 ## Security
 
 - `src/middleware.ts` - sets CSP, HSTS, X-Content-Type-Options, X-Frame-Options, HTTPS redirect
