@@ -46,8 +46,6 @@ export interface Translation {
     categories: Record<string, string>;
     loadingMessages: string[];
     verifyingRobot: string;
-    agentIteration: string;
-    agentActions: Record<string, string>;
   };
   privacy: {
     message: string;

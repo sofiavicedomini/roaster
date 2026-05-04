@@ -218,12 +218,14 @@ function getLocalizedPath(loc: string) {
         var overlay = document.getElementById('sidebar-overlay');
 
         function openSidebar() {
+          if (!sidebar || !overlay || !openBtn || !closeBtn) return;
           sidebar.classList.remove('translate-x-full');
           overlay.classList.remove('hidden');
           openBtn.setAttribute('aria-expanded', 'true');
           closeBtn.focus();
         }
         function closeSidebar() {
+          if (!sidebar || !overlay || !openBtn) return;
           sidebar.classList.add('translate-x-full');
           overlay.classList.add('hidden');
           openBtn.setAttribute('aria-expanded', 'false');
@@ -235,18 +237,19 @@ function getLocalizedPath(loc: string) {
         if (overlay) overlay.addEventListener('click', closeSidebar);
 
         document.addEventListener('keydown', function (e) {
-          if (e.key === 'Escape' && !sidebar.classList.contains('translate-x-full')) {
+          if (e.key === 'Escape' && sidebar && !sidebar.classList.contains('translate-x-full')) {
             closeSidebar();
           }
         });
 
         // Focus trap inside sidebar
         if (sidebar) {
-          sidebar.addEventListener('keydown', function (e) {
+          const sidebarEl = sidebar;
+          sidebarEl.addEventListener('keydown', function (e) {
             if (e.key !== 'Tab') return;
-            var focusable = Array.from(sidebar.querySelectorAll('a, button, [tabindex]:not([tabindex="-1"])'));
-            var first = focusable[0];
-            var last = focusable[focusable.length - 1];
+            var focusable = Array.from(sidebarEl.querySelectorAll('a, button, [tabindex]:not([tabindex="-1"])')) as HTMLElement[];
+            var first = focusable[0]!;
+            var last = focusable[focusable.length - 1]!;
             if (e.shiftKey && document.activeElement === first) {
               e.preventDefault(); last.focus();
             } else if (!e.shiftKey && document.activeElement === last) {

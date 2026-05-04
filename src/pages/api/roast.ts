@@ -810,22 +810,22 @@ async function runPreAnalysis(url: string, categories: string[]): Promise<Record
 
   // SEO
   if (categories.includes("seo")) {
-    promises.push(runTool("seo", () => handleAnalyzeSeo({ html }, url)));
+    promises.push(runTool("seo", () => Promise.resolve(handleAnalyzeSeo({ html }))));
   }
 
   // HTML Structure / Code
   if (categories.includes("code") || categories.includes("design")) {
-    promises.push(runTool("html_structure", () => handleAnalyzeHtmlStructure({ html }, url)));
+    promises.push(runTool("html_structure", () => Promise.resolve(handleAnalyzeHtmlStructure({ html }))));
   }
 
   // Mobile
   if (categories.includes("mobile")) {
-    promises.push(runTool("mobile", () => handleAnalyzeMobile({ html }, url)));
+    promises.push(runTool("mobile", () => Promise.resolve(handleAnalyzeMobile({ html }))));
   }
 
   // Performance
   if (categories.includes("performance")) {
-    promises.push(runTool("performance", () => handleAnalyzePerformance({ html }, url)));
+    promises.push(runTool("performance", () => Promise.resolve(handleAnalyzePerformance({ html }))));
   }
 
   // Security
@@ -835,22 +835,22 @@ async function runPreAnalysis(url: string, categories: string[]): Promise<Record
 
   // Brand
   if (categories.includes("brand")) {
-    promises.push(runTool("brand", () => handleAnalyzeBrand({ html }, url)));
+    promises.push(runTool("brand", () => Promise.resolve(handleAnalyzeBrand({ html }))));
   }
 
   // UX
   if (categories.includes("ux")) {
-    promises.push(runTool("ux", () => handleAnalyzeUx({ html }, url)));
+    promises.push(runTool("ux", () => Promise.resolve(handleAnalyzeUx({ html }))));
   }
 
   // Conversion
   if (categories.includes("conversion")) {
-    promises.push(runTool("conversion", () => handleAnalyzeConversion({ html }, url)));
+    promises.push(runTool("conversion", () => Promise.resolve(handleAnalyzeConversion({ html }))));
   }
 
   // Credibility
   if (categories.includes("credibility")) {
-    promises.push(runTool("credibility", () => handleAnalyzeCredibility({}, url)));
+    promises.push(runTool("credibility", () => Promise.resolve(handleAnalyzeCredibility({ html }, url))));
   }
 
   // Wait for all tools with overall timeout (30 seconds for all tools)

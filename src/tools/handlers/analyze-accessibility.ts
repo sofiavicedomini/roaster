@@ -22,8 +22,6 @@ export async function handleAnalyzeAccessibility(args: unknown, baseUrl: string)
   const hasAriaLabel = /aria-label\s*=/i.test(htmlContent);
   const hasAriaLabelledby = /aria-labelledby\s*=/i.test(htmlContent);
   const hasAriaDescribedby = /aria-describedby\s*=/i.test(htmlContent);
-  const hasAriaHidden = /aria-hidden\s*=/i.test(htmlContent);
-  const hasAriaRequired = /aria-required\s*=/i.test(htmlContent);
   const hasAlt = /alt\s*=/i.test(htmlContent);
   const hasLang = /lang\s*=/i.test(htmlContent);
   const hasHeadings = /<h[1-6][\s>]/i.test(htmlContent);
@@ -56,18 +54,7 @@ export async function handleAnalyzeAccessibility(args: unknown, baseUrl: string)
   
   const allIssues = [...issues, ...specificIssues];
   
-  const summary = {
-    hasAria,
-    hasRoles, 
-    hasAriaLabel,
-    hasAriaLabelledby,
-    hasAriaDescribedby,
-    hasHeadings,
-    hasButtons,
-    hasLabels,
-    hasLang,
-    issueCount: allIssues.length
-  };
+  void allIssues.length;
   
   return allIssues.length > 0 
     ? `Accessibility issues found (${allIssues.length}): ${allIssues.join(", ")}. Summary: ARIA=${hasAria}, roles=${hasRoles}, aria-label=${hasAriaLabel}, headings=${hasHeadings}, buttons=${hasButtons}, labels=${hasLabels}, lang=${hasLang}`
