@@ -148,116 +148,19 @@ function getLocalizedPath(loc: string) {
     <Footer locale={locale} />
 
     <script>
-      document.addEventListener('DOMContentLoaded', function() { (function () {
-        // ── Theme & fire state ──────────────────────────────
-        function updateAll() {
-          var isDark = document.documentElement.classList.contains('dark');
-          var fireOff = document.documentElement.classList.contains('no-fire');
-
-          document.querySelectorAll('.theme-icon').forEach(function (el) {
-            el.textContent = isDark ? '☀️' : '🌙';
-          });
-          document.querySelectorAll('.theme-label').forEach(function (el) {
-            el.textContent = isDark ? 'Light mode' : 'Dark mode';
-          });
-          document.querySelectorAll('.fire-icon').forEach(function (el) {
-            el.textContent = fireOff ? '○' : '🔥';
-          });
-          document.querySelectorAll('[data-action="toggle-fire"]').forEach(function (btn) {
-            btn.setAttribute('aria-label', fireOff ? 'Enable background animation' : 'Disable background animation');
-          });
-        }
-
-        updateAll();
-
-        document.querySelectorAll('[data-action="toggle-theme"]').forEach(function (btn) {
-          btn.addEventListener('click', function () {
-            var isDark = document.documentElement.classList.contains('dark');
-            var next = isDark ? 'light' : 'dark';
-            document.documentElement.classList.remove('dark', 'light');
-            document.documentElement.classList.add(next);
-            try { localStorage.setItem('theme', next); } catch (e) {}
-            updateAll();
-
-            // play a short click sound
-            try {
-              // @ts-ignore - webkitAudioContext is not in standard TS types
-              var AudioCtx = window.AudioContext || window.webkitAudioContext;
-              var ctx = new AudioCtx();
-              var osc = ctx.createOscillator();
-              var gain = ctx.createGain();
-              osc.type = 'sine';
-              osc.frequency.value = next === 'dark' ? 220 : 440;
-              gain.gain.value = 0.15;
-              gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.15);
-              osc.connect(gain).connect(ctx.destination);
-              osc.start();
-              osc.stop(ctx.currentTime + 0.15);
-            } catch (e) {}
-          });
-        });
-
-        document.querySelectorAll('[data-action="toggle-fire"]').forEach(function (btn) {
-          btn.addEventListener('click', function () {
-            var off = document.documentElement.classList.contains('no-fire');
-            if (off) {
-              document.documentElement.classList.remove('no-fire');
-              try { localStorage.setItem('fire-disabled', 'false'); } catch (e) {}
-            } else {
-              document.documentElement.classList.add('no-fire');
-              try { localStorage.setItem('fire-disabled', 'true'); } catch (e) {}
-            }
-            updateAll();
-          });
-        });
-
-        // ── Mobile sidebar ──────────────────────────────────
-        var openBtn = document.getElementById('menu-open');
-        var closeBtn = document.getElementById('menu-close');
-        var sidebar = document.getElementById('mobile-sidebar');
-        var overlay = document.getElementById('sidebar-overlay');
-
-        function openSidebar() {
-          if (!sidebar || !overlay || !openBtn || !closeBtn) return;
-          sidebar.classList.remove('translate-x-full');
-          overlay.classList.remove('hidden');
-          openBtn.setAttribute('aria-expanded', 'true');
-          closeBtn.focus();
-        }
-        function closeSidebar() {
-          if (!sidebar || !overlay || !openBtn) return;
-          sidebar.classList.add('translate-x-full');
-          overlay.classList.add('hidden');
-          openBtn.setAttribute('aria-expanded', 'false');
-          openBtn.focus();
-        }
-
-        if (openBtn) openBtn.addEventListener('click', openSidebar);
-        if (closeBtn) closeBtn.addEventListener('click', closeSidebar);
-        if (overlay) overlay.addEventListener('click', closeSidebar);
-
-        document.addEventListener('keydown', function (e) {
-          if (e.key === 'Escape' && sidebar && !sidebar.classList.contains('translate-x-full')) {
-            closeSidebar();
+        try {
+          const theme = localStorage.getItem('theme') || 'dark';
+          document.documentElement.classList.add(theme);
+          const fireEnabled = localStorage.getItem('fire-enabled') !== 'false';
+          if (fireEnabled) {
+            document.documentElement.classList.add('fire-enabled');
+          } else {
+            document.documentElement.classList.add('no-fire');
           }
-        });
-
-        // Focus trap inside sidebar
-        if (sidebar) {
-          const sidebarEl = sidebar;
-          sidebarEl.addEventListener('keydown', function (e) {
-            if (e.key !== 'Tab') return;
-            var focusable = Array.from(sidebarEl.querySelectorAll('a, button, [tabindex]:not([tabindex="-1"])')) as HTMLElement[];
-            var first = focusable[0]!;
-            var last = focusable[focusable.length - 1]!;
-            if (e.shiftKey && document.activeElement === first) {
-              e.preventDefault(); last.focus();
-            } else if (!e.shiftKey && document.activeElement === last) {
-              e.preventDefault(); first.focus();
-            }
-          });
+        } catch (e) {
+          document.documentElement.classList.add('dark');
+          document.documentElement.classList.add('no-fire');
         }
-      })(); });
     </script>
   </body>
 </html>

@@ -148,7 +148,6 @@
     radial-gradient(ellipse at 20% 100%, oklch(0.704 0.191 22.216 / 0.5) 0%, transparent 45%),
     radial-gradient(ellipse at 80% 100%, oklch(0.646 0.222 41.116 / 0.5) 0%, transparent 40%),
     linear-gradient(180deg, oklch(0.148 0.004 228.8) 0%, oklch(0.218 0.008 223.9) 30%, oklch(0.444 0.177 26.899 / 0.4) 70%, oklch(0.704 0.191 22.216 / 0.3) 100%);
-  animation: inferno-flicker 6s ease-in-out infinite alternate;
   will-change: opacity;
   contain: layout style;
 }
@@ -171,7 +170,11 @@
   50% { opacity: 0.18; }
 }
 
-:root:not(.dark) .inferno-background {
+.fire-enabled .inferno-background {
+  animation: inferno-flicker 6s ease-in-out infinite alternate;
+}
+
+.fire-enabled:root:not(.dark) .inferno-background {
   animation-name: inferno-flicker-light;
 }
 
@@ -296,9 +299,18 @@ button:not(:disabled):hover, [role="button"]:not(:disabled):hover {
   opacity: 0.5 !important;
 }
 
+.fire-enabled .inferno-text {
+  text-shadow: 0 0 8px oklch(0.837 0.128 66.29 / 0.6), 0 0 16px oklch(0.705 0.213 47.604 / 0.4), 0 0 24px oklch(0.646 0.222 41.116 / 0.3);
+  animation: text-flicker 4s ease-in-out infinite alternate;
+}
+
 .no-fire .inferno-text {
   text-shadow: none;
   animation: none;
+}
+
+.fire-enabled .inferno-card::before {
+  animation: fire-glow-fade 5s ease-in-out infinite;
 }
 
 .no-fire .inferno-card::before {
