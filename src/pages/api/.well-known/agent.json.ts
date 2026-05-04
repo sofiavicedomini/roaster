@@ -1,6 +1,9 @@
-import { companyInfo, howItWorks } from "@/pages/api/info.ts";
+export const prerender = false;
 
-export async function GET() {
+import type { APIRoute } from "astro";
+import { companyInfo, howItWorks } from "../info.ts";
+
+export const GET: APIRoute = async () => {
     const agent = {
         name: "Roast Me",
         version: "1.0.0",
@@ -31,22 +34,15 @@ export async function GET() {
             {
                 id: "get-summary",
                 name: "Get Roast Summary",
-                description: "Get a summary of all roast statistics including averages, distributions, and top/lowest rated sites",
+                description: "Get a summary of all roast statistics",
                 endpoint: "/api/summary",
                 method: "GET"
             },
             {
                 id: "get-info",
                 name: "Get Service Info",
-                description: "Get company information (including legal data), how the service works, and available analysis categories",
+                description: "Get company information and available analysis categories",
                 endpoint: "/api/info",
-                method: "GET"
-            },
-            {
-                id: "get-company-legal-info",
-                name: "Get Company Legal Info",
-                description: `Get legal information about ${companyInfo.legalName} (P.IVA, REA, address, capital)`,
-                endpoint: "/api/company-info",
                 method: "GET"
             }
         ],
@@ -54,7 +50,7 @@ export async function GET() {
             {
                 url: "https://stroncami.it/api/mcp",
                 protocol: "mcp/1.0",
-                transport: "sse"
+                transport: "http"
             },
             {
                 url: "https://stroncami.it/api/summary",
@@ -63,11 +59,6 @@ export async function GET() {
             },
             {
                 url: "https://stroncami.it/api/info",
-                protocol: "rest/1.0",
-                transport: "http"
-            },
-            {
-                url: "https://stroncami.it/api/company-info",
                 protocol: "rest/1.0",
                 transport: "http"
             }
@@ -107,10 +98,10 @@ export async function GET() {
         }))
     };
 
-    return new Response(JSON.stringify(agent), {
+    return new Response(JSON.stringify(agent, null, 2), {
         headers: {
             "Content-Type": "application/json",
             "Cache-Control": "public, max-age=3600",
         },
     });
-}
+};

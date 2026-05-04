@@ -1,6 +1,9 @@
-import { categories } from "@/pages/api/info.ts";
+export const prerender = false;
 
-export async function GET() {
+import type { APIRoute } from "astro";
+import { categories } from "../info.ts";
+
+export const GET: APIRoute = async () => {
     const data = {
         description: "Roast Me — API Catalog",
         note: "This is a human-facing web application. The /api/roast endpoint is internal and used exclusively by the frontend UI. For programmatic access, use the MCP Server at /api/mcp.",
@@ -15,7 +18,7 @@ export async function GET() {
                 authentication: "None required",
                 rateLimit: "None enforced",
                 documentation: "https://stroncami.it/.well-known/openapi.json",
-                methods_detail: ["initialize", "analyzeWebsite", "getRoastResult", "listRecentRoasts"]
+                methods_detail: ["initialize", "analyzeWebsite", "getRoastResult", "listRecentRoasts", "getRoastWithLocale"]
             },
             {
                 id: "summary-public",
@@ -43,7 +46,7 @@ export async function GET() {
             {
                 id: "company-info-public",
                 name: "Company Legal Info API",
-                description: "Get legal information about Vicedomini Softworks srl (P.IVA, REA, registered office, share capital). Data is cached for 7 days.",
+                description: "Get legal information about Vicedomini Softworks srl (P.IVA, REA, registered office, share capital).",
                 url: "/api/company-info",
                 methods: ["GET"],
                 public: true,
@@ -55,7 +58,7 @@ export async function GET() {
             {
                 id: "roast-internal",
                 name: "Roast Internal API",
-                description: "Internal endpoint used by the Roast Me UI. Submits a URL for AI-powered analysis and returns a job ID for polling. Not intended for public use.",
+                description: "Internal endpoint used by the Roast Me UI. Submits a URL for AI-powered analysis. Not intended for public use.",
                 url: "/api/roast",
                 methods: ["POST", "GET"],
                 public: false,
@@ -90,10 +93,10 @@ export async function GET() {
         }
     };
 
-    return new Response(JSON.stringify(data), {
+    return new Response(JSON.stringify(data, null, 2), {
         headers: {
             "Content-Type": "application/json",
             "Cache-Control": "public, max-age=3600",
         },
     });
-}
+};

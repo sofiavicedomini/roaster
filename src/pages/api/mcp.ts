@@ -91,27 +91,21 @@ export const POST: APIRoute = async ({ request }) => {
           );
         }
 
-        const forwardReq = new Request("https://stroncami.it/api/roast", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            url: params.url,
-            categories: params.categories || ["design", "performance", "ux", "seo", "agentReadiness"],
-            locale: params.locale || "en"
-          })
-        });
-
-        const response = await fetch(forwardReq);
-        const data = await response.json();
-
         return new Response(
           JSON.stringify({
-            success: true,
-            result: data,
-            note: "Job submitted. Poll /api/roast?jobId={jobId} for results."
+            success: false,
+            error: "Remote analysis not available",
+            message: "The analyzeWebsite method cannot be executed remotely because it requires human interaction (CAPTCHA verification).",
+            instructions: {
+              en: "Please visit https://stroncami.it and use the web interface to analyze the website. Click 'Roast Me', enter the URL, complete the CAPTCHA, and submit.",
+              it: "Visitare https://stroncami.it e usare l'interfaccia web per analizzare il sito. Cliccare 'Roast Me', inserire l'URL, completare il CAPTCHA e inviare.",
+              action: "Open https://stroncami.it in a web browser and manually submit the URL for analysis."
+            },
+            url: params.url,
+            note: "This is a human-facing web application. The analysis requires CAPTCHA protection against automated abuse."
           }),
           { 
-            status: response.status, 
+            status: 400, 
             headers: { 
               "Content-Type": "application/json",
               "X-MCP-Method": "analyzeWebsite"

@@ -13,6 +13,12 @@ export default defineConfig({
   security: {
     checkOrigin: false,
   },
+  redirects: {
+    "/.well-known/mcp.json": "/api/.well-known/mcp.json",
+    "/.well-known/agent.json": "/api/.well-known/agent.json",
+    "/.well-known/api-catalog": "/api/.well-known/api-catalog",
+    "/.well-known/openapi.json": "/api/.well-known/openapi.json",
+  },
   vite: {
     plugins: [tailwindcss()],
   },
