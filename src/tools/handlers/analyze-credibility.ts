@@ -11,6 +11,24 @@ export async function handleAnalyzeCredibility(
   if (!html) return "No HTML or URL provided. Pass url to analyze credibility.";
   const signals: string[] = [];
   const pageUrl = new URL(baseUrl);
+  const hostname = pageUrl.hostname;
+  const freeHosts = [
+    "netlify.app",
+    "vercel.app",
+    "railway.app",
+    "squarespace.com",
+    "wixsite.com",
+    "wordpress.com",
+    "altervista.org",
+    "sites.google.com",
+  ];
+  const freeRegex = new RegExp(`\\.(${freeHosts.join("|")})$`, "i");
+  const isFreeSub = freeRegex.test(hostname) && !freeHosts.includes(hostname);
+  if (isFreeSub) {
+    signals.push(`free subdomain ${hostname} (low credibility)`);
+  } else {
+    signals.push(hostname);
+  }
   if (html.includes("privacy") || html.includes("policy"))
     signals.push("privacy/policy");
   if (html.includes("terms") || html.includes("conditions"))
@@ -36,8 +54,8 @@ export async function handleAnalyzeCredibility(
   if (html.includes("secure") || html.includes("trust"))
     signals.push("trust badges");
   const missing =
-    signals.length < 3
-      ? `Missing credibility signals: ${["contact", "privacy", "about", "SSL"].filter((s) => !signals.includes(s)).join(", ")}`
+    signals.length < 4 || isFreeSub
+      ? `${isFreeSub ? "Free subdomain reduces credibility. " : ""}Missing signals: ${["contact", "privacy", "about", "SSL"].filter((s) => !signals.includes(s)).join(", ")}`
       : "";
   return `Credibility: ${signals.join(", ")}${missing ? ". " + missing : ""}`;
 }
