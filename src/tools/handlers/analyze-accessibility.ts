@@ -15,45 +15,61 @@ export async function handleAnalyzeAccessibility(args: unknown, baseUrl: string)
   }
   
   const issues: string[] = [];
-  const hasAria = htmlContent.includes('aria-');
-  const hasRoles = htmlContent.includes('role="');
-  const hasAriaLabel = htmlContent.match(/aria-label/i);
-  const hasAriaLabelledby = htmlContent.match(/aria-labelledby/i);
-  const hasAriaDescribedby = htmlContent.match(/aria-describedby/i);
-  const hasAriaHidden = htmlContent.match(/aria-hidden/i);
-  const hasAriaRequired = htmlContent.match(/aria-required/i);
-  const hasAlt = htmlContent.includes('alt="');
-  const hasLang = htmlContent.includes("lang=");
-  const hasHeadings = htmlContent.match(/<h[1-6][^>]*>/i);
-  const hasButtons = htmlContent.match(/<button/i);
-  const hasInputs = htmlContent.match(/<input/i);
-  const hasLabels = htmlContent.match(/<label/i);
+  // Case-insensitive and more robust checks
+  const lowerHtml = htmlContent.toLowerCase();
+  const hasAria = lowerHtml.includes('aria-');
+  const hasRoles = lowerHtml.includes('role=');
+  const hasAriaLabel = /aria-label\s*=/i.test(htmlContent);
+  const hasAriaLabelledby = /aria-labelledby\s*=/i.test(htmlContent);
+  const hasAriaDescribedby = /aria-describedby\s*=/i.test(htmlContent);
+  const hasAriaHidden = /aria-hidden\s*=/i.test(htmlContent);
+  const hasAriaRequired = /aria-required\s*=/i.test(htmlContent);
+  const hasAlt = /alt\s*=/i.test(htmlContent);
+  const hasLang = /lang\s*=/i.test(htmlContent);
+  const hasHeadings = /<h[1-6][\s>]/i.test(htmlContent);
+  const hasButtons = /<button[\s>]/i.test(htmlContent);
+  const hasInputs = /<input[\s/>]/i.test(htmlContent);
+  const hasLabels = /<label[\s>]/i.test(htmlContent);
   
-  if (!hasAria) issues.push("no ARIA attributes");
+  if (!hasAria) issues.push("no ARIA attributes found");
   else {
-    if (!hasAriaLabel) issues.push("no aria-label");
-    if (!hasAriaLabelledby) issues.push("no aria-labelledby");
-    if (!hasAriaDescribedby) issues.push("no aria-describedby");
+    if (!hasAriaLabel) issues.push("no aria-label found");
+    if (!hasAriaLabelledby) issues.push("no aria-labelledby found");
+    if (!hasAriaDescribedby) issues.push("no aria-describedby found");
   }
   
-  if (!hasRoles) issues.push("no ARIA roles");
-  if (!hasAlt) issues.push("missing alt text on images");
-  if (!hasLang) issues.push("missing lang attribute");
-  if (!hasHeadings) issues.push("no headings");
-  if (!hasButtons) issues.push("no button elements");
+  if (!hasRoles) issues.push("no ARIA roles found");
+  if (!hasAlt && /<img/i.test(htmlContent)) issues.push("images without alt text");
+  if (!hasLang) issues.push("missing lang attribute on html");
+  if (!hasHeadings) issues.push("no heading elements (h1-h6) found");
+  if (!hasButtons) issues.push("no button elements found");
   if (!hasLabels && hasInputs) issues.push("form inputs without labels");
   
   const specificIssues: string[] = [];
-  if (htmlContent.includes('<a ') && htmlContent.includes('">') && !htmlContent.match(/<a[^>]*aria-label/i)) {
-    specificIssues.push("links without aria-label");
+  // Check for links without proper labels
+  if (/<a[\s>]/i.test(htmlContent) && !hasAriaLabel && !/href\s*=/i.test(htmlContent)) {
+    specificIssues.push("links without proper href or aria-label");
   }
-  if (htmlContent.includes('disabled') && !htmlContent.includes('aria-disabled')) {
-    specificIssues.push("disabled without aria-disabled");
+  if (htmlContent.includes('disabled') && !/aria-disabled\s*=/i.test(htmlContent)) {
+    specificIssues.push("disabled elements without aria-disabled");
   }
   
   const allIssues = [...issues, ...specificIssues];
   
+  const summary = {
+    hasAria,
+    hasRoles, 
+    hasAriaLabel,
+    hasAriaLabelledby,
+    hasAriaDescribedby,
+    hasHeadings,
+    hasButtons,
+    hasLabels,
+    hasLang,
+    issueCount: allIssues.length
+  };
+  
   return allIssues.length > 0 
-    ? `Accessibility issues: ${allIssues.join(", ")}. ARIA present: ${hasAria}, roles: ${hasRoles}, aria-label: ${!!hasAriaLabel}, aria-labelledby: ${!!hasAriaLabelledby}, aria-describedby: ${!!hasAriaDescribedby}, aria-hidden: ${!!hasAriaHidden}, aria-required: ${!!hasAriaRequired}`
-    : `Accessibilty OK. Has ARIA: ${hasAria}, roles: ${hasRoles}, aria-label: ${!!hasAriaLabel}, headings: ${hasHeadings ? "yes" : "no"}, buttons: ${hasButtons ? "yes" : "no"}, labels: ${!!hasLabels}.`;
+    ? `Accessibility issues found (${allIssues.length}): ${allIssues.join(", ")}. Summary: ARIA=${hasAria}, roles=${hasRoles}, aria-label=${hasAriaLabel}, headings=${hasHeadings}, buttons=${hasButtons}, labels=${hasLabels}, lang=${hasLang}`
+    : `Accessibility OK. ARIA present: ${hasAria}, roles: ${hasRoles}, aria-label: ${hasAriaLabel}, aria-labelledby: ${hasAriaLabelledby}, aria-describedby: ${hasAriaDescribedby}, headings: ${hasHeadings}, buttons: ${hasButtons}, labels: ${hasLabels}, lang: ${hasLang}. No critical issues found.`;
 }
