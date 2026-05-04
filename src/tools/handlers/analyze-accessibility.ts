@@ -1,62 +1,125 @@
+import { renderPage } from "../browser";
 import { fetchUrl } from "../utils";
 
 export async function handleAnalyzeAccessibility(args: unknown, baseUrl: string): Promise<string> {
-  const { html, url } = args as { html?: string; url?: string };
-  
-  let htmlContent = html;
-  
-  if (!htmlContent && url) {
-    const resolved = url.startsWith("http") ? url : new URL(url, new URL(baseUrl).origin).toString();
-    htmlContent = await fetchUrl(resolved) ?? undefined;
+  const { html: htmlArg, url: urlArg } = args as { html?: string; url?: string };
+
+  let html = htmlArg ?? "";
+
+  if (!html && urlArg) {
+    const resolved = urlArg.startsWith("http")
+      ? urlArg
+      : new URL(urlArg, new URL(baseUrl).origin).toString();
+    const rendered = await renderPage(resolved);
+    html = rendered?.html ?? (await fetchUrl(resolved)) ?? "";
   }
-  
-  if (!htmlContent) {
-    return "No HTML provided or URL not reachable. Use scrape_url first to fetch the homepage.";
+
+  if (!html) {
+    return "No HTML or URL provided. Pass url to analyze accessibility.";
   }
-  
+
   const issues: string[] = [];
-  // Case-insensitive and more robust checks
-  const lowerHtml = htmlContent.toLowerCase();
-  const hasAria = lowerHtml.includes('aria-');
-  const hasRoles = lowerHtml.includes('role=');
-  const hasAriaLabel = /aria-label\s*=/i.test(htmlContent);
-  const hasAriaLabelledby = /aria-labelledby\s*=/i.test(htmlContent);
-  const hasAriaDescribedby = /aria-describedby\s*=/i.test(htmlContent);
-  const hasAlt = /alt\s*=/i.test(htmlContent);
-  const hasLang = /lang\s*=/i.test(htmlContent);
-  const hasHeadings = /<h[1-6][\s>]/i.test(htmlContent);
-  const hasButtons = /<button[\s>]/i.test(htmlContent);
-  const hasInputs = /<input[\s/>]/i.test(htmlContent);
-  const hasLabels = /<label[\s>]/i.test(htmlContent);
-  
-  if (!hasAria) issues.push("no ARIA attributes found");
-  else {
-    if (!hasAriaLabel) issues.push("no aria-label found");
-    if (!hasAriaLabelledby) issues.push("no aria-labelledby found");
-    if (!hasAriaDescribedby) issues.push("no aria-describedby found");
+  const ok: string[] = [];
+
+  // --- lang attribute ---
+  if (/lang\s*=\s*["'][a-z]/i.test(html)) ok.push("lang attribute present");
+  else issues.push("missing lang attribute on <html>");
+
+  // --- Landmark roles / semantic structure ---
+  const hasMain = /<main[\s>]/i.test(html);
+  const hasNav = /<nav[\s>]/i.test(html);
+  const hasHeader = /<header[\s>]/i.test(html);
+  const hasFooter = /<footer[\s>]/i.test(html);
+  if (hasMain) ok.push("<main> landmark"); else issues.push("no <main> landmark");
+  if (hasNav) ok.push("<nav> landmark"); else issues.push("no <nav> landmark");
+  if (hasHeader) ok.push("<header>"); else issues.push("no <header>");
+  if (hasFooter) ok.push("<footer>"); else issues.push("no <footer>");
+
+  // --- Heading hierarchy ---
+  const h1s = (html.match(/<h1[\s>]/gi) || []).length;
+  const h2s = (html.match(/<h2[\s>]/gi) || []).length;
+  if (h1s === 0) issues.push("no <h1> heading");
+  else if (h1s > 1) issues.push(`multiple <h1> (${h1s})`);
+  else ok.push("single <h1>");
+  if (h2s > 0) ok.push(`${h2s} <h2> headings`);
+
+  // --- Images without alt ---
+  const allImgs = html.match(/<img\s[^>]*>/gi) || [];
+  const imgsWithoutAlt = allImgs.filter((img) => !/alt\s*=/i.test(img));
+  const decorativeImgs = allImgs.filter((img) => /alt\s*=\s*["']\s*["']/i.test(img));
+  if (allImgs.length > 0) {
+    if (imgsWithoutAlt.length > 0) issues.push(`${imgsWithoutAlt.length}/${allImgs.length} images missing alt`);
+    else ok.push(`all ${allImgs.length} images have alt (${decorativeImgs.length} decorative)`);
   }
-  
-  if (!hasRoles) issues.push("no ARIA roles found");
-  if (!hasAlt && /<img/i.test(htmlContent)) issues.push("images without alt text");
-  if (!hasLang) issues.push("missing lang attribute on html");
-  if (!hasHeadings) issues.push("no heading elements (h1-h6) found");
-  if (!hasButtons) issues.push("no button elements found");
-  if (!hasLabels && hasInputs) issues.push("form inputs without labels");
-  
-  const specificIssues: string[] = [];
-  // Check for links without proper labels
-  if (/<a[\s>]/i.test(htmlContent) && !hasAriaLabel && !/href\s*=/i.test(htmlContent)) {
-    specificIssues.push("links without proper href or aria-label");
+
+  // --- Form inputs without labels ---
+  const inputs = html.match(/<input(?![^>]*type\s*=\s*["'](?:hidden|submit|button|reset|image)["'])[^>]*>/gi) || [];
+  const inputsWithId = inputs.filter((inp) => /id\s*=/i.test(inp));
+  const inputsWithAria = inputs.filter((inp) => /aria-label(ledby)?\s*=/i.test(inp));
+  const labelTags = (html.match(/<label[^>]*for\s*=/gi) || []).length;
+  if (inputs.length > 0) {
+    const covered = inputsWithAria.length + Math.min(inputsWithId.length, labelTags);
+    if (covered < inputs.length) issues.push(`${inputs.length - covered}/${inputs.length} inputs may lack labels`);
+    else ok.push(`${inputs.length} inputs labelled`);
   }
-  if (htmlContent.includes('disabled') && !/aria-disabled\s*=/i.test(htmlContent)) {
-    specificIssues.push("disabled elements without aria-disabled");
+
+  // --- Buttons without accessible name ---
+  const buttons = html.match(/<button[^>]*>[\s\S]*?<\/button>/gi) || [];
+  const emptyButtons = buttons.filter((btn) => {
+    const inner = btn.replace(/<[^>]+>/g, "").trim();
+    return inner.length === 0 && !/aria-label\s*=/i.test(btn);
+  });
+  if (buttons.length > 0) {
+    if (emptyButtons.length > 0) issues.push(`${emptyButtons.length}/${buttons.length} buttons have no accessible name`);
+    else ok.push(`${buttons.length} buttons have text or aria-label`);
   }
-  
-  const allIssues = [...issues, ...specificIssues];
-  
-  void allIssues.length;
-  
-  return allIssues.length > 0 
-    ? `Accessibility issues found (${allIssues.length}): ${allIssues.join(", ")}. Summary: ARIA=${hasAria}, roles=${hasRoles}, aria-label=${hasAriaLabel}, headings=${hasHeadings}, buttons=${hasButtons}, labels=${hasLabels}, lang=${hasLang}`
-    : `Accessibility OK. ARIA present: ${hasAria}, roles: ${hasRoles}, aria-label: ${hasAriaLabel}, aria-labelledby: ${hasAriaLabelledby}, aria-describedby: ${hasAriaDescribedby}, headings: ${hasHeadings}, buttons: ${hasButtons}, labels: ${hasLabels}, lang: ${hasLang}. No critical issues found.`;
+
+  // --- Links without accessible name ---
+  const links = html.match(/<a\s[^>]*>[\s\S]*?<\/a>/gi) || [];
+  const emptyLinks = links.filter((link) => {
+    const inner = link.replace(/<[^>]+>/g, "").trim();
+    return inner.length === 0 && !/aria-label\s*=/i.test(link) && !/title\s*=/i.test(link);
+  });
+  if (emptyLinks.length > 0) issues.push(`${emptyLinks.length} links with no accessible name (no text, no aria-label)`);
+  else if (links.length > 0) ok.push(`${links.length} links have accessible names`);
+
+  // --- Skip navigation ---
+  const hasSkipLink = /<a[^>]*href\s*=\s*["']#/i.test(html);
+  if (hasSkipLink) ok.push("skip link present");
+  else issues.push("no skip navigation link");
+
+  // --- ARIA usage ---
+  const ariaLabelCount = (html.match(/aria-label\s*=/gi) || []).length;
+  const ariaRoleCount = (html.match(/role\s*=/gi) || []).length;
+  const ariaHiddenCount = (html.match(/aria-hidden\s*=\s*["']true["']/gi) || []).length;
+  if (ariaLabelCount > 0) ok.push(`${ariaLabelCount} aria-label`);
+  if (ariaRoleCount > 0) ok.push(`${ariaRoleCount} role=`);
+  if (ariaHiddenCount > 0) ok.push(`${ariaHiddenCount} aria-hidden=true`);
+  if (ariaLabelCount === 0 && ariaRoleCount === 0) issues.push("no ARIA attributes found");
+
+  // --- tabindex abuse ---
+  const badTabindex = (html.match(/tabindex\s*=\s*["'][1-9]\d*["']/gi) || []).length;
+  if (badTabindex > 0) issues.push(`${badTabindex} elements with tabindex > 0 (breaks natural tab order)`);
+
+  // --- Focus styles (inline hint) ---
+  const hasFocusStyle = html.includes(":focus") || html.includes("focus-visible");
+  if (hasFocusStyle) ok.push("focus styles referenced");
+  else issues.push("no :focus / focus-visible styles found");
+
+  // --- Interactive elements: disabled without aria-disabled ---
+  const disabledWithoutAria = (html.match(/\bdisabled\b/gi) || []).length;
+  const ariaDisabled = (html.match(/aria-disabled\s*=/gi) || []).length;
+  if (disabledWithoutAria > 0 && ariaDisabled === 0) {
+    issues.push(`${disabledWithoutAria} disabled element(s) without aria-disabled`);
+  }
+
+  const score = Math.max(1, 10 - Math.round(issues.length * 1.2));
+
+  return [
+    `Accessibility score: ~${score}/10`,
+    issues.length > 0 ? `Issues (${issues.length}): ${issues.join("; ")}` : "No critical issues",
+    ok.length > 0 ? `OK: ${ok.join(", ")}` : "",
+  ]
+    .filter(Boolean)
+    .join("\n");
 }
