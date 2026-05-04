@@ -21,6 +21,8 @@ To analyze a website, a human user must visit https://stroncami.it and use the i
 
 Full LLM documentation: https://stroncami.it/llms-full.txt
 API catalog: https://stroncami.it/.well-known/api-catalog
+MCP Server: https://stroncami.it/.well-known/mcp.json
+MCP Server: https://stroncami.it/.well-known/mcp.json
 
 ## Links
 - Website: https://stroncami.it

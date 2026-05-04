@@ -22,7 +22,7 @@ export const companyInfo = {
   founded: "2024"
 };
 
-const howItWorks = [
+export const howItWorks = [
   {
     step: 1,
     title: "Enter your URL",
@@ -49,7 +49,7 @@ const howItWorks = [
   }
 ];
 
-const categories = [
+export const categories = [
   {
     id: "design",
     name: "Design & UI",
