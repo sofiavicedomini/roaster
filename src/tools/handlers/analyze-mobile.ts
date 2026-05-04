@@ -1,5 +1,8 @@
-export function handleAnalyzeMobile(args: unknown): string {
-  const { html } = args as { html: string };
+import { getHtmlForAnalysis } from "../utils";
+
+export async function handleAnalyzeMobile(args: unknown, baseUrl: string): Promise<string> {
+  const html = await getHtmlForAnalysis(args as { html?: string; url?: string }, baseUrl);
+  if (!html) return "No HTML or URL provided. Pass url to analyze mobile.";
   const issues: string[] = [];
   if (!html.includes('viewport')) issues.push("missing viewport meta");
   if (!html.includes("@media")) issues.push("no media queries");

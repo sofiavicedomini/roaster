@@ -1,7 +1,7 @@
 export async function handleAnalyzeSecurityHeaders(args: unknown, baseUrl: string): Promise<string> {
   const { url: targetUrl } = args as { url: string };
   const resolved = targetUrl.startsWith("http") ? targetUrl : new URL(targetUrl, new URL(baseUrl).origin).toString();
-  const response = await fetch(resolved, { method: "HEAD", redirect: "manual" });
+  const response = await fetch(resolved, { method: "GET", redirect: "follow" });
   const headers: string[] = [];
   for (const [key, value] of response.headers.entries()) {
     if (key.toLowerCase().includes("content-security") ||

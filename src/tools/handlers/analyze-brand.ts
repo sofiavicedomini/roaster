@@ -1,5 +1,8 @@
-export function handleAnalyzeBrand(args: unknown): string {
-  const { html } = args as { html: string };
+import { getHtmlForAnalysis } from "../utils";
+
+export async function handleAnalyzeBrand(args: unknown, baseUrl: string): Promise<string> {
+  const html = await getHtmlForAnalysis(args as { html?: string; url?: string }, baseUrl);
+  if (!html) return "No HTML or URL provided. Pass url to analyze brand.";
   const signals: string[] = [];
   if (html.includes("<svg") || (html.includes("<img") && html.includes("logo"))) signals.push("logo");
   if (html.match(/class="[^"]*color[^"]*"/i) || html.match(/style="[^"]*color:/i)) signals.push("colors");

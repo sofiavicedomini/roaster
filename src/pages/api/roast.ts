@@ -28,6 +28,7 @@ import {
   analyzeAgentSkillsTool,
   submitRoastTool,
 } from "@/tools";
+import { renderPage } from "@/tools/browser";
 import {
   handleScrapeUrl,
   handleAnalyzeSecurityHeaders,
@@ -764,13 +765,17 @@ async function runPreAnalysis(url: string, categories: string[]): Promise<Record
 
   console.log("[Pre-analysis] Running lightweight analysis...");
 
-  // Scrape homepage first with timeout
+  // Scrape homepage first with timeout — use renderPage for full JS-rendered HTML
   let html = "";
   try {
-    const scrapePromise = handleScrapeUrl({ url }, url);
+    const scrapePromise = (async () => {
+      const rendered = await renderPage(url);
+      if (rendered?.html) return rendered.html;
+      return (await fetchUrl(url)) ?? "";
+    })();
     html = await Promise.race([
       scrapePromise,
-      new Promise<string>((_, reject) => setTimeout(() => reject(new Error("Scrape timeout")), 8000))
+      new Promise<string>((_, reject) => setTimeout(() => reject(new Error("Scrape timeout")), 20000))
     ]);
   } catch (e) {
     console.log("[Pre-analysis] Scrape failed, skipping:", e);
@@ -787,12 +792,12 @@ async function runPreAnalysis(url: string, categories: string[]): Promise<Record
     try {
       const result = await Promise.race([
         toolFn(),
-        new Promise<string>((_, reject) => setTimeout(() => reject(new Error("timeout")), 5000))
+        new Promise<string>((_, reject) => setTimeout(() => reject(new Error("timeout")), 12000))
       ]);
       const hasIssues = result.includes("issues:") || result.includes("missing") || result.includes("not found");
       results[`${name}_tool`] = {
         status: hasIssues ? "issues_found" : "ok",
-        detail: result.substring(0, 400),
+        detail: result.substring(0, 5000),
         score: hasIssues ? 4 : 8,
       };
     } catch (e) {
@@ -810,22 +815,22 @@ async function runPreAnalysis(url: string, categories: string[]): Promise<Record
 
   // SEO
   if (categories.includes("seo")) {
-    promises.push(runTool("seo", () => Promise.resolve(handleAnalyzeSeo({ html }))));
+    promises.push(runTool("seo", () => handleAnalyzeSeo({ html }, url)));
   }
 
   // HTML Structure / Code
   if (categories.includes("code") || categories.includes("design")) {
-    promises.push(runTool("html_structure", () => Promise.resolve(handleAnalyzeHtmlStructure({ html }))));
+    promises.push(runTool("html_structure", () => handleAnalyzeHtmlStructure({ html }, url)));
   }
 
   // Mobile
   if (categories.includes("mobile")) {
-    promises.push(runTool("mobile", () => Promise.resolve(handleAnalyzeMobile({ html }))));
+    promises.push(runTool("mobile", () => handleAnalyzeMobile({ html }, url)));
   }
 
   // Performance
   if (categories.includes("performance")) {
-    promises.push(runTool("performance", () => Promise.resolve(handleAnalyzePerformance({ html }))));
+    promises.push(runTool("performance", () => handleAnalyzePerformance({ html }, url)));
   }
 
   // Security
@@ -835,29 +840,29 @@ async function runPreAnalysis(url: string, categories: string[]): Promise<Record
 
   // Brand
   if (categories.includes("brand")) {
-    promises.push(runTool("brand", () => Promise.resolve(handleAnalyzeBrand({ html }))));
+    promises.push(runTool("brand", () => handleAnalyzeBrand({ html }, url)));
   }
 
   // UX
   if (categories.includes("ux")) {
-    promises.push(runTool("ux", () => Promise.resolve(handleAnalyzeUx({ html }))));
+    promises.push(runTool("ux", () => handleAnalyzeUx({ html }, url)));
   }
 
   // Conversion
   if (categories.includes("conversion")) {
-    promises.push(runTool("conversion", () => Promise.resolve(handleAnalyzeConversion({ html }))));
+    promises.push(runTool("conversion", () => handleAnalyzeConversion({ html }, url)));
   }
 
   // Credibility
   if (categories.includes("credibility")) {
-    promises.push(runTool("credibility", () => Promise.resolve(handleAnalyzeCredibility({ html }, url))));
+    promises.push(runTool("credibility", () => handleAnalyzeCredibility({ html }, url)));
   }
 
   // Wait for all tools with overall timeout (30 seconds for all tools)
   try {
     await Promise.race([
       Promise.all(promises),
-      new Promise<void>((_, reject) => setTimeout(() => reject(new Error("Pre-analysis timeout")), 30000))
+      new Promise<void>((_, reject) => setTimeout(() => reject(new Error("Pre-analysis timeout")), 60000))
     ]);
   } catch (e) {
     console.log("[Pre-analysis] Timeout or error, continuing with partial results:", e);

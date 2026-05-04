@@ -1,5 +1,8 @@
-export function handleAnalyzeCredibility(args: unknown, baseUrl: string): string {
-  const { html } = args as { html: string };
+import { getHtmlForAnalysis } from "../utils";
+
+export async function handleAnalyzeCredibility(args: unknown, baseUrl: string): Promise<string> {
+  const html = await getHtmlForAnalysis(args as { html?: string; url?: string }, baseUrl);
+  if (!html) return "No HTML or URL provided. Pass url to analyze credibility.";
   const signals: string[] = [];
   const pageUrl = new URL(baseUrl);
   if (html.includes("privacy") || html.includes("policy")) signals.push("privacy/policy");

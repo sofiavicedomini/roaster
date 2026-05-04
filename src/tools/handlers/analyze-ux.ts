@@ -1,5 +1,8 @@
-export function handleAnalyzeUx(args: unknown): string {
-  const { html } = args as { html: string };
+import { getHtmlForAnalysis } from "../utils";
+
+export async function handleAnalyzeUx(args: unknown, baseUrl: string): Promise<string> {
+  const html = await getHtmlForAnalysis(args as { html?: string; url?: string }, baseUrl);
+  if (!html) return "No HTML or URL provided. Pass url to analyze UX.";
   const signals: string[] = [];
 
   if (html.includes("<nav") || html.includes("navigation")) signals.push("navigation");

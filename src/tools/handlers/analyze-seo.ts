@@ -1,5 +1,8 @@
-export function handleAnalyzeSeo(args: unknown): string {
-  const { html, url: pageUrl } = args as { html: string; url: string };
+import { getHtmlForAnalysis } from "../utils";
+
+export async function handleAnalyzeSeo(args: unknown, baseUrl: string): Promise<string> {
+  const html = await getHtmlForAnalysis(args as { html?: string; url?: string }, baseUrl);
+  if (!html) return "No HTML or URL provided. Pass url to analyze SEO.";
   const issues: string[] = [];
   if (!html.includes("<title") || !html.includes("</title>")) issues.push("missing title tag");
   if (!html.includes('name="description"')) issues.push("missing meta description");
@@ -13,5 +16,5 @@ export function handleAnalyzeSeo(args: unknown): string {
   const headingCount = (html.match(/<h[1-6][^>]*>/g) || []).length;
   const linkCount = (html.match(/<a[^>]*href/g) || []).length;
   if (linkCount < 3) issues.push("few internal links");
-  return `SEO: ${issues.length > 0 ? issues.join(", ") : "good on-page SEO"}. Headings: ${headingCount}, Links: ${linkCount}. ${pageUrl ? `Page: ${pageUrl}` : ""}`;
+  return `SEO: ${issues.length > 0 ? issues.join(", ") : "good on-page SEO"}. Headings: ${headingCount}, Links: ${linkCount}.`;
 }

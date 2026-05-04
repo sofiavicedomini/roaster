@@ -6,9 +6,10 @@ export const analyzeConversionTool = {
     parameters: {
       type: "object",
       properties: {
-        html: { type: "string", description: "Raw HTML content to analyze" },
+        url: { type: "string", description: "URL to fetch and analyze (preferred — fetches live HTML)" },
+        html: { type: "string", description: "Raw HTML content (fallback if url not provided)" },
       },
-      required: ["html"],
+      required: [],
     },
   },
 };
