@@ -45,11 +45,27 @@ export async function POST({ request }: APIContext) {
 
   // Create or update contact in Brevo (with list assignment if configured)
   console.log(`[Newsletter] Creating/updating Brevo contact for: ${email}`);
-  const contactData: { email: string; lang: string; listIds?: number[] } = { email, lang };
+  const contactData: {
+    email: string;
+    attributes: { LANGUAGE: string };
+    updateEnabled: boolean;
+    listIds?: number[];
+  } = {
+    email,
+    attributes: { LANGUAGE: lang },
+    updateEnabled: true,
+  };
 
-  if (listId) {
-    contactData.listIds = [parseInt(listId)];
-    console.log(`[Newsletter] Will assign contact to Brevo list: ${listId}`);
+  if (!listId) {
+    console.warn(`[Newsletter] BREVO_LIST_ID not set — contact will be created without list assignment`);
+  } else {
+    const parsedListId = parseInt(listId);
+    if (isNaN(parsedListId)) {
+      console.error(`[Newsletter] BREVO_LIST_ID="${listId}" is not a valid number — contact will be created without list assignment`);
+    } else {
+      contactData.listIds = [parsedListId];
+      console.log(`[Newsletter] Will assign contact to Brevo list: ${parsedListId}`);
+    }
   }
 
   const contactRes = await fetch(
@@ -64,12 +80,12 @@ export async function POST({ request }: APIContext) {
     },
   );
 
-  console.log(`[Newsletter] Brevo contact creation response: ${contactRes.status} ${contactRes.statusText}`);
+  const responseBody = await contactRes.text();
+  console.log(`[Newsletter] Brevo response: ${contactRes.status} ${contactRes.statusText} — ${responseBody}`);
 
   // 201 = created, 204 = updated (contact exists)
   if (!contactRes.ok) {
-    const err = await contactRes.text();
-    console.error(`[Newsletter] Brevo contact creation failed (${contactRes.status}):`, err);
+    console.error(`[Newsletter] Brevo contact creation failed (${contactRes.status}):`, responseBody);
     return new Response(JSON.stringify({ error: "Subscription failed" }), {
       status: 502,
       headers: { "Content-Type": "application/json" },
