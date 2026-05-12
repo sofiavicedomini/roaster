@@ -34,7 +34,7 @@ function getLocalizedPath(loc: string) {
       try {
         const theme = localStorage.getItem('theme') || 'dark';
         document.documentElement.classList.add(theme);
-        const fireEnabled = localStorage.getItem('fire-enabled') !== 'false';
+        const fireEnabled = localStorage.getItem('fire-enabled') === 'true';
         if (!fireEnabled) {
           document.documentElement.classList.add('no-fire');
         }
@@ -154,7 +154,7 @@ function getLocalizedPath(loc: string) {
         try {
           const theme = localStorage.getItem('theme') || 'dark';
           document.documentElement.classList.add(theme);
-          const fireEnabled = localStorage.getItem('fire-enabled') !== 'false';
+          const fireEnabled = localStorage.getItem('fire-enabled') === 'true';
           if (fireEnabled) {
             document.documentElement.classList.add('fire-enabled');
           } else {
